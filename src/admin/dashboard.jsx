@@ -73,7 +73,7 @@ const Dashboard = () => {
                   <div className="table-responsive">
                     <table className="table">
                       <thead>
-                        <tr>
+                        <tr style={{ backgroundColor: "white" }}>
                           <th>Select</th>
                           <th>User</th>
                           <th>Name</th>
@@ -202,7 +202,7 @@ const Dashboard = () => {
                   <div className="table-responsive">
                     <table className="table">
                       <thead>
-                        <tr>
+                        <tr style={{ backgroundColor: "white" }}>
                           <th>Select</th>
                           <th>User</th>
                           <th>Name</th>
@@ -333,7 +333,7 @@ const Dashboard = () => {
                   <div className="table-responsive">
                     <table className="table">
                       <thead>
-                        <tr>
+                        <tr style={{ backgroundColor: "white" }}>
                           <th>User</th>
                           <th>Name</th>
                           <th>Phone</th>
@@ -575,7 +575,7 @@ const Dashboard = () => {
                   <div className="table-responsive">
                     <table className="table table-bordered">
                       <thead>
-                        <tr>
+                        <tr style={{ backgroundColor: "white" }}>
                           <th>ID</th>
                           <th>Name</th>
                           <th>Amount</th>

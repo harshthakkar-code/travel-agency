@@ -17,7 +17,7 @@ const DbPackagePending = () => (
           <div className="table-responsive">
             <table className="table">
               <thead>
-                <tr>
+                <tr style={{ backgroundColor: "white" }}>
                   <th>Name</th>
                   <th>Date</th>
                   <th>Destination</th>

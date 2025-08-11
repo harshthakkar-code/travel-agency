@@ -17,7 +17,7 @@ const DbBooking = () => (
           <div className="table-responsive">
             <table className="table">
               <thead>
-                <tr>
+                <tr style={{ backgroundColor: "white" }}>
                   <th>User</th>
                   <th>Date</th>
                   <th>Destination</th>
