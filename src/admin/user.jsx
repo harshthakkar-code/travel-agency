@@ -1,4 +1,6 @@
 import React from "react";
+import DashboardHeader from "./dashboardHeader";
+import DashboardSidebar from "./dashboardSidebar";
 
 const users = [
   {
@@ -54,7 +56,12 @@ const users = [
 const User = () => (
   <div id="container-wrapper">
     <div id="dashboard" className="dashboard-container">
-      {/* Header and Sidebar can be separate components */}
+
+        {/* 🔹 HEADER */}
+      <DashboardHeader />
+
+      {/* 🔹 SIDEBAR */}
+      <DashboardSidebar />
       <div className="db-info-wrap">
         <div className="row">
           <div className="col-lg-12">

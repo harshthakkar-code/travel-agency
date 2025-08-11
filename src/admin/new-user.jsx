@@ -1,8 +1,15 @@
 import React from "react";
+import DashboardSidebar from "./dashboardSidebar";
+import DashboardHeader from "./dashboardHeader";
 
 const NewUser = () => (
   <div id="container-wrapper">
     <div id="dashboard" className="dashboard-container">
+        {/* 🔹 HEADER */}
+      <DashboardHeader />
+
+      {/* 🔹 SIDEBAR */}
+      <DashboardSidebar />
       {/* Header and Navigation would be separate components in real apps */}
       <div className="db-info-wrap">
         <div className="row">

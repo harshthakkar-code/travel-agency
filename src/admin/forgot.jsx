@@ -1,15 +1,18 @@
 import React from "react";
+import 'popper.js';
+import bgImage from '../admin/assets/images/bg.jpg';
+import logoImg from '../admin/assets/images/logo.png';
 
 const Forgot = () => (
   <div
     className="login-page"
-    style={{ backgroundImage: "url(assets/images/bg.jpg)" }}
+    style={{ backgroundImage: `url(${bgImage})` }}
   >
     <div className="login-from-wrap">
       <form className="login-from">
         <h1 className="site-title">
           <a href="#">
-            <img src="assets/images/logo.png" alt="Logo" />
+            <img src={logoImg} alt="Logo" />
           </a>
         </h1>
         <div className="form-group">
@@ -21,7 +24,7 @@ const Forgot = () => (
             Submit
           </a>
         </div>
-        <a href="login.html" className="for-pass">
+        <a href="/admin/login" className="for-pass">
           Login
         </a>
       </form>

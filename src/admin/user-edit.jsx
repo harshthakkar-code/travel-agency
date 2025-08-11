@@ -1,8 +1,16 @@
 import React from "react";
+import DashboardSidebar from "./dashboardSidebar";
+import DashboardHeader from "./dashboardHeader";
 
 const UserEdit = () => (
   <div id="container-wrapper">
     <div id="dashboard" className="dashboard-container">
+
+       {/* 🔹 HEADER */}
+      <DashboardHeader />
+
+      {/* 🔹 SIDEBAR */}
+      <DashboardSidebar />
       {/* Header and Sidebar would be separate reusable components in real apps */}
       <div className="db-info-wrap">
         <div className="row">
