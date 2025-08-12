@@ -78,10 +78,10 @@ const User = () => {
           style={
             isDesktop
               ? {
-                  width: "100%",
-                  marginLeft: "23%",
-                  marginTop: "60px",
-                  marginRight: "-14%",
+                  // width: "100%",
+                  // marginLeft: "23%",
+                  // marginTop: "60px",
+                  // marginRight: "-14%",
                 }
               : {}
           }
