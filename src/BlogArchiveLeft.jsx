@@ -118,6 +118,74 @@ const BlogArchiveLeft = () => (
                       </div>
                     </article>
                   </div>
+                   <div className="grid-item col-md-6">
+                    <article className="post">
+                      <figure className="feature-image">
+                        <a href="#"><img src="assets/images/img17.jpg" alt="" /></a>
+                      </figure>
+                      <div className="entry-content">
+                        <h3><a href="#">Life is a beautiful journey not a destination</a></h3>
+                        <div className="entry-meta">
+                          <span className="byline"><a href="#">Demoteam</a></span>
+                          <span className="posted-on"><a href="#">August 17, 2021</a></span>
+                          <span className="comments-link"><a href="#">No Comments</a></span>
+                        </div>
+                        <p>Praesent, risus adipisicing donec! Cras. Lobortis id aliquip taciti repudiandae porro dolore facere officia! Natoque mollitia ultrices convallis nisl suscipit</p>
+                        <a href="#" className="button-text">CONTINUE READING..</a>
+                      </div>
+                    </article>
+                  </div>
+                  <div className="grid-item col-md-6">
+                    <article className="post">
+                      <figure className="feature-image">
+                        <a href="#"><img src="assets/images/img18.jpg" alt="" /></a>
+                      </figure>
+                      <div className="entry-content">
+                        <h3><a href="#">Take only memories, leave only footprints</a></h3>
+                        <div className="entry-meta">
+                          <span className="byline"><a href="#">Demoteam</a></span>
+                          <span className="posted-on"><a href="#">August 17, 2021</a></span>
+                          <span className="comments-link"><a href="#">No Comments</a></span>
+                        </div>
+                        <p>Praesent, risus adipisicing donec! Cras. Lobortis id aliquip taciti repudiandae porro dolore facere officia! Natoque mollitia ultrices convallis nisl suscipit</p>
+                        <a href="#" className="button-text">CONTINUE READING..</a>
+                      </div>
+                    </article>
+                  </div>
+                   <div className="grid-item col-md-6">
+                    <article className="post">
+                      <figure className="feature-image">
+                        <a href="#"><img src="assets/images/img17.jpg" alt="" /></a>
+                      </figure>
+                      <div className="entry-content">
+                        <h3><a href="#">Life is a beautiful journey not a destination</a></h3>
+                        <div className="entry-meta">
+                          <span className="byline"><a href="#">Demoteam</a></span>
+                          <span className="posted-on"><a href="#">August 17, 2021</a></span>
+                          <span className="comments-link"><a href="#">No Comments</a></span>
+                        </div>
+                        <p>Praesent, risus adipisicing donec! Cras. Lobortis id aliquip taciti repudiandae porro dolore facere officia! Natoque mollitia ultrices convallis nisl suscipit</p>
+                        <a href="#" className="button-text">CONTINUE READING..</a>
+                      </div>
+                    </article>
+                  </div>
+                  <div className="grid-item col-md-6">
+                    <article className="post">
+                      <figure className="feature-image">
+                        <a href="#"><img src="assets/images/img18.jpg" alt="" /></a>
+                      </figure>
+                      <div className="entry-content">
+                        <h3><a href="#">Take only memories, leave only footprints</a></h3>
+                        <div className="entry-meta">
+                          <span className="byline"><a href="#">Demoteam</a></span>
+                          <span className="posted-on"><a href="#">August 17, 2021</a></span>
+                          <span className="comments-link"><a href="#">No Comments</a></span>
+                        </div>
+                        <p>Praesent, risus adipisicing donec! Cras. Lobortis id aliquip taciti repudiandae porro dolore facere officia! Natoque mollitia ultrices convallis nisl suscipit</p>
+                        <a href="#" className="button-text">CONTINUE READING..</a>
+                      </div>
+                    </article>
+                  </div>
                   {/* ...repeat for remaining posts... */}
                 </div>
                 {/* Pagination */}
@@ -176,7 +244,46 @@ const BlogArchiveLeft = () => (
                           </div>
                         </div>
                       </li>
-                      {/* ...other recent posts */}
+                      <li>
+                        <figure className="post-thumb"><a href="#"><img src="assets/images/img17.jpg" alt="" /></a></figure>
+                        <div className="post-content">
+                          <h5><a href="#">Someday I’m going to be free and travel</a></h5>
+                          <div className="entry-meta">
+                            <span className="posted-on"><a href="#">August 17, 2021</a></span>
+                            <span className="comments-link"><a href="#">No Comments</a></span>
+                          </div>
+                        </div>
+                      </li>
+                      <li>
+                        <figure className="post-thumb"><a href="#"><img src="assets/images/img17.jpg" alt="" /></a></figure>
+                        <div className="post-content">
+                          <h5><a href="#">Someday I’m going to be free and travel</a></h5>
+                          <div className="entry-meta">
+                            <span className="posted-on"><a href="#">August 17, 2021</a></span>
+                            <span className="comments-link"><a href="#">No Comments</a></span>
+                          </div>
+                        </div>
+                      </li>
+                      <li>
+                        <figure className="post-thumb"><a href="#"><img src="assets/images/img17.jpg" alt="" /></a></figure>
+                        <div className="post-content">
+                          <h5><a href="#">Someday I’m going to be free and travel</a></h5>
+                          <div className="entry-meta">
+                            <span className="posted-on"><a href="#">August 17, 2021</a></span>
+                            <span className="comments-link"><a href="#">No Comments</a></span>
+                          </div>
+                        </div>
+                      </li>
+                      <li>
+                        <figure className="post-thumb"><a href="#"><img src="assets/images/img17.jpg" alt="" /></a></figure>
+                        <div className="post-content">
+                          <h5><a href="#">Someday I’m going to be free and travel</a></h5>
+                          <div className="entry-meta">
+                            <span className="posted-on"><a href="#">August 17, 2021</a></span>
+                            <span className="comments-link"><a href="#">No Comments</a></span>
+                          </div>
+                        </div>
+                      </li>
                     </ul>
                   </aside>
                   {/* Social Share */}

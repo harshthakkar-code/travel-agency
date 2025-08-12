@@ -16,7 +16,6 @@ const Comming_soon = () => (
           <h2>WE ARE COMING SOON !!</h2>
           <h4>SOMETHING AWESOME IS IN THE WORKS.</h4>
         </article>
-        {/* Time Countdown (static for now, can make dynamic later) */}
         <div className="time-counter-wrap">
           <div className="time-counter" data-date="2021-10-24 23:58:58">
             <div className="counter-time">

@@ -1,65 +1,10 @@
 import React from "react";
+import Header from "./Header";
 
 const BlogArchive = () => (
   <div id="page" className="full-page">
     {/* Header */}
-    <header id="masthead" className="site-header header-primary">
-      <div className="top-header">
-        <div className="container">
-          <div className="row">
-            <div className="col-lg-8 d-none d-lg-block">
-              <div className="header-contact-info">
-                <ul>
-                  <li>
-                    <a href="#"><i className="fas fa-phone-alt"></i> +01 (977) 2599 12</a>
-                  </li>
-                  <li>
-                    <a href="#"><i className="fas fa-envelope"></i> [email&#160;protected]</a>
-                  </li>
-                  <li>
-                    <i className="fas fa-map-marker-alt"></i> 3146 Koontz Lane, California
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div className="col-lg-4 d-flex justify-content-lg-end justify-content-between">
-              <div className="header-social social-links">
-                <ul>
-                  <li><a href="#"><i className="fab fa-facebook-f" /></a></li>
-                  <li><a href="#"><i className="fab fa-twitter" /></a></li>
-                  <li><a href="#"><i className="fab fa-instagram" /></a></li>
-                  <li><a href="#"><i className="fab fa-linkedin" /></a></li>
-                </ul>
-              </div>
-              <div className="header-search-icon">
-                <button className="search-icon">
-                  <i className="fas fa-search"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="bottom-header">
-        <div className="container d-flex justify-content-between align-items-center">
-          <div className="site-identity">
-            <p className="site-title">
-              <a href="index.html">
-                <img className="white-logo" src="assets/images/travele-logo.png" alt="logo" />
-                <img className="black-logo" src="assets/images/travele-logo1.png" alt="logo" />
-              </a>
-            </p>
-          </div>
-          <div className="main-navigation d-none d-lg-block">
-            {/* Add navigation or extract as a component */}
-          </div>
-          <div className="header-btn">
-            <a href="#" className="button-primary">BUY NOW</a>
-          </div>
-        </div>
-      </div>
-      <div className="mobile-menu-container"></div>
-    </header>
+    <Header />
 
     {/* Main Content */}
     <main id="content" className="site-main">
@@ -83,6 +28,74 @@ const BlogArchive = () => (
               <div className="col-lg-8 primary right-sidebar">
                 <div className="grid row">
                   {/* Repeat for each post */}
+                  <div className="grid-item col-md-6">
+                    <article className="post">
+                      <figure className="feature-image">
+                        <a href="#"><img src="assets/images/img17.jpg" alt="" /></a>
+                      </figure>
+                      <div className="entry-content">
+                        <h3><a href="#">Life is a beautiful journey not a destination</a></h3>
+                        <div className="entry-meta">
+                          <span className="byline"><a href="#">Demoteam</a></span>
+                          <span className="posted-on"><a href="#">August 17, 2021</a></span>
+                          <span className="comments-link"><a href="#">No Comments</a></span>
+                        </div>
+                        <p>Praesent, risus adipisicing donec! Cras. Lobortis id aliquip taciti repudiandae porro dolore facere officia! Natoque mollitia ultrices convallis nisl suscipit</p>
+                        <a href="#" className="button-text">CONTINUE READING..</a>
+                      </div>
+                    </article>
+                  </div>
+                  <div className="grid-item col-md-6">
+                    <article className="post">
+                      <figure className="feature-image">
+                        <a href="#"><img src="assets/images/img17.jpg" alt="" /></a>
+                      </figure>
+                      <div className="entry-content">
+                        <h3><a href="#">Life is a beautiful journey not a destination</a></h3>
+                        <div className="entry-meta">
+                          <span className="byline"><a href="#">Demoteam</a></span>
+                          <span className="posted-on"><a href="#">August 17, 2021</a></span>
+                          <span className="comments-link"><a href="#">No Comments</a></span>
+                        </div>
+                        <p>Praesent, risus adipisicing donec! Cras. Lobortis id aliquip taciti repudiandae porro dolore facere officia! Natoque mollitia ultrices convallis nisl suscipit</p>
+                        <a href="#" className="button-text">CONTINUE READING..</a>
+                      </div>
+                    </article>
+                  </div>
+                  <div className="grid-item col-md-6">
+                    <article className="post">
+                      <figure className="feature-image">
+                        <a href="#"><img src="assets/images/img17.jpg" alt="" /></a>
+                      </figure>
+                      <div className="entry-content">
+                        <h3><a href="#">Life is a beautiful journey not a destination</a></h3>
+                        <div className="entry-meta">
+                          <span className="byline"><a href="#">Demoteam</a></span>
+                          <span className="posted-on"><a href="#">August 17, 2021</a></span>
+                          <span className="comments-link"><a href="#">No Comments</a></span>
+                        </div>
+                        <p>Praesent, risus adipisicing donec! Cras. Lobortis id aliquip taciti repudiandae porro dolore facere officia! Natoque mollitia ultrices convallis nisl suscipit</p>
+                        <a href="#" className="button-text">CONTINUE READING..</a>
+                      </div>
+                    </article>
+                  </div>
+                  <div className="grid-item col-md-6">
+                    <article className="post">
+                      <figure className="feature-image">
+                        <a href="#"><img src="assets/images/img17.jpg" alt="" /></a>
+                      </figure>
+                      <div className="entry-content">
+                        <h3><a href="#">Life is a beautiful journey not a destination</a></h3>
+                        <div className="entry-meta">
+                          <span className="byline"><a href="#">Demoteam</a></span>
+                          <span className="posted-on"><a href="#">August 17, 2021</a></span>
+                          <span className="comments-link"><a href="#">No Comments</a></span>
+                        </div>
+                        <p>Praesent, risus adipisicing donec! Cras. Lobortis id aliquip taciti repudiandae porro dolore facere officia! Natoque mollitia ultrices convallis nisl suscipit</p>
+                        <a href="#" className="button-text">CONTINUE READING..</a>
+                      </div>
+                    </article>
+                  </div>
                   <div className="grid-item col-md-6">
                     <article className="post">
                       <figure className="feature-image">
@@ -166,6 +179,46 @@ const BlogArchive = () => (
                   <aside className="widget widget_latest_post widget-post-thumb">
                     <h3 className="widget-title">Recent Post</h3>
                     <ul>
+                      <li>
+                        <figure className="post-thumb"><a href="#"><img src="assets/images/img17.jpg" alt="" /></a></figure>
+                        <div className="post-content">
+                          <h5><a href="#">Someday I’m going to be free and travel</a></h5>
+                          <div className="entry-meta">
+                            <span className="posted-on"><a href="#">August 17, 2021</a></span>
+                            <span className="comments-link"><a href="#">No Comments</a></span>
+                          </div>
+                        </div>
+                      </li>
+                      <li>
+                        <figure className="post-thumb"><a href="#"><img src="assets/images/img17.jpg" alt="" /></a></figure>
+                        <div className="post-content">
+                          <h5><a href="#">Someday I’m going to be free and travel</a></h5>
+                          <div className="entry-meta">
+                            <span className="posted-on"><a href="#">August 17, 2021</a></span>
+                            <span className="comments-link"><a href="#">No Comments</a></span>
+                          </div>
+                        </div>
+                      </li>
+                      <li>
+                        <figure className="post-thumb"><a href="#"><img src="assets/images/img17.jpg" alt="" /></a></figure>
+                        <div className="post-content">
+                          <h5><a href="#">Someday I’m going to be free and travel</a></h5>
+                          <div className="entry-meta">
+                            <span className="posted-on"><a href="#">August 17, 2021</a></span>
+                            <span className="comments-link"><a href="#">No Comments</a></span>
+                          </div>
+                        </div>
+                      </li>
+                      <li>
+                        <figure className="post-thumb"><a href="#"><img src="assets/images/img17.jpg" alt="" /></a></figure>
+                        <div className="post-content">
+                          <h5><a href="#">Someday I’m going to be free and travel</a></h5>
+                          <div className="entry-meta">
+                            <span className="posted-on"><a href="#">August 17, 2021</a></span>
+                            <span className="comments-link"><a href="#">No Comments</a></span>
+                          </div>
+                        </div>
+                      </li>
                       <li>
                         <figure className="post-thumb"><a href="#"><img src="assets/images/img17.jpg" alt="" /></a></figure>
                         <div className="post-content">

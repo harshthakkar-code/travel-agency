@@ -1,68 +1,10 @@
 import React from "react";
+import Header from "./Header";
 
 const Blog_archive_both = () => (
   <div id="page" className="full-page">
     {/* --- Header: Consider making this a reusable component --- */}
-    <header id="masthead" className="site-header header-primary">
-      {/* Top Header */}
-      <div className="top-header">
-        <div className="container">
-          <div className="row">
-            <div className="col-lg-8 d-none d-lg-block">
-              <div className="header-contact-info">
-                <ul>
-                  <li>
-                    <a href="#"><i className="fas fa-phone-alt"></i> +01 (977) 2599 12</a>
-                  </li>
-                  <li>
-                    <a href="#"><i className="fas fa-envelope"></i> [email&#160;protected]</a>
-                  </li>
-                  <li>
-                    <i className="fas fa-map-marker-alt"></i> 3146 Koontz Lane, California
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div className="col-lg-4 d-flex justify-content-lg-end justify-content-between">
-              <div className="header-social social-links">
-                <ul>
-                  <li><a href="#"><i className="fab fa-facebook-f" /></a></li>
-                  <li><a href="#"><i className="fab fa-twitter" /></a></li>
-                  <li><a href="#"><i className="fab fa-instagram" /></a></li>
-                  <li><a href="#"><i className="fab fa-linkedin" /></a></li>
-                </ul>
-              </div>
-              <div className="header-search-icon">
-                <button className="search-icon">
-                  <i className="fas fa-search"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      {/* Bottom Header */}
-      <div className="bottom-header">
-        <div className="container d-flex justify-content-between align-items-center">
-          <div className="site-identity">
-            <p className="site-title">
-              <a href="index.html">
-                <img className="white-logo" src="assets/images/travele-logo.png" alt="logo" />
-                <img className="black-logo" src="assets/images/travele-logo1.png" alt="logo" />
-              </a>
-            </p>
-          </div>
-          <div className="main-navigation d-none d-lg-block">
-            {/* Place your navigation here, or extract as a component */}
-          </div>
-          <div className="header-btn">
-            <a href="#" className="button-primary">BUY NOW</a>
-          </div>
-        </div>
-      </div>
-      <div className="mobile-menu-container"></div>
-    </header>
-
+    <Header />
     {/* Main Content */}
     <main id="content" className="site-main">
       {/* --- Inner Banner --- */}
@@ -130,6 +72,46 @@ const Blog_archive_both = () => (
                           </div>
                         </div>
                       </li>
+                      <li>
+                        <figure className="post-thumb"><a href="#"><img src="assets/images/img17.jpg" alt="" /></a></figure>
+                        <div className="post-content">
+                          <h5><a href="#">Someday I’m going to be free and travel</a></h5>
+                          <div className="entry-meta">
+                            <span className="posted-on"><a href="#">August 17, 2021</a></span>
+                            <span className="comments-link"><a href="#">No Comments</a></span>
+                          </div>
+                        </div>
+                      </li>
+                      <li>
+                        <figure className="post-thumb"><a href="#"><img src="assets/images/img17.jpg" alt="" /></a></figure>
+                        <div className="post-content">
+                          <h5><a href="#">Someday I’m going to be free and travel</a></h5>
+                          <div className="entry-meta">
+                            <span className="posted-on"><a href="#">August 17, 2021</a></span>
+                            <span className="comments-link"><a href="#">No Comments</a></span>
+                          </div>
+                        </div>
+                      </li>
+                      <li>
+                        <figure className="post-thumb"><a href="#"><img src="assets/images/img17.jpg" alt="" /></a></figure>
+                        <div className="post-content">
+                          <h5><a href="#">Someday I’m going to be free and travel</a></h5>
+                          <div className="entry-meta">
+                            <span className="posted-on"><a href="#">August 17, 2021</a></span>
+                            <span className="comments-link"><a href="#">No Comments</a></span>
+                          </div>
+                        </div>
+                      </li>
+                      <li>
+                        <figure className="post-thumb"><a href="#"><img src="assets/images/img17.jpg" alt="" /></a></figure>
+                        <div className="post-content">
+                          <h5><a href="#">Someday I’m going to be free and travel</a></h5>
+                          <div className="entry-meta">
+                            <span className="posted-on"><a href="#">August 17, 2021</a></span>
+                            <span className="comments-link"><a href="#">No Comments</a></span>
+                          </div>
+                        </div>
+                      </li>
                       {/* ...other posts */}
                     </ul>
                   </aside>
@@ -164,6 +146,40 @@ const Blog_archive_both = () => (
               <div className="col-lg-4 primary">
                 <div className="grid row">
                   {/* Blog Post */}
+                  <div className="grid-item col-12">
+                    <article className="post">
+                      <figure className="feature-image">
+                        <a href="#"><img src="assets/images/img17.jpg" alt="" /></a>
+                      </figure>
+                      <div className="entry-content">
+                        <h3><a href="#">Life is a beautiful journey not a destination</a></h3>
+                        <div className="entry-meta">
+                          <span className="byline"><a href="#">Demoteam</a></span>
+                          <span className="posted-on"><a href="#">August 17, 2021</a></span>
+                          <span className="comments-link"><a href="#">No Comments</a></span>
+                        </div>
+                        <p>Praesent, risus adipisicing donec! Cras. Lobortis id aliquip taciti repudiandae porro dolore facere officia! Natoque mollitia ultrices convallis nisl suscipit</p>
+                        <a href="#" className="button-text">CONTINUE READING..</a>
+                      </div>
+                    </article>
+                  </div>
+                  <div className="grid-item col-12">
+                    <article className="post">
+                      <figure className="feature-image">
+                        <a href="#"><img src="assets/images/img17.jpg" alt="" /></a>
+                      </figure>
+                      <div className="entry-content">
+                        <h3><a href="#">Life is a beautiful journey not a destination</a></h3>
+                        <div className="entry-meta">
+                          <span className="byline"><a href="#">Demoteam</a></span>
+                          <span className="posted-on"><a href="#">August 17, 2021</a></span>
+                          <span className="comments-link"><a href="#">No Comments</a></span>
+                        </div>
+                        <p>Praesent, risus adipisicing donec! Cras. Lobortis id aliquip taciti repudiandae porro dolore facere officia! Natoque mollitia ultrices convallis nisl suscipit</p>
+                        <a href="#" className="button-text">CONTINUE READING..</a>
+                      </div>
+                    </article>
+                  </div>
                   <div className="grid-item col-12">
                     <article className="post">
                       <figure className="feature-image">
@@ -227,6 +243,12 @@ const Blog_archive_both = () => (
                     <h3 className="widget-title">Instagram</h3>
                     <div className="insta-gallery gallery-colum-3">
                       <figure className="gallery-item"><a href="#"><img src="assets/images/img25.jpg" alt="" /></a></figure>
+                      <figure className="gallery-item"><a href="#"><img src="assets/images/img25.jpg" alt="" /></a></figure>
+                      <figure className="gallery-item"><a href="#"><img src="assets/images/img25.jpg" alt="" /></a></figure>
+                      <figure className="gallery-item"><a href="#"><img src="assets/images/img25.jpg" alt="" /></a></figure>
+                      <figure className="gallery-item"><a href="#"><img src="assets/images/img25.jpg" alt="" /></a></figure>
+                      <figure className="gallery-item"><a href="#"><img src="assets/images/img25.jpg" alt="" /></a></figure>
+
                       {/* ...repeat for other images */}
                     </div>
                   </aside>

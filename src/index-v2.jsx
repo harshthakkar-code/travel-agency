@@ -1,7 +1,10 @@
 import React from "react";
+import Header from "./Header";
 
 const Index_v2 = () => (
   <main id="content" className="site-main">
+
+    <Header />
     {/* Banner Section */}
     <section className="home-banner-section">
       <div className="home-banner-items">
@@ -175,7 +178,7 @@ const Index_v2 = () => (
     {/* Client Section */}
     <div className="client-section">
       <div className="container">
-        <div className="client-wrap client-slider">
+        <div className="client-wrap client-slider d-flex">
           {["logo7.png", "logo8.png", "logo9.png", "logo10.png", "logo11.png", "logo8.png"].map((logo, i) => (
             <div className="client-item" key={i}>
               <figure>
@@ -203,6 +206,406 @@ const Index_v2 = () => (
         </div>
         <div className="package-inner package-inner-list">
           <div className="row">
+              {/* <div className="package-inner package-inner-list">
+                     <div className="row">
+                        <div className="col-lg-6">
+                           <div className="package-wrap package-wrap-list">
+                              <figure className="feature-image">
+                                 <a href="#">
+                                    <img src="assets/images/img9.jpg" alt="" />
+                                 </a>
+                                 <div className="package-price">
+                                    <h6>
+                                       <span>$1,900 </span> / per person
+                                    </h6>
+                                 </div>
+                                 <div className="package-meta text-center">
+                                    <ul>
+                                       <li>
+                                          <i className="far fa-clock"></i>
+                                          7D/6N
+                                       </li>
+                                       <li>
+                                          <i className="fas fa-user-friends"></i>
+                                          People: 5
+                                       </li>
+                                       <li>
+                                          <i className="fas fa-map-marker-alt"></i>
+                                          Malaysia
+                                       </li>
+                                    </ul>
+                                 </div>
+                              </figure>
+                              <div className="package-content">
+                                 <h3>
+                                    <a href="#">Sunset view of beautiful lakeside</a>
+                                 </h3>
+                                 <div className="review-area">
+                                    <span className="review-text">(25 reviews)</span>
+                                    <div className="rating-start" title="Rated 5 out of 5">
+                                       <span style="width: 60%"></span>
+                                    </div>
+                                 </div>
+                                 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit luctus nec ullam. Ut elit tellus, luctus nec ullam elit tellpus.</p>
+                                 <div className="btn-wrap">
+                                    <a href="#" className="button-text width-6">Book Now<i className="fas fa-arrow-right"></i></a>
+                                    <a href="#" className="button-text width-6">Wish List<i className="far fa-heart"></i></a>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                        <div className="col-lg-6">
+                           <div className="package-wrap package-wrap-list">
+                              <figure className="feature-image">
+                                 <a href="#">
+                                    <img src="assets/images/img10.jpg" alt="" />
+                                 </a>
+                                 <div className="package-price">
+                                    <h6>
+                                       <span>$1,350 </span> / per person
+                                    </h6>
+                                 </div>
+                                 <div className="package-meta text-center">
+                                    <ul>
+                                       <li>
+                                          <i className="far fa-clock"></i>
+                                          7D/6N
+                                       </li>
+                                       <li>
+                                          <i className="fas fa-user-friends"></i>
+                                          People: 5
+                                       </li>
+                                       <li>
+                                          <i className="fas fa-map-marker-alt"></i>
+                                          Malaysia
+                                       </li>
+                                    </ul>
+                                 </div>
+                              </figure>
+                              <div className="package-content">
+                                 <h3>
+                                    <a href="#">Holiday to the Oxolotan River</a>
+                                 </h3>
+                                 <div className="review-area">
+                                    <span className="review-text">(22 reviews)</span>
+                                    <div className="rating-start" title="Rated 5 out of 5">
+                                       <span style="width: 80%"></span>
+                                    </div>
+                                 </div>
+                                 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit luctus nec ullam. Ut elit tellus, luctus nec ullam elit tellpus.</p>
+                                 <div className="btn-wrap">
+                                    <a href="#" className="button-text width-6">Book Now<i className="fas fa-arrow-right"></i></a>
+                                    <a href="#" className="button-text width-6">Wish List<i className="far fa-heart"></i></a>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                        <div className="col-lg-6">
+                           <div className="package-wrap package-wrap-list">
+                              <figure className="feature-image">
+                                 <a href="#">
+                                    <img src="assets/images/img11.jpg" alt="" />
+                                 </a>
+                                 <div className="package-price">
+                                    <h6>
+                                       <span>$1,000 </span> / per person
+                                    </h6>
+                                 </div>
+                                 <div className="package-meta text-center">
+                                    <ul>
+                                       <li>
+                                          <i className="far fa-clock"></i>
+                                          7D/6N
+                                       </li>
+                                       <li>
+                                          <i className="fas fa-user-friends"></i>
+                                          People: 5
+                                       </li>
+                                       <li>
+                                          <i className="fas fa-map-marker-alt"></i>
+                                          Malaysia
+                                       </li>
+                                    </ul>
+                                 </div>
+                              </figure>
+                              <div className="package-content">
+                                 <h3>
+                                    <a href="#">Experience the beauty of island</a>
+                                 </h3>
+                                 <div className="review-area">
+                                    <span className="review-text">(22 reviews)</span>
+                                    <div className="rating-start" title="Rated 5 out of 5">
+                                       <span style="width: 80%"></span>
+                                    </div>
+                                 </div>
+                                 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit luctus nec ullam. Ut elit tellus, luctus nec ullam elit tellpus.</p>
+                                 <div className="btn-wrap">
+                                    <a href="#" className="button-text width-6">Book Now<i className="fas fa-arrow-right"></i></a>
+                                    <a href="#" className="button-text width-6">Wish List<i className="far fa-heart"></i></a>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                        <div className="col-lg-6">
+                           <div className="package-wrap">
+                              <figure className="feature-image">
+                                 <a href="#">
+                                    <img src="assets/images/img9.jpg" alt="" />
+                                 </a>
+                                 <div className="package-price">
+                                    <h6>
+                                       <span>$1,100 </span> / per person
+                                    </h6>
+                                 </div>
+                                 <div className="package-meta text-center">
+                                    <ul>
+                                       <li>
+                                          <i className="far fa-clock"></i>
+                                          7D/6N
+                                       </li>
+                                       <li>
+                                          <i className="fas fa-user-friends"></i>
+                                          People: 5
+                                       </li>
+                                       <li>
+                                          <i className="fas fa-map-marker-alt"></i>
+                                          Malaysia
+                                       </li>
+                                    </ul>
+                                 </div>
+                              </figure>
+                              <div className="package-content">
+                                 <h3>
+                                    <a href="#">Vacation to water city of Portugal</a>
+                                 </h3>
+                                 <div className="review-area">
+                                    <span className="review-text">(22 reviews)</span>
+                                    <div className="rating-start" title="Rated 5 out of 5">
+                                       <span style="width: 100%"></span>
+                                    </div>
+                                 </div>
+                                 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit luctus nec ullam. Ut elit tellus, luctus nec ullam elit tellpus.</p>
+                                 <div className="btn-wrap">
+                                    <a href="#" className="button-text width-6">Book Now<i className="fas fa-arrow-right"></i></a>
+                                    <a href="#" className="button-text width-6">Wish List<i className="far fa-heart"></i></a>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                     <div className="btn-wrap text-center">
+                        <a href="#" className="button-primary">VIEW ALL PACKAGES</a>
+                     </div>
+                  </div> */}
+
+                  <div className="package-inner package-inner-list">
+      <div className="row">
+        <div className="col-lg-6">
+          <div className="package-wrap package-wrap-list">
+            <figure className="feature-image">
+              <a href="#">
+                <img src="assets/images/img9.jpg" alt="" />
+              </a>
+              <div className="package-price">
+                <h6>
+                  <span>$1,900 </span> / per person
+                </h6>
+              </div>
+              <div className="package-meta text-center">
+                <ul>
+                  <li>
+                    <i className="far fa-clock"></i> 7D/6N
+                  </li>
+                  <li>
+                    <i className="fas fa-user-friends"></i> People: 5
+                  </li>
+                  <li>
+                    <i className="fas fa-map-marker-alt"></i> Malaysia
+                  </li>
+                </ul>
+              </div>
+            </figure>
+            <div className="package-content">
+              <h3>
+                <a href="#">Sunset view of beautiful lakeside</a>
+              </h3>
+              <div className="review-area">
+                <span className="review-text">(25 reviews)</span>
+                <div className="rating-start" title="Rated 5 out of 5">
+                  <span style={{ width: "60%" }}></span>
+                </div>
+              </div>
+              <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit luctus
+                nec ullam. Ut elit tellus, luctus nec ullam elit tellpus.
+              </p>
+              <div className="btn-wrap">
+                <a href="#" className="button-text width-6">
+                  Book Now<i className="fas fa-arrow-right"></i>
+                </a>
+                <a href="#" className="button-text width-6">
+                  Wish List<i className="far fa-heart"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-lg-6">
+          <div className="package-wrap package-wrap-list">
+            <figure className="feature-image">
+              <a href="#">
+                <img src="assets/images/img10.jpg" alt="" />
+              </a>
+              <div className="package-price">
+                <h6>
+                  <span>$1,350 </span> / per person
+                </h6>
+              </div>
+              <div className="package-meta text-center">
+                <ul>
+                  <li>
+                    <i className="far fa-clock"></i> 7D/6N
+                  </li>
+                  <li>
+                    <i className="fas fa-user-friends"></i> People: 5
+                  </li>
+                  <li>
+                    <i className="fas fa-map-marker-alt"></i> Malaysia
+                  </li>
+                </ul>
+              </div>
+            </figure>
+            <div className="package-content">
+              <h3>
+                <a href="#">Holiday to the Oxolotan River</a>
+              </h3>
+              <div className="review-area">
+                <span className="review-text">(22 reviews)</span>
+                <div className="rating-start" title="Rated 5 out of 5">
+                  <span style={{ width: "80%" }}></span>
+                </div>
+              </div>
+              <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit luctus
+                nec ullam. Ut elit tellus, luctus nec ullam elit tellpus.
+              </p>
+              <div className="btn-wrap">
+                <a href="#" className="button-text width-6">
+                  Book Now<i className="fas fa-arrow-right"></i>
+                </a>
+                <a href="#" className="button-text width-6">
+                  Wish List<i className="far fa-heart"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-lg-6">
+          <div className="package-wrap package-wrap-list">
+            <figure className="feature-image">
+              <a href="#">
+                <img src="assets/images/img11.jpg" alt="" />
+              </a>
+              <div className="package-price">
+                <h6>
+                  <span>$1,000 </span> / per person
+                </h6>
+              </div>
+              <div className="package-meta text-center">
+                <ul>
+                  <li>
+                    <i className="far fa-clock"></i> 7D/6N
+                  </li>
+                  <li>
+                    <i className="fas fa-user-friends"></i> People: 5
+                  </li>
+                  <li>
+                    <i className="fas fa-map-marker-alt"></i> Malaysia
+                  </li>
+                </ul>
+              </div>
+            </figure>
+            <div className="package-content">
+              <h3>
+                <a href="#">Experience the beauty of island</a>
+              </h3>
+              <div className="review-area">
+                <span className="review-text">(22 reviews)</span>
+                <div className="rating-start" title="Rated 5 out of 5">
+                  <span style={{ width: "80%" }}></span>
+                </div>
+              </div>
+              <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit luctus
+                nec ullam. Ut elit tellus, luctus nec ullam elit tellpus.
+              </p>
+              <div className="btn-wrap">
+                <a href="#" className="button-text width-6">
+                  Book Now<i className="fas fa-arrow-right"></i>
+                </a>
+                <a href="#" className="button-text width-6">
+                  Wish List<i className="far fa-heart"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-lg-6">
+          <div className="package-wrap">
+            <figure className="feature-image">
+              <a href="#">
+                <img src="assets/images/img9.jpg" alt="" />
+              </a>
+              <div className="package-price">
+                <h6>
+                  <span>$1,100 </span> / per person
+                </h6>
+              </div>
+              <div className="package-meta text-center">
+                <ul>
+                  <li>
+                    <i className="far fa-clock"></i> 7D/6N
+                  </li>
+                  <li>
+                    <i className="fas fa-user-friends"></i> People: 5
+                  </li>
+                  <li>
+                    <i className="fas fa-map-marker-alt"></i> Malaysia
+                  </li>
+                </ul>
+              </div>
+            </figure>
+            <div className="package-content">
+              <h3>
+                <a href="#">Vacation to water city of Portugal</a>
+              </h3>
+              <div className="review-area">
+                <span className="review-text">(22 reviews)</span>
+                <div className="rating-start" title="Rated 5 out of 5">
+                  <span style={{ width: "100%" }}></span>
+                </div>
+              </div>
+              <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit luctus
+                nec ullam. Ut elit tellus, luctus nec ullam elit tellpus.
+              </p>
+              <div className="btn-wrap">
+                <a href="#" className="button-text width-6">
+                  Book Now<i className="fas fa-arrow-right"></i>
+                </a>
+                <a href="#" className="button-text width-6">
+                  Wish List<i className="far fa-heart"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
             {/* Repeat for each package - keep static or map */}
             {/* ... */}
             {/* This is a direct conversion; you can modularize as you need */}
@@ -513,6 +916,142 @@ const Index_v2 = () => (
         </div>
       </div>
     </section>
+
+       <footer id="colophon" className="site-footer footer-primary">
+          <div className="top-footer">
+            <div className="container">
+              <div className="row">
+                <div className="col-lg-3 col-md-6">
+                  <aside className="widget widget_text">
+                    <h3 className="widget-title">About Travel</h3>
+                    <div className="textwidget widget-text">
+                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut
+                      elit tellus, luctus nec ullamcorper mattis, pulvinar dapibus
+                      leo.
+                    </div>
+                    <div className="award-img">
+                      <a href="#">
+                        <img src="/assets/images/logo6.png" alt="" />
+                      </a>
+                      <a href="#">
+                        <img src="/assets/images/logo2.png" alt="" />
+                      </a>
+                    </div>
+                  </aside>
+                </div>
+                <div className="col-lg-3 col-md-6">
+                  <aside className="widget widget_text">
+                    <h3 className="widget-title">CONTACT INFORMATION</h3>
+                    <div className="textwidget widget-text">
+                      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                      <ul>
+                        <li>
+                          <a href="#">
+                            <i className="fas fa-phone-alt"></i> +01 (977) 2599
+                            12
+                          </a>
+                        </li>
+                        <li>
+                          <a href="#">
+                            <i className="fas fa-envelope"></i>{" "}
+                            <span
+                              className="__cf_email__"
+                              data-cfemail="bcdfd3d1ccddd2c5fcd8d3d1ddd5d292dfd3d1"
+                            >
+                              [email&#160;protected]
+                            </span>
+                          </a>
+                        </li>
+                        <li>
+                          <i className="fas fa-map-marker-alt"></i> 3146 Koontz,
+                          California
+                        </li>
+                      </ul>
+                    </div>
+                  </aside>
+                </div>
+                <div className="col-lg-3 col-md-6">
+                  <aside className="widget widget_recent_post">
+                    <h3 className="widget-title">Latest Post</h3>
+                    <ul>
+                      <li>
+                        <h5>
+                          <a href="#">Life is a beautiful journey not a destination</a>
+                        </h5>
+                        <div className="entry-meta">
+                          <span className="post-on">
+                            <a href="#">August 17, 2021</a>
+                          </span>
+                          <span className="comments-link">
+                            <a href="#">No Comments</a>
+                          </span>
+                        </div>
+                      </li>
+                      <li>
+                        <h5>
+                          <a href="#">Take only memories, leave only footprints</a>
+                        </h5>
+                        <div className="entry-meta">
+                          <span className="post-on">
+                            <a href="#">August 17, 2021</a>
+                          </span>
+                          <span className="comments-link">
+                            <a href="#">No Comments</a>
+                          </span>
+                        </div>
+                      </li>
+                    </ul>
+                  </aside>
+                </div>
+                <div className="col-lg-3 col-md-6">
+                  <aside className="widget widget_newslatter">
+                    <h3 className="widget-title">SUBSCRIBE US</h3>
+                    <div className="widget-text">
+                      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                    </div>
+                    <form className="newslatter-form">
+                      <input type="email" name="s" placeholder="Your Email.." />
+                      <input type="submit" name="s" value="SUBSCRIBE NOW" />
+                    </form>
+                  </aside>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="buttom-footer">
+            <div className="container">
+              <div className="row align-items-center">
+                <div className="col-md-5">
+                  <div className="footer-menu">
+                    <ul>
+                      <li>
+                        <a href="#">Privacy Policy</a>
+                      </li>
+                      <li>
+                        <a href="#">Term & Condition</a>
+                      </li>
+                      <li>
+                        <a href="#">FAQ</a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                <div className="col-md-2 text-center">
+                  <div className="footer-logo">
+                    <a href="#">
+                      <img src="/assets/images/travele-logo.png" alt="" />
+                    </a>
+                  </div>
+                </div>
+                <div className="col-md-5">
+                  <div className="copy-right text-right">
+                    Copyright © 2021 Travele. All rights reserveds
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </footer>
   </main>
 );
 
