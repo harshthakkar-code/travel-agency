@@ -48,6 +48,8 @@ import DbBooking from './admin/db-booking.jsx';
 import DbPackageExpired from './admin/db-package-expired.jsx';
 import DbComment from './admin/db-comment.jsx';
 import DbPackageActive from './admin/db-package-active.jsx';
+import DbEditPackage from './admin/DbEditPackage.jsx';
+import Register from './admin/register.jsx';
 
 function App() {
   return (
@@ -76,7 +78,7 @@ function App() {
       <Route path="/product-right" element={<ProductRight />} />
       <Route path="/tour-packages" element={<TourPackages />} />
       <Route path="/package-offer" element={<PackageOffer />} />
-      <Route path="/package-detail" element={<PackageDetail />} />
+      <Route path="/package-detail/:id" element={<PackageDetail />} />
       <Route path="/service" element={<Service />} />
       <Route path="/faq" element={<FAQ />} />
       <Route path="/destination" element={<Destination />} />
@@ -92,8 +94,9 @@ function App() {
       <Route path="/admin/db-wishlist" element={<DbWishlist />} />
       <Route path="/admin/forgot" element={<Forgot />} />
       <Route path="/admin/login" element={<Login />} />
+      <Route path="/user/register" element={<Register />} />
       <Route path="/admin/new-user" element={<NewUser />} />  
-      <Route path="/admin/user-edit" element={<UserEdit />} />
+      <Route path="/admin/user-edit/:id" element={<UserEdit />} />
       <Route path="/admin/user" element={<User />} />
       <Route path="/admin/db-add-package" element={<DbAddPackage />} />
       <Route path="/admin/dashboard" element={<Dashboard />} />
@@ -101,6 +104,8 @@ function App() {
       <Route path="/admin/db-package-expired" element={<DbPackageExpired />} />
       <Route path="/admin/db-comment" element={<DbComment />} />
       <Route path="/admin/db-package-active" element={<DbPackageActive />} />
+      <Route path="/admin/edit-package/:id" element={<DbEditPackage />} />
+
     </Routes>
   );
 }

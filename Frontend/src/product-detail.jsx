@@ -9,7 +9,6 @@ const Product_detail = () => {
     <div id="page" className="full-page">
       {/* HEADER COMPONENT */}
       <Header />
-
       <main id="content" className="site-main">
         {/* Inner Banner */}
         <section className="inner-banner-wrap inner-banner-gray">

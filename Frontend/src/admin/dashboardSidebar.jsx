@@ -13,7 +13,7 @@ const DashboardSidebar = () => {
             <a><i className="fas fa-user"></i>Users</a>
             <ul>
               <li><a href="/admin/user">User</a></li>
-              <li><a href="/admin/user-edit">User edit</a></li>
+              {/* <li><a href="/admin/user-edit">User edit</a></li> */}
               <li><a href="/admin/new-user">New user</a></li>
             </ul>
           </li>

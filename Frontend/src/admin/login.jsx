@@ -1,39 +1,85 @@
-import React from "react";
-import 'popper.js';
+import React, { useState } from "react";
+import api from "../utils/api";
 import bgImage from '../admin/assets/images/bg.jpg';
 import logoImg from '../admin/assets/images/logo.png';
 
-const Login = () => (
-  <div
-    className="login-page"
-    style={{ backgroundImage: `url(${bgImage})` }}
-  >
-    <div className="login-from-wrap">
-      <form className="login-from">
-        <h1 className="site-title">
-          <a href="#">
-            <img src={logoImg} alt="Logo" />
+const Login = () => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  // Handle form submit
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+    try {
+      // Call backend login route
+      const res = await api.post('/auth/login', {
+        email: username, // assumes username == email
+        password
+      });
+      localStorage.setItem('token', res.data.token);
+      // Redirect to dashboard page (or use react-router navigation)
+      window.location.href = "/admin/dashboard";
+    } catch (err) {
+      setError(err.response?.data?.message || "Login failed");
+    }
+  };
+
+  return (
+    <div
+      className="login-page"
+      style={{ backgroundImage: `url(${bgImage})` }}
+    >
+      <div className="login-from-wrap">
+        <form className="login-from" onSubmit={handleLogin}>
+          <h1 className="site-title">
+            <a href="#">
+              <img src={logoImg} alt="Logo" />
+            </a>
+          </h1>
+          
+          <p className="form-subtitle" style={{fontWeight: "bold"}}>Welcome! Please login to your account.</p>
+          <div className="form-group">
+            <label htmlFor="username">User Name</label>
+            <input
+              type="text"
+              id="username"
+              className="validate"
+              value={username}
+              onChange={e => setUsername(e.target.value)}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              className="validate"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          {error && <div style={{ color: "red", marginBottom: "10px" }}>{error}</div>}
+          <div className="form-group">
+            <button type="submit" className="button-primary">
+              Login
+            </button>
+          </div>
+          <div className="d-flex justify-content-between">
+          <a href="/user/register" className="for-pass">
+            Don't have an account?
           </a>
-        </h1>
-        <div className="form-group">
-          <label htmlFor="username">User Name</label>
-          <input type="text" id="username" className="validate" />
-        </div>
-        <div className="form-group">
-          <label htmlFor="password">Password</label>
-          <input id="password" type="password" className="validate" />
-        </div>
-        <div className="form-group">
-          <a className="button-primary" href="dashboard.html">
-            Login
+          <a href="/admin/forgot" className="for-pass">
+            Reset Password
           </a>
-        </div>
-        <a href="/admin/forgot" className="for-pass">
-          Forgot Password?
-        </a>
-      </form>
+          </div>
+        </form>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default Login;

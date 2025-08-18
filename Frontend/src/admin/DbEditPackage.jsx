@@ -1,9 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import api from "../utils/api"; // axios instance with baseURL & token
 import DashboardSidebar from "./dashboardSidebar";
 import DashboardHeader from "./dashboardHeader";
 
-const DbAddPackage = () => {
+const DbEditPackage = () => {
+  const { id } = useParams(); // Package ID from URL
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -14,7 +18,7 @@ const DbAddPackage = () => {
     salePrice: "",
     regularPrice: "",
     discount: "",
-    destination: "", // NEW field
+    destination: "",
     location: "",
     mapUrl: "",
     isPopular: false,
@@ -25,6 +29,43 @@ const DbAddPackage = () => {
   const [imageFile, setImageFile] = useState(null);
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState("");
+
+  // Fetch package details on mount
+  useEffect(() => {
+    const fetchPackage = async () => {
+      try {
+        const { data } = await api.get(`/packages/${id}`);
+        let tripDay = "", tripNight = "";
+        if (data.tripDuration) {
+          const matches = data.tripDuration.match(/(\d+)\s*day.*?(\d+)\s*night/i);
+          if (matches) {
+            tripDay = Number(matches[1]);
+            tripNight = Number(matches[2]);
+          }
+        }
+        setForm({
+          title: data.title || "",
+          description: data.description || "",
+          groupSize: data.groupSize || "",
+          tripDay,
+          tripNight,
+          category: data.category || "",
+          salePrice: data.salePrice || "",
+          regularPrice: data.regularPrice || "",
+          discount: data.discount || "",
+          destination: data.destination || "",
+          location: data.location || "",
+          mapUrl: data.mapUrl || "",
+          isPopular: data.isPopular || false,
+          keywords: data.keywords || "",
+          status: data.status || ""
+        });
+      } catch (err) {
+        console.error("Error fetching package:", err);
+      }
+    };
+    fetchPackage();
+  }, [id]);
 
   // Handle change with live validation
   const handleChange = (e) => {
@@ -47,7 +88,6 @@ const DbAddPackage = () => {
     // Clear this field's error if now valid
     setErrors((prevErrors) => {
       const updated = { ...prevErrors };
-
       if (name === "title" && newValue.toString().trim() !== "") delete updated.title;
       if (name === "description" && newValue.toString().trim() !== "") delete updated.description;
       if (name === "groupSize" && newValue !== "") delete updated.groupSize;
@@ -78,27 +118,23 @@ const DbAddPackage = () => {
     setImageFile(e.target.files[0]);
   };
 
-  // Validation + submit
+  // Validation + submit update
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
     setSuccess("");
 
     let newErrors = {};
-
     if (!form.title.trim()) newErrors.title = "Title is required";
     if (!form.description.trim()) newErrors.description = "Description is required";
     if (!form.groupSize) newErrors.groupSize = "Group size is required";
-
     if (form.tripDay === "" || form.tripNight === "") {
       newErrors.tripDuration = "Days and nights are required";
     } else if (Math.abs(form.tripDay - form.tripNight) > 1) {
       newErrors.tripDuration = "Days and nights difference must be 0 or 1";
     }
-
     if (!form.category) newErrors.category = "Category is required";
     if (!form.regularPrice) newErrors.regularPrice = "Regular price is required";
-
     if (!form.destination.trim()) newErrors.destination = "Destination is required";
     if (!form.location) newErrors.location = "Location is required";
     if (!form.mapUrl.trim()) newErrors.mapUrl = "API key is required";
@@ -112,29 +148,11 @@ const DbAddPackage = () => {
     const data = { ...form, tripDuration, gallery: imageFile ? [imageFile.name] : [] };
 
     try {
-      await api.post("/packages", data);
-      setSuccess("Package added successfully!");
-      setForm({
-        title: "",
-        description: "",
-        groupSize: "",
-        tripDay: "",
-        tripNight: "",
-        category: "",
-        salePrice: "",
-        regularPrice: "",
-        discount: "",
-        destination: "",
-        location: "",
-        mapUrl: "",
-        isPopular: false,
-        keywords: "",
-        status: "Pending"
-      });
-      setImageFile(null);
-      setErrors({});
+      await api.put(`/packages/${id}`, data);
+      setSuccess("Package updated successfully!");
+      setTimeout(() => navigate("/admin/db-package-active"), 1000);
     } catch (err) {
-      setErrors({ api: err.response?.data?.message || "Error saving package" });
+      setErrors({ api: err.response?.data?.message || "Error updating package" });
     }
   };
 
@@ -147,7 +165,7 @@ const DbAddPackage = () => {
         <div className="db-info-wrap db-add-tour-wrap">
           <form onSubmit={handleSubmit}>
             <div className="row">
-              {/* LEFT COLUMN */}
+              {/* LEFT COLUMN — identical to Add form */}
               <div className="col-lg-8 col-xl-9">
                 {/* Title & Description */}
                 <div className="dashboard-box">
@@ -165,7 +183,7 @@ const DbAddPackage = () => {
                   </div>
                 </div>
 
-                {/* Dates and Prices */}
+                {/* Dates & Prices */}
                 <div className="dashboard-box">
                   <div className="custom-field-wrap">
                     <h4>Dates and Prices</h4>
@@ -290,7 +308,7 @@ const DbAddPackage = () => {
                 </div>
               </div>
 
-              {/* RIGHT COLUMN (unchanged) */}
+              {/* RIGHT COLUMN */}
               <div className="col-lg-4 col-xl-3">
                 <div className="dashboard-box">
                   <div className="custom-field-wrap">
@@ -303,7 +321,7 @@ const DbAddPackage = () => {
                       </select>
                     </div>
                     <div className="publish-action">
-                      <input type="submit" name="publish" value="Publish" />
+                      <input type="submit" value="Save Changes" />
                     </div>
                   </div>
                 </div>
@@ -378,4 +396,4 @@ const DbAddPackage = () => {
   );
 };
 
-export default DbAddPackage;
+export default DbEditPackage;
