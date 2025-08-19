@@ -54,7 +54,7 @@ import Register from './admin/register.jsx';
 function App() {
   return (
     <Routes>
-      {/* <Route path="/" element={<Home />} /> */}
+      <Route path="/" element={<TourPackages />} />
       <Route path="/about" element={<About />} />
       <Route path='/blog-archive' element={<Blogarchive />} />
       <Route path='/blog-archive-left' element={<BlogArchiveLeft />} />

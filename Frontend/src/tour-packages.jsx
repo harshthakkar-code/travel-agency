@@ -73,7 +73,7 @@ const Tour_packages = () => {
                               </li>
                               <li>
                                 <i className="fas fa-map-marker-alt"></i>{" "}
-                                {pkg.destination || "Malaysia"}
+                                {pkg.destination || "-"}
                               </li>
                             </ul>
                           </div>

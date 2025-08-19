@@ -2,29 +2,40 @@ import React, { useState } from "react";
 import api from "../utils/api";
 import bgImage from '../admin/assets/images/bg.jpg';
 import logoImg from '../admin/assets/images/logo.png';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   // Handle form submit
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setError("");
-    try {
-      // Call backend login route
-      const res = await api.post('/auth/login', {
-        email: username, // assumes username == email
-        password
-      });
-      localStorage.setItem('token', res.data.token);
-      // Redirect to dashboard page (or use react-router navigation)
-      window.location.href = "/admin/dashboard";
-    } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+  e.preventDefault();
+  setError("");
+  
+  try {
+    const res = await api.post('/auth/login', {
+      email: username,
+      password
+    });
+    
+    localStorage.setItem('token', res.data.token);
+    localStorage.setItem('user', JSON.stringify(res.data.name));
+    
+    const userRole = res.data.user?.role || res.data.role;
+    
+    if (userRole === 'user') {
+      navigate("/tour-packages");
+    } else {
+      navigate("/admin/dashboard");
     }
-  };
+    
+  } catch (err) {
+    setError(err.response?.data?.message || "Login failed");
+  }
+};
 
   return (
     <div
