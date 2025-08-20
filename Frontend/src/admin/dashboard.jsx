@@ -145,7 +145,7 @@ const Dashboard = () => {
                             <th>Name</th>
                             <th>Date</th>
                             <th>City</th>
-                            <th>Enquiry</th>
+                            {/* <th>Enquiry</th> */}
                           </tr>
                         </thead>
                         <tbody>
@@ -161,7 +161,7 @@ const Dashboard = () => {
                               <td>{booking.package?.packageTitle}</td>
                               <td>{new Date(booking.bookingDate || booking.createdAt).toLocaleDateString()}</td>
                               <td>{booking.package?.destination}</td>
-                              <td><span className="badge badge-primary">{booking.enquiry_count || booking.enquiry || 0}</span></td>
+                              {/* <td><span className="badge badge-primary">{booking.enquiry_count || booking.enquiry || 0}</span></td> */}
                             </tr>
                           ))}
                         </tbody>
@@ -408,8 +408,8 @@ const Dashboard = () => {
                   {!loadingTransactions && !errorTransactions && transactions.length > 0 && (
                     <div className="table-responsive">
                       <table className="table table-bordered">
-                        <thead>
-                          <tr>
+                        <thead >
+                          <tr style={{ backgroundColor: "white" }}>
                             {/* <th>ID</th> */}
                             <th>Name</th>
                             <th>Amount</th>

@@ -6,6 +6,12 @@ const Header = () => {
   const [user, setUser] = useState(null);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
 
+
+   const handleLogoClick = () => {
+    console.log('Logo clicked');
+    window.location.href = '/';
+  }
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 100);
@@ -25,7 +31,7 @@ const Header = () => {
     if (token && userData) {
       setIsAuthenticated(true);
       try {
-        const parsedUser = JSON.parse(userData);
+        const parsedUser = userData;
         setUser(parsedUser);
       } catch (error) {
         console.error('Error parsing user data:', error);
@@ -82,6 +88,7 @@ const Header = () => {
     transition: "color 0.3s ease"
   };
 
+ 
   // Render authentication buttons
   const renderAuthSection = () => {
     if (isAuthenticated && user) {
@@ -103,7 +110,7 @@ const Header = () => {
                 transition: 'all 0.3s ease'
               }}
             >
-              Welcome, {user.name || user.firstName || user.username || 'User'}
+              Welcome, {localStorage.getItem('user')}
               <i className="fas fa-chevron-down" style={{ marginLeft: '5px', fontSize: '12px' }}></i>
             </button>
             
@@ -127,7 +134,7 @@ const Header = () => {
               >
                 <div style={{ padding: '10px 15px', borderBottom: '1px solid #f8f9fa', fontSize: '12px', color: '#6c757d' }}>
                   Signed in as <br />
-                  <strong style={{ color: '#333' }}>{user.email || 'user@example.com'}</strong>
+                  <strong style={{ color: '#333' }}>{localStorage.getItem('userEmail')}</strong>
                 </div>
                 
                 {/* <a 
@@ -303,7 +310,7 @@ const Header = () => {
       >
         <div className="container d-flex justify-content-between align-items-center">
           {/* Logo */}
-          <div className="site-identity">
+          <div className="site-identity" onClick={handleLogoClick}>
             <p className="site-title">
               <img
                 className="black-logo"
@@ -312,6 +319,7 @@ const Header = () => {
                 style={{ display: isScrolled ? "inline" : "none" }}
               />
               <img
+                href="/"
                 className="white-logo"
                 src="/assets/images/travele-logo.png"
                 alt="logo"
@@ -324,10 +332,10 @@ const Header = () => {
           <div className="main-navigation d-none d-lg-block">
             <nav id="navigation" className="navigation">
               <ul>
-                <li className="menu-item-has-children">
+                {/* <li className="menu-item-has-children">
                   <a href="/" style={navLinkStyle}>Home</a>
                   <ul><li><a href="/index-v2">Home 2</a></li></ul>
-                </li>
+                </li> */}
                 <li className="menu-item-has-children">
                   <a href="#" style={navLinkStyle}>Tour</a>
                   <ul>
@@ -350,7 +358,7 @@ const Header = () => {
                     <li><a href="/contact">Contact</a></li>
                   </ul>
                 </li>
-                <li className="menu-item-has-children">
+                {/* <li className="menu-item-has-children">
                   <a href="#" style={navLinkStyle}>Shop</a>
                   <ul>
                     <li><a href="/product-right">Shop Archive</a></li>
@@ -358,7 +366,7 @@ const Header = () => {
                     <li><a href="/product-cart">Shop Cart</a></li>
                     <li><a href="/product-checkout">Shop Checkout</a></li>
                   </ul>
-                </li>
+                </li> */}
                 <li className="menu-item-has-children">
                   <a href="#" style={navLinkStyle}>Blog</a>
                   <ul>

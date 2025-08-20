@@ -8,15 +8,34 @@ exports.getAllTransactions = async (req, res) => {
     const transactions = await Transaction.find();
     // calculate total amount
     const totalAmount = transactions.reduce((acc, transaction) => acc + transaction.amount, 0);
+    
+    // Function to format number in Indian numbering style
+    const formatIndianNumber = (num) => {
+      const numStr = num.toString();
+      const lastThree = numStr.slice(-3);
+      const otherNumbers = numStr.slice(0, -3);
+      
+      if (otherNumbers !== '') {
+        const formattedOtherNumbers = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ',');
+        return formattedOtherNumbers + ',' + lastThree;
+      }
+      return lastThree;
+    };
+
+    const formattedTotalAmount = formatIndianNumber(totalAmount);
+
     const Data = {
-      totalAmount,
+      totalAmount: formattedTotalAmount,
+      originalAmount: totalAmount, 
       transactions
-    }
+    };
+    
     res.json(Data);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 exports.createStripeCheckoutSession = async (req, res) => {
   try {
