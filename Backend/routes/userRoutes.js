@@ -13,7 +13,7 @@ const router = express.Router();
 router.get('/', protect, getUsers);
 
 // Get single user
-    router.get('/:id', protect, getUserById);
+router.get('/:id', protect, getUserById);
 
 // Update user
 router.put('/:id', protect, updateUser);

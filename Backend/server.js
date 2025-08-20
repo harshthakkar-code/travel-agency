@@ -10,6 +10,9 @@ connectDB();
 const app = express();
 
 app.use(cors());
+
+app.post('/api/transactions/stripe/webhook', express.raw({ type: 'application/json' }), require('./controllers/transactionController').stripeWebhook);
+
 app.use(express.json());
 
 // Routes

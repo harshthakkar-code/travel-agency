@@ -147,7 +147,7 @@ const User = () => {
   const fetchUsers = async () => {
     try {
       const res = await api.get("/users", { params: { role: "user" } });
-      setUsers(res.data);
+      setUsers(res.data.users || res.data);
     } catch (err) {
       console.error(err);
       setError("Failed to fetch users");

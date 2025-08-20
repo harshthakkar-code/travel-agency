@@ -284,7 +284,7 @@ const generateInvoicePDF = (transaction) => {
                       Thank you, your payment has{" "}
                       {status === "paid" ? "succeeded" : "not completed yet"}.
                       A confirmation email was sent to{" "}
-                      <a href={`mailto:${user.email}`}>{user.email}</a>.
+                      <a style={{ color: "black" }} href={`mailto:${user.email}`}>{user.email}</a>.
                     </p>
                   </div>
                 </div>
@@ -337,12 +337,29 @@ const generateInvoicePDF = (transaction) => {
                           </tbody>
                         </table>
 
+                         { status !== "" && (
+                          <div className="details">
+                            <h3>Payment Status</h3>
+                            <div className="details-desc" style={{ marginBottom: "15px" }}>
+                              <p>{status === "paid" ? "CONFIRMED" : "PENDING"}</p>
+                            </div>
+                          </div>
+                         )} 
+                         {/* <div className="details">
+                          <h3>Booking Staus</h3>
+                          <div className="details-desc" style={{ marginBottom: "15px" }}>
+                            <p>
+                              {status === "paid" ? "CONFIRMED" : "PENDING"}
+                            </p>
+                          </div>
+                        </div> */}
+
                         <div className="details">
                           <h3>VIEW INVOICE</h3>
                           <div className="details-desc">
                             {receiptUrl ? (
                               <p>
-                                <a href={receiptUrl} target="_blank" rel="noopener noreferrer">
+                                <a href={receiptUrl} style={{ color: "blue" }} target="_blank" rel="noopener noreferrer">
                                   View Stripe Invoice
                                 </a>
                               </p>

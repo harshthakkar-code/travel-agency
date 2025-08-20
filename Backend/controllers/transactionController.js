@@ -2,6 +2,22 @@ const stripe = require('../utils/stripe');
 const Transaction = require('../models/Transaction');
 const Booking = require('../models/Booking'); 
 
+
+exports.getAllTransactions = async (req, res) => {
+  try {
+    const transactions = await Transaction.find();
+    // calculate total amount
+    const totalAmount = transactions.reduce((acc, transaction) => acc + transaction.amount, 0);
+    const Data = {
+      totalAmount,
+      transactions
+    }
+    res.json(Data);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 exports.createStripeCheckoutSession = async (req, res) => {
   try {
     const {
@@ -63,22 +79,22 @@ exports.createStripeCheckoutSession = async (req, res) => {
       package: packageDetails,
       addOns,
       pricing,
-      // status: 'pending'
-      status:"paid"
+      status: 'pending'
+      // status:"paid"
     });
     console.log("Stripe session created:", session.id);
     //create a booking record
-    await Booking.create({
-      userId,
-      user: userDetails,
-      billingAddress,
-      package: packageDetails,
-      addOns,
-      pricing,
-      termsAccepted,
-      bookingDate,
-      status: 'Pending',
-    });
+    // await Booking.create({
+    //   userId,
+    //   user: userDetails,
+    //   billingAddress,
+    //   package: packageDetails,
+    //   addOns,
+    //   pricing,
+    //   termsAccepted,
+    //   bookingDate,
+    //   status: 'Pending',
+    // });
 
     res.json({ url: session.url });
   } catch (err) {
@@ -98,48 +114,62 @@ exports.stripeWebhook = async (req, res) => {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-if (event.type === 'checkout.session.completed') {
-  const session = event.data.object;
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
 
-  // Mark the transaction as paid
-  const transaction = await Transaction.findOneAndUpdate(
-    { sessionId: session.id },
-    {
-      status: 'paid',
-      paymentIntentId: session.payment_intent,
-      receiptUrl: session.invoice ? session.invoice : (session.receipt_url || null)
-    },
-    { new: true }
-  );
+    let receiptUrl = null;
 
-  // Save booking data to Booking collection
-  if (transaction) {
-    const bookingData = {
-      transactionId: transaction._id,
-      user: transaction.user,
-      userId: transaction.userId,
-      billingAddress: transaction.billingAddress,
-      package: transaction.package,
-      addOns: transaction.addOns,
-      pricing: transaction.pricing,
-      status: 'confirmed',
-      bookingDate: transaction.bookingDate || new Date(),
-      paymentIntentId: transaction.paymentIntentId,
-      receiptUrl: transaction.receiptUrl,
-      // createdAt, updatedAt are auto-handled if using timestamps:true in schema
-    };
+    // 1. Retrieve the PaymentIntent
+    let paymentIntent = null;
+    if (session.payment_intent) {
+      try {
+        paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent, { expand: ['charges'] });
+        // 2. Retrieve the Charge
+        const latestChargeId = paymentIntent.latest_charge;
+        if (latestChargeId) {
+          const charge = await stripe.charges.retrieve(latestChargeId);
+          receiptUrl = charge.receipt_url || null;
+        }
+      } catch (err) {
+        console.error("Unable to fetch paymentIntent or charge for receipt", err);
+      }
+    }
 
-    await Booking.create(bookingData);
-    console.log("Booking saved successfully");
+    // 3. Update the Transaction with receiptUrl
+    const transaction = await Transaction.findOneAndUpdate(
+      { sessionId: session.id },
+      {
+        status: 'paid',
+        paymentIntentId: session.payment_intent,
+        receiptUrl: receiptUrl
+      },
+      { new: true }
+    );
+    console.log("Transaction marked as paid:", session.id, "with receipt:", receiptUrl);
+
+    // 4. Save booking data to Booking collection, now with receiptUrl
+    if (transaction) {
+      const bookingData = {
+        transactionId: transaction._id,
+        user: transaction.user,
+        userId: transaction.userId,
+        billingAddress: transaction.billingAddress,
+        package: transaction.package,
+        addOns: transaction.addOns,
+        pricing: transaction.pricing,
+        status: 'Confirmed',
+        bookingDate: transaction.bookingDate || new Date(),
+        paymentIntentId: transaction.paymentIntentId,
+        receiptUrl: receiptUrl,
+        // createdAt, updatedAt are handled by schema timestamps
+      };
+      await Booking.create(bookingData);
+    }
   }
-
-  console.log("Transaction marked as paid and booking saved:", session.id);
-}
-
 
   res.status(200).json({ received: true });
 };
-// GET /stripe/transaction/:sessionId
+
 exports.getTransactionBySessionId = async (req, res) => {
   try {
     const transaction = await Transaction.findOne({ sessionId: req.params.sessionId });

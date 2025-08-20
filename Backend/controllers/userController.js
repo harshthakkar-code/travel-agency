@@ -11,7 +11,12 @@ exports.getUsers = async (req, res) => {
     }
 
     const users = await User.find(filter).select('-password');
-    res.json(users);
+    const totalUsers = await User.countDocuments(filter);
+
+    res.json({
+      totalUsers,
+      users,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

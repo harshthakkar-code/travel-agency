@@ -1,8 +1,70 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import DashboardSidebar from "./dashboardSidebar";
 import DashboardHeader from "./dashboardHeader";
+import api from "../utils/api";
 
 const Dashboard = () => {
+  const [bookings, setBookings] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalEarnings, setTotalEarnings] = useState(0);
+
+  const [loadingBookings, setLoadingBookings] = useState(true);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [loadingTransactions, setLoadingTransactions] = useState(true);
+
+  const [errorBookings, setErrorBookings] = useState(null);
+  const [errorUsers, setErrorUsers] = useState(null);
+  const [errorTransactions, setErrorTransactions] = useState(null);
+
+    useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        // Adjust the API URL and query params as per your backend implementation
+        const res = await api.get("/bookings?limit=5&sort=desc");
+        // setBookings(res.data || []);
+        setBookings((res.data || []).slice(0, 5));
+      } catch (err) {
+        setErrorBookings("Failed to load bookings");
+        setBookings([]);
+      } finally {
+        setLoadingBookings(false);
+      }
+    };
+
+    const fetchUsers = async () => {
+      try {
+      const res = await api.get("/users", { params: { role: "user" } });
+        setUsers(res.data.users || []);
+        setTotalUsers(res.data.totalUsers);
+      } catch (err) {
+        setErrorUsers("Failed to load users");
+        setUsers([]);
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+
+    const fetchTransactions = async () => {
+      try {
+        const res = await api.get("/transactions");
+        setTransactions((res.data.transactions || []).slice(0, 6));
+        setTotalEarnings(res.data.totalAmount);
+
+      } catch (err) {
+        setErrorTransactions("Failed to load transactions");
+        setTransactions([]);
+      } finally {
+        setLoadingTransactions(false);
+      }
+    };
+
+    fetchBookings();
+    fetchUsers();
+    fetchTransactions();
+  }, []);
+
   return (
     <>
       {/* <!-- start Container Wrapper --> */}
@@ -35,7 +97,7 @@ const Dashboard = () => {
                   </div>
                   <div className="dashboard-stat-content">
                     <h4>Earnings</h4>
-                    <h5>16,520</h5>
+                    <h5>{totalEarnings || 0}</h5>
                   </div>
                 </div>
               </div>
@@ -47,7 +109,7 @@ const Dashboard = () => {
                   </div>
                   <div className="dashboard-stat-content">
                     <h4>Users</h4>
-                    <h5>18,520</h5>
+                    <h5>{totalUsers || 0}</h5>
                   </div>
                 </div>
               </div>
@@ -65,132 +127,47 @@ const Dashboard = () => {
             </div>
             <div className="row">
               <div className="col-lg-6">
-                <div className="dashboard-box table-opp-color-box">
-                  <h4>Recent Booking</h4>
-                  <p>
-                    Airtport Hotels The Right Way To Start A Short Break Holiday
-                  </p>
-                  <div className="table-responsive">
-                    <table className="table">
-                      <thead>
-                        <tr style={{ backgroundColor: "white" }}>
-                          <th>Select</th>
-                          <th>User</th>
-                          <th>Name</th>
-                          <th>Date</th>
-                          <th>City</th>
-                          <th>Enquiry</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>
-                            <label className="custom-input">
-                              <input checked="checked" type="checkbox" />
-                              <span className="custom-input-field"></span>
-                            </label>
-                          </td>
-                          <td>
-                            <span className="list-img">
-                              <img alt="" src="assets/images/comment.jpg" />
-                            </span>
-                          </td>
-                          <td>
-                            <span className="list-enq-name">John Doe</span>
-                          </td>
-                          <td>12 may</td>
-                          <td>Japan</td>
-                          <td>
-                            <span className="badge badge-success">15</span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <label className="custom-input">
-                              <input checked="checked" type="checkbox" />
-                              <span className="custom-input-field"></span>
-                            </label>
-                          </td>
-                          <td>
-                            <span className="list-img">
-                              <img alt="" src="assets/images/comment2.jpg" />
-                            </span>
-                          </td>
-                          <td>
-                            <span className="list-enq-name">John Doe</span>
-                          </td>
-                          <td>12 may</td>
-                          <td>Japan</td>
-                          <td>
-                            <span className="badge badge-success">15</span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <label className="custom-input">
-                              <input checked="checked" type="checkbox" />
-                              <span className="custom-input-field"></span>
-                            </label>
-                          </td>
-                          <td>
-                            <span className="list-img">
-                              <img alt="" src="assets/images/comment3.jpg" />
-                            </span>
-                          </td>
-                          <td>
-                            <span className="list-enq-name">John Doe</span>
-                          </td>
-                          <td>12 may</td>
-                          <td>Japan</td>
-                          <td>
-                            <span className="badge badge-success">15</span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <label className="custom-input">
-                              <input checked="checked" type="checkbox" />
-                              <span className="custom-input-field"></span>
-                            </label>
-                          </td>
-                          <td>
-                            <span className="list-img">
-                              <img alt="" src="assets/images/comment4.jpg" />
-                            </span>
-                          </td>
-                          <td>
-                            <span className="list-enq-name">John Doe</span>
-                          </td>
-                          <td>12 may</td>
-                          <td>Japan</td>
-                          <td>
-                            <span className="badge badge-success">15</span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <label className="custom-input">
-                              <input checked="checked" type="checkbox" />
-                              <span className="custom-input-field"></span>
-                            </label>
-                          </td>
-                          <td>
-                            <span className="list-img">
-                              <img alt="" src="assets/images/comment5.jpg" />
-                            </span>
-                          </td>
-                          <td>
-                            <span className="list-enq-name">John Doe</span>
-                          </td>
-                          <td>12 may</td>
-                          <td>Japan</td>
-                          <td>
-                            <span className="badge badge-success">15</span>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+                 <div className="dashboard-box">
+                  <h4>Recent Bookings</h4>
+                  <p>Airtport Hotels The Right Way To Start a Short Break Holiday</p>
+                  {loadingBookings && <p>Loading bookings...</p>}
+                  {errorBookings && <p>{errorBookings}</p>}
+                  {!loadingBookings && !errorBookings && bookings.length === 0 && (
+                    <p>No bookings found.</p>
+                  )}
+                  {!loadingBookings && !errorBookings && bookings.length > 0 && (
+                    <div className="table-responsive">
+                      <table className="table">
+                        <thead>
+                          <tr style={{ backgroundColor: "white" }}>
+                            {/* <th>Select</th> */}
+                            <th>User</th>
+                            <th>Name</th>
+                            <th>Date</th>
+                            <th>City</th>
+                            <th>Enquiry</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {bookings.map((booking) => (
+                            <tr key={booking._id}>
+                              {/* <td>
+                                <label className="custom-input">
+                                  <input type="checkbox" />
+                                  <span className="custom-input-field"></span>
+                                </label>
+                              </td> */}
+                              <td>{booking.user?.firstName} {booking.user?.lastName}</td>
+                              <td>{booking.package?.packageTitle}</td>
+                              <td>{new Date(booking.bookingDate || booking.createdAt).toLocaleDateString()}</td>
+                              <td>{booking.package?.destination}</td>
+                              <td><span className="badge badge-primary">{booking.enquiry_count || booking.enquiry || 0}</span></td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="col-lg-6">
@@ -325,182 +302,40 @@ const Dashboard = () => {
             </div>
             <div className="row">
               <div className="col-lg-12">
-                <div className="dashboard-box">
-                  <h4>User Details</h4>
-                  <p>
-                    Airtport Hotels The Right Way To Start A Short Break Holiday
-                  </p>
-                  <div className="table-responsive">
-                    <table className="table">
-                      <thead>
-                        <tr style={{ backgroundColor: "white" }}>
-                          <th>User</th>
-                          <th>Name</th>
-                          <th>Phone</th>
-                          <th>Email</th>
-                          <th>Country</th>
-                          <th>Listings</th>
-                          <th>Enquiry</th>
-                          <th>Bookings</th>
-                          <th>Reviews</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>
-                            <span className="list-img">
-                              <img alt="" src="assets/images/comment.jpg" />
-                            </span>
-                          </td>
-                          <td>
-                            <a href="#">
-                              <span className="list-name">Kathy Brown</span>
-                              <span className="list-enq-city">
-                                United States
-                              </span>
-                            </a>
-                          </td>
-                          <td>+01 3214 6522</td>
-                          <td>
-                            <a
-                              className="__cf_email__"
-                              data-cfemail="d6b5beb7b2b3b8b1bab396b2a3bbbbaff8b5b9bb"
-                              href="https://demo.bosathemes.com/cdn-cgi/l/email-protection"
-                            >
-                              [email protected]
-                            </a>
-                          </td>
-                          <td>Australia</td>
-                          <td>
-                            <span className="badge badge-primary">02</span>
-                          </td>
-                          <td>
-                            <span className="badge badge-danger">12</span>
-                          </td>
-                          <td>
-                            <span className="badge badge-success">24</span>
-                          </td>
-                          <td>
-                            <span className="badge badge-dark">36</span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <span className="list-img">
-                              <img alt="" src="assets/images/comment2.jpg" />
-                            </span>
-                          </td>
-                          <td>
-                            <a href="#">
-                              <span className="list-name">Kathy Brown</span>
-                              <span className="list-enq-city">
-                                United States
-                              </span>
-                            </a>
-                          </td>
-                          <td>+01 3214 6522</td>
-                          <td>
-                            <a
-                              className="__cf_email__"
-                              data-cfemail="294a41484d4c474e454c694d5c444450074a4644"
-                              href="https://demo.bosathemes.com/cdn-cgi/l/email-protection"
-                            >
-                              [email protected]
-                            </a>
-                          </td>
-                          <td>Australia</td>
-                          <td>
-                            <span className="badge badge-primary">02</span>
-                          </td>
-                          <td>
-                            <span className="badge badge-danger">12</span>
-                          </td>
-                          <td>
-                            <span className="badge badge-success">24</span>
-                          </td>
-                          <td>
-                            <span className="badge badge-dark">36</span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <span className="list-img">
-                              <img alt="" src="assets/images/comment3.jpg" />
-                            </span>
-                          </td>
-                          <td>
-                            <a href="#">
-                              <span className="list-name">Kathy Brown</span>
-                              <span className="list-enq-city">
-                                United States
-                              </span>
-                            </a>
-                          </td>
-                          <td>+01 3214 6522</td>
-                          <td>
-                            <a
-                              className="__cf_email__"
-                              data-cfemail="23404b4247464d444f466347564e4e5a0d404c4e"
-                              href="https://demo.bosathemes.com/cdn-cgi/l/email-protection"
-                            >
-                              [emai protected]
-                            </a>
-                          </td>
-                          <td>Australia</td>
-                          <td>
-                            <span className="badge badge-primary">02</span>
-                          </td>
-                          <td>
-                            <span className="badge badge-danger">12</span>
-                          </td>
-                          <td>
-                            <span className="badge badge-success">24</span>
-                          </td>
-                          <td>
-                            <span className="badge badge-dark">36</span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <span className="list-img">
-                              <img alt="" src="assets/images/comment4.jpg" />
-                            </span>
-                          </td>
-                          <td>
-                            <a href="#">
-                              <span className="list-name">Kathy Brown</span>
-                              <span className="list-enq-city">
-                                United States
-                              </span>
-                            </a>
-                          </td>
-                          <td>+01 3214 6522</td>
-                          <td>
-                            <a
-                              className="__cf_email__"
-                              data-cfemail="197a71787d7c777e757c597d6c747460377a7674"
-                              href="https://demo.bosathemes.com/cdn-cgi/l/email-protection"
-                            >
-                              [email protected]
-                            </a>
-                          </td>
-                          <td>Australia</td>
-                          <td>
-                            <span className="badge badge-primary">02</span>
-                          </td>
-                          <td>
-                            <span className="badge badge-danger">12</span>
-                          </td>
-                          <td>
-                            <span className="badge badge-success">24</span>
-                          </td>
-                          <td>
-                            <span className="badge badge-dark">36</span>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+                 <div className="dashboard-box">
+                  <h4>User List</h4>
+                  <p>List of registered users.</p>
+                  {loadingUsers && <p>Loading users...</p>}
+                  {errorUsers && <p>{errorUsers}</p>}
+                  {!loadingUsers && !errorUsers && users.length === 0 && (
+                    <p>No users found.</p>
+                  )}
+                  {!loadingUsers && !errorUsers && users.length > 0 && (
+                    <div className="table-responsive">
+                      <table className="table">
+                        <thead>
+                          <tr style={{ backgroundColor: "white" }}>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Country</th>
+                            <th>City</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {users.map((user) => (
+                            <tr key={user._id}>
+                              <td>{user.firstName} {user.lastName}</td>
+                              <td>{user.email}</td>
+                              <td>{user.mobile || user.phone || "-"}</td>
+                              <td>{user.country || "-"}</td>
+                              <td>{user.city || "-"}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -562,7 +397,42 @@ const Dashboard = () => {
                 </div>
               </div>
               <div className="col-lg-5 col-md-12 col-xs-12">
-                <div className="dashboard-box report-list">
+                <div className="dashboard-box">
+                  <h4>Earnings</h4>
+                  {/* <p>Latest transactions data.</p> */}
+                  {loadingTransactions && <p>Loading transactions...</p>}
+                  {errorTransactions && <p>{errorTransactions}</p>}
+                  {!loadingTransactions && !errorTransactions && transactions.length === 0 && (
+                    <p>No transactions found.</p>
+                  )}
+                  {!loadingTransactions && !errorTransactions && transactions.length > 0 && (
+                    <div className="table-responsive">
+                      <table className="table table-bordered">
+                        <thead>
+                          <tr>
+                            {/* <th>ID</th> */}
+                            <th>Name</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {transactions.slice(0, 10).map((txn) => (
+                            <tr key={txn._id}>
+                              {/* <td>{txn._id}</td> */}
+                              <td>{txn.user.firstName}</td>
+                              <td>${(txn.amount / 100).toFixed(2)}</td>
+                              <td>{new Date(txn.createdAt).toLocaleDateString()}</td>
+                              <td>{txn.status}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+                {/* <div className="dashboard-box report-list">
                   <h4>Reports</h4>
                   <div className="report-list-content">
                     <div className="date">
@@ -615,7 +485,7 @@ const Dashboard = () => {
                       </tbody>
                     </table>
                   </div>
-                </div>
+                </div> */}
               </div>
             </div>
             <div className="row">

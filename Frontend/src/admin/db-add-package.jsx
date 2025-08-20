@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import api from "../utils/api"; // axios instance with baseURL & token
+import api from "../utils/api";
 import DashboardSidebar from "./dashboardSidebar";
 import DashboardHeader from "./dashboardHeader";
 import uploadImage from "../utils/uploadImage";
