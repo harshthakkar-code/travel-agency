@@ -85,3 +85,13 @@ exports.deletePackage = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+// Example: Express handler for file upload
+exports.uploadImage = (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ message: 'No file uploaded' });
+  }
+  res.json({ imageUrl: req.file.location });
+};
+
+
+

@@ -2,6 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const cors = require('cors');
+require('dotenv').config();
 
 dotenv.config();
 connectDB();
@@ -32,3 +33,4 @@ app.use('/api/contact', require('./routes/contactRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/reviews', require('./routes/reviewRoutes'));
 app.use('/api/testimonials', require('./routes/testimonialRoutes'));
+app.use('/api/transactions', require('./routes/transactionRoutes'));

@@ -374,8 +374,8 @@ const Header = () => {
                   <li className="menu-item-has-children">
                     <a href="#" style={navLinkStyle}>Dashboard</a>
                     <ul>
-                      <li><a href="/admin/db-booking">Booking</a></li>
-                      <li><a href="/admin/db-wishlist">Wishlist</a></li>
+                      <li><a href="/bookings">Booking</a></li>
+                      <li><a href="/wishlist">Wishlist</a></li>
                     </ul>
                   </li>
                 )}

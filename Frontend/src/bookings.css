@@ -1,0 +1,4 @@
+.ReactModal__Body--open {
+  overflow: hidden;
+  height: 100vh;
+}

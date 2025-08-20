@@ -50,6 +50,7 @@ import DbComment from './admin/db-comment.jsx';
 import DbPackageActive from './admin/db-package-active.jsx';
 import DbEditPackage from './admin/DbEditPackage.jsx';
 import Register from './admin/register.jsx';
+import Bookings from './bookings.jsx';
 
 function App() {
   return (
@@ -85,7 +86,9 @@ function App() {
       <Route path="/single-page" element={<Single_page />} />
       <Route path="/testimonial-page" element={<Testimonial_page />} />
       <Route path="/wishlist-page" element={<Wishlist_page />} />
-      <Route path="/error" element={<Page404 />} /> 
+      <Route path="/error" element={<Page404 />} />
+      <Route path="/wishlist" element={<Wishlist_page />} /> 
+      <Route path="/bookings" element={<Bookings />} />
 
 
       {/* // Admin Routes  // */}

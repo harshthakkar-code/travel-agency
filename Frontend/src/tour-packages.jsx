@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import Header from "./Header";
 import api from "./utils/api"; // use your custom axios instance
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Tour_packages = () => {
   const [packages, setPackages] = useState([]);
-
+  const [wishlist, setWishlist] = useState([]);
+  const navigate = useNavigate();
+  
   useEffect(() => {
   const fetchPackages = async () => {
     try {
@@ -17,6 +19,69 @@ const Tour_packages = () => {
   };
   fetchPackages();
 }, []);
+
+
+useEffect(() => {
+  const fetchWishlist = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return; // Not logged in
+
+    try {
+      const res = await api.get('/wishlist');
+      // Adjust here as per your API response
+      const wishlistPackages = Array.isArray(res.data) 
+        ? res.data 
+        : res.data.packages || [];
+      setWishlist(wishlistPackages.map(pkg => pkg._id));
+      console.log('Wishlist loaded:', wishlistPackages);
+    } catch (error) {
+      console.error('Failed to load wishlist', error);
+    }
+  };
+  fetchWishlist();
+}, []);
+
+
+
+// Function to check auth and redirect or proceed
+  const handleProtectedAction = (action) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      // Not logged in, redirect to login page
+      navigate("/admin/login");
+      return;
+    }
+    action();
+  };
+
+  const handleBookNow = (pkgId) => {
+    navigate(`/package-detail/${pkgId}`);
+  };
+
+ const toggleWishlist = async (packageId) => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    navigate('/admin/login');
+    return;
+  }
+
+  const isWishlisted = wishlist.includes(packageId);
+
+  try {
+    if (isWishlisted) {
+      // Remove from wishlist
+      await api.delete(`/wishlist/${packageId}`);
+      setWishlist(prev => prev.filter(id => id !== packageId));
+    } else {
+      // Add to wishlist
+      await api.post('/wishlist', { packageId });
+      setWishlist(prev => [...prev, packageId]);
+    }
+  } catch (error) {
+    console.error('Wishlist update failed:', error);
+  }
+};
+
 
   return (
     <div id="page" className="full-page">
@@ -48,9 +113,8 @@ const Tour_packages = () => {
                     <div className="col-lg-4 col-md-6" key={pkg._id || idx}>
                       <div className="package-wrap">
                         <figure className="feature-image">
-                          <Link to={`/package-detail/${pkg._id}`}>
+                         
   <img src={pkg.imageUrl || "/assets/images/img5.jpg"} alt="" />
-</Link>
                         </figure>
                         <div className="package-price">
                           <h6>
@@ -79,7 +143,7 @@ const Tour_packages = () => {
                           </div>
                           <div className="package-content">
                             <h3>
-                              <Link to={`/package-detail/${pkg._id}`}>{pkg.title || "Package Title"}</Link>
+                              {pkg.title || "Package Title"}
 
                             </h3>
                             <div className="review-area">
@@ -102,11 +166,15 @@ const Tour_packages = () => {
                                 "Lorem ipsum dolor sit amet, consectetur adipiscing elit luctus nec ullam. Ut elit tellus, luctus nec ullam elit tellpus."}
                             </p>
                             <div className="btn-wrap">
-                              <a href="#" className="button-text width-6">
-                                Book Now<i className="fas fa-arrow-right"></i>
-                              </a>
-                              <a href="#" className="button-text width-6">
-                                Wish List<i className="far fa-heart"></i>
+                             
+                             <a style={{ cursor: "pointer" }}
+                            className="button-text width-6 cursor-pointer"
+                            onClick={() => handleProtectedAction(() => handleBookNow(pkg._id))}
+                          >
+                            Book Now <i className="fas fa-arrow-right"></i>
+                          </a>
+                              <a style={{ cursor: "pointer" }} onClick={() => toggleWishlist(pkg._id)} className="button-text width-6">
+                                Wish List<i  className={`  ${wishlist.includes(pkg._id) ? "fa fa-solid fa-heart" : "far fa-heart"}`}></i>
                               </a>
                             </div>
                           </div>

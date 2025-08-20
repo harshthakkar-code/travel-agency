@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Header from "./Header";
+import api from "./utils/api";
 
 const Booking = () => {
   // State for form data
@@ -79,6 +80,76 @@ const Booking = () => {
       }));
     }
   };
+
+ const handleCheckout = async () => {
+  // Validate form as usual
+  if (!validateForm()) return;
+
+  const completeBookingDetails = {
+    userDetails: {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      fullName: `${formData.firstName} ${formData.lastName}`,
+      email: formData.email,
+      confirmEmail: formData.confirmEmail,
+      phone: formData.phone,
+    },
+    billingAddress: {
+      country: formData.country,
+      street1: formData.street1,
+      street2: formData.street2,
+      city: formData.city,
+      state: formData.state,
+      postalCode: formData.postalCode,
+      additionalInfo: formData.additionalInfo,
+    },
+    packageDetails: {
+      packageId: packageData.packageId,
+      packageTitle: packageData.packageTitle,
+      destination: packageData.destination,
+      tripDuration: packageData.tripDuration,
+      groupSize: packageData.groupSize,
+      travelDate: packageData.travelDate,
+      packagePrice: packageData.packagePrice,
+      packageImage: packageData.packageImage.startsWith('http') ? packageData.packageImage : window.location.origin + packageData.packageImage,
+      rating: packageData.rating,
+    },
+    addOns: packageData.addOns || {},
+    pricing: {
+      packageCost: packageData.packagePrice,
+      tourGuide: packageData.addOns?.tourGuide ? 34 : 0,
+      mealsIncluded: packageData.addOns?.mealsIncluded ? 25 : 0,
+      extraBaggage: packageData.addOns?.extraBaggage ? 15 : 0,
+      transfers: packageData.addOns?.transfers ? 20 : 0,
+      taxRate: '13%',
+      totalCost: calculateTotal(),
+    },
+    termsAccepted: formData.acceptTerms,
+    bookingDate: new Date().toISOString(),
+    bookingStatus: 'pending',
+  };
+
+  // Prepare data to send to backend with URLs
+  const payload = {
+    ...completeBookingDetails,
+    userId: localStorage.getItem('userId'),
+    successUrl: 'http://localhost:5173/confirmation?session_id={CHECKOUT_SESSION_ID}',
+    cancelUrl: window.location.href, // Redirect back to current page on cancel
+  };
+
+  try {
+    const res = await api.post('transactions/stripe/checkout', payload);
+    if(res.data?.url) {
+      window.location.href = res.data.url;  // Redirect user to Stripe Checkout
+    } else {
+      alert("Failed to start payment.");
+    }
+  } catch(err) {
+    console.error("Stripe checkout error:", err);
+    alert("Payment initiation failed.");
+  }
+};
+
 
   // Calculate total price
   const calculateTotal = () => {
@@ -595,7 +666,7 @@ const Booking = () => {
                       <button 
                         type="button" 
                         className="button-primary"
-                        onClick={handleBookNow}
+                        onClick={handleCheckout}
                       >
                         Book Now
                       </button>

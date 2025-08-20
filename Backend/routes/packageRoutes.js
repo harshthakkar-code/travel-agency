@@ -6,8 +6,10 @@ const {
   getPackages,
   getPackageById,
   updatePackage,
-  deletePackage
+  deletePackage ,
+  uploadImage
 } = require('../controllers/packageController');
+const upload = require('../middleware/uploadImage');
 
 const router = express.Router();
 
@@ -22,4 +24,6 @@ router.get('/:id', getPackageById);
 router.put('/:id', protect, adminOnly, updatePackage);
 router.delete('/:id', protect, adminOnly, deletePackage);
 
+// Image upload route
+router.post('/upload-image', protect, upload.single('image'), uploadImage);
 module.exports = router;

@@ -31,6 +31,27 @@ exports.updateBooking = async (req, res) => {
   }
 };
 
+// USER BOOKINGS
+exports.getUserBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find({ userId: req.user._id });
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get Single Booking
+exports.getBookingById = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+    res.json(booking);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Delete Booking
 exports.deleteBooking = async (req, res) => {
   try {

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import api from "../utils/api"; // axios instance with baseURL & token
 import DashboardSidebar from "./dashboardSidebar";
 import DashboardHeader from "./dashboardHeader";
+import uploadImage from "../utils/uploadImage";
 
 const DbAddPackage = () => {
   const [form, setForm] = useState({
@@ -25,6 +26,9 @@ const DbAddPackage = () => {
   const [imageFile, setImageFile] = useState(null);
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [imageUrl, setImageUrl] = useState(null);
+
 
   // Handle change with live validation
   const handleChange = (e) => {
@@ -74,9 +78,19 @@ const DbAddPackage = () => {
     });
   };
 
-  const handleFileChange = (e) => {
-    setImageFile(e.target.files[0]);
-  };
+  const handleFileChange = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  setUploading(true);
+  setErrors(prev => ({ ...prev, image: undefined }));
+  try {
+    const url = await uploadImage(file);    // get real S3 URL here!
+    setImageUrl(url);
+  } catch {
+    setErrors(prev => ({ ...prev, image: "Image upload failed" }));
+  }
+  setUploading(false);
+};
 
   // Validation + submit
   const handleSubmit = async (e) => {
@@ -109,7 +123,7 @@ const DbAddPackage = () => {
     }
 
     const tripDuration = `${form.tripDay} day / ${form.tripNight} night`;
-    const data = { ...form, tripDuration, gallery: imageFile ? [imageFile.name] : [] };
+    const data = { ...form, tripDuration, gallery:  imageUrl ? [imageUrl] : []  };
 
     try {
       await api.post("/packages", data);
@@ -232,7 +246,7 @@ const DbAddPackage = () => {
                   </div>
                 </div>
 
-                {/* Gallery */}
+                {/* Gallery
                 <div className="dashboard-box">
                   <h4>Gallery</h4>
                   <div className="custom-field-wrap">
@@ -247,7 +261,52 @@ const DbAddPackage = () => {
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> */}
+                {/* Gallery */}
+<div className="dashboard-box">
+  <h4>Gallery</h4>
+  <div className="custom-field-wrap">
+    <div className="dragable-field-inner">
+      <p className="drag-drop-info">Drop Files To Upload</p>
+      <p>or</p>
+      <div className="upload-input">
+        <div className="form-group">
+          <span className="upload-btn">Upload a image</span>
+          <input
+            type="file"
+            name="myfile"
+            accept="image/*"
+            onChange={handleFileChange}
+          />
+        </div>
+      </div>
+      {uploading && <div>Uploading...</div>}
+      {imageUrl && (
+        <div style={{ marginTop: "10px" }}>
+          <img
+            src={imageUrl}
+            alt="Preview"
+            style={{ width: 150, borderRadius: 8 }}
+          />
+          <button
+            type="button"
+            className="button-primary"
+            style={{ marginLeft: 10 }}
+            onClick={handleRemoveImage}
+          >
+            Remove
+          </button>
+        </div>
+      )}
+      {errors.image && (
+        <div style={{ color: "red", fontSize: "12px", marginTop: "10px" }}>
+          {errors.image}
+        </div>
+      )}
+    </div>
+  </div>
+</div>
+
 
                 {/* Location */}
                 <div className="dashboard-box">
