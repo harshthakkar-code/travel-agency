@@ -51,6 +51,9 @@ import DbPackageActive from './admin/db-package-active.jsx';
 import DbEditPackage from './admin/DbEditPackage.jsx';
 import Register from './admin/register.jsx';
 import Bookings from './bookings.jsx';
+import BlogList from './admin/blogList.jsx';
+import DbAddBlog from './admin/addBlog.jsx';
+import DbEditBlog from './admin/editBlog.jsx';
 
 function App() {
   return (
@@ -108,6 +111,9 @@ function App() {
       <Route path="/admin/db-comment" element={<DbComment />} />
       <Route path="/admin/db-package-active" element={<DbPackageActive />} />
       <Route path="/admin/edit-package/:id" element={<DbEditPackage />} />
+      <Route path='/admin/blogs' element={<BlogList />} />
+      <Route path='/admin/add-blog' element={<DbAddBlog />} />
+      <Route path='/admin/edit-blog/:id' element={<DbEditBlog />} />
 
     </Routes>
   );
