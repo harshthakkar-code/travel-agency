@@ -1,6 +1,4 @@
 import { Routes, Route } from 'react-router-dom';
-
-// import Home from './index.jsx';
 import About from './about.jsx';
 import Contact from './contact.jsx';
 import Service from './service.jsx';
@@ -32,7 +30,6 @@ import ProductRight from './product-right.jsx';
 import Popup from './popup.jsx';
 import PackageOffer from './package-offer.jsx';
 import Index_v2 from './index-v2.jsx';
-
 // Admin imports
 import DbPackagePending from './admin/db-package-pending.jsx';
 import DbPackage from './admin/db-package.jsx';
@@ -54,10 +51,12 @@ import Bookings from './bookings.jsx';
 import BlogList from './admin/blogList.jsx';
 import DbAddBlog from './admin/addBlog.jsx';
 import DbEditBlog from './admin/editBlog.jsx';
+import RequireAuth from "./RequireAuth";
 
 function App() {
   return (
     <Routes>
+      {/* Public Routes */}
       <Route path="/" element={<TourPackages />} />
       <Route path="/about" element={<About />} />
       <Route path='/blog-archive' element={<Blogarchive />} />
@@ -88,33 +87,113 @@ function App() {
       <Route path="/destination" element={<Destination />} />
       <Route path="/single-page" element={<Single_page />} />
       <Route path="/testimonial-page" element={<Testimonial_page />} />
-      <Route path="/wishlist-page" element={<Wishlist_page />} />
-      <Route path="/error" element={<Page404 />} />
-      <Route path="/wishlist" element={<Wishlist_page />} /> 
-      <Route path="/bookings" element={<Bookings />} />
 
+      {/* -------- User & Admin Accessible Routes -------- */}
+      <Route path="/wishlist-page" element={
+        <RequireAuth allowedRoles={["user", "admin"]}>
+          <Wishlist_page />
+        </RequireAuth>
+      } />
+      <Route path="/wishlist" element={
+        <RequireAuth allowedRoles={["user", "admin"]}>
+          <Wishlist_page />
+        </RequireAuth>
+      } />
+      <Route path="/bookings" element={
+        <RequireAuth allowedRoles={["user", "admin"]}>
+          <Bookings />
+        </RequireAuth>
+      } />
 
-      {/* // Admin Routes  // */}
-      <Route path="/admin/db-package-pending" element={<DbPackagePending />} />
-      <Route path="/admin/db-package" element={<DbPackage />} />
-      <Route path="/admin/db-wishlist" element={<DbWishlist />} />
-      <Route path="/admin/forgot" element={<Forgot />} />
+      {/* -------- Admin ONLY Routes -------- */}
+      <Route path="/admin/dashboard" element={
+        <RequireAuth allowedRoles={["admin"]}>
+          <Dashboard />
+        </RequireAuth>
+      } />
+      <Route path="/admin/db-package-pending" element={
+        <RequireAuth allowedRoles={["admin"]}>
+          <DbPackagePending />
+        </RequireAuth>
+      } />
+      <Route path="/admin/db-package" element={
+        <RequireAuth allowedRoles={["admin"]}>
+          <DbPackage />
+        </RequireAuth>
+      } />
+      <Route path="/admin/db-wishlist" element={
+        <RequireAuth allowedRoles={["admin"]}>
+          <DbWishlist />
+        </RequireAuth>
+      } />
+      <Route path="/admin/new-user" element={
+        <RequireAuth allowedRoles={["admin"]}>
+          <NewUser />
+        </RequireAuth>
+      } />
+      <Route path="/admin/user-edit/:id" element={
+        <RequireAuth allowedRoles={["admin"]}>
+          <UserEdit />
+        </RequireAuth>
+      } />
+      <Route path="/admin/user" element={
+        <RequireAuth allowedRoles={["admin"]}>
+          <User />
+        </RequireAuth>
+      } />
+      <Route path="/admin/db-add-package" element={
+        <RequireAuth allowedRoles={["admin"]}>
+          <DbAddPackage />
+        </RequireAuth>
+      } />
+      <Route path="/admin/db-booking" element={
+        <RequireAuth allowedRoles={["admin"]}>
+          <DbBooking />
+        </RequireAuth>
+      } />
+      <Route path="/admin/db-package-expired" element={
+        <RequireAuth allowedRoles={["admin"]}>
+          <DbPackageExpired />
+        </RequireAuth>
+      } />
+      <Route path="/admin/db-comment" element={
+        <RequireAuth allowedRoles={["admin"]}>
+          <DbComment />
+        </RequireAuth>
+      } />
+      <Route path="/admin/db-package-active" element={
+        <RequireAuth allowedRoles={["admin"]}>
+          <DbPackageActive />
+        </RequireAuth>
+      } />
+      <Route path="/admin/edit-package/:id" element={
+        <RequireAuth allowedRoles={["admin"]}>
+          <DbEditPackage />
+        </RequireAuth>
+      } />
+      <Route path="/admin/blogs" element={
+        <RequireAuth allowedRoles={["admin"]}>
+          <BlogList />
+        </RequireAuth>
+      } />
+      <Route path="/admin/add-blog" element={
+        <RequireAuth allowedRoles={["admin"]}>
+          <DbAddBlog />
+        </RequireAuth>
+      } />
+      <Route path="/admin/edit-blog/:id" element={
+        <RequireAuth allowedRoles={["admin"]}>
+          <DbEditBlog />
+        </RequireAuth>
+      } />
+
+      {/* ------ Open/auth pages ------ */}
       <Route path="/admin/login" element={<Login />} />
       <Route path="/user/register" element={<Register />} />
-      <Route path="/admin/new-user" element={<NewUser />} />  
-      <Route path="/admin/user-edit/:id" element={<UserEdit />} />
-      <Route path="/admin/user" element={<User />} />
-      <Route path="/admin/db-add-package" element={<DbAddPackage />} />
-      <Route path="/admin/dashboard" element={<Dashboard />} />
-      <Route path="/admin/db-booking" element={<DbBooking />} />
-      <Route path="/admin/db-package-expired" element={<DbPackageExpired />} />
-      <Route path="/admin/db-comment" element={<DbComment />} />
-      <Route path="/admin/db-package-active" element={<DbPackageActive />} />
-      <Route path="/admin/edit-package/:id" element={<DbEditPackage />} />
-      <Route path='/admin/blogs' element={<BlogList />} />
-      <Route path='/admin/add-blog' element={<DbAddBlog />} />
-      <Route path='/admin/edit-blog/:id' element={<DbEditBlog />} />
+      <Route path="/admin/forgot" element={<Forgot />} />
 
+      {/* 404 fallback */}
+      <Route path="*" element={<Page404 />} />
     </Routes>
   );
 }

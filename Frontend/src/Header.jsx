@@ -349,8 +349,8 @@ const Header = () => {
                   <ul>
                     <li><a href="/about">About</a></li>
                     <li><a href="/service">Service</a></li>
-                    <li><a href="/career">Career</a></li>
-                    <li><a href="/career-detail">Career Detail</a></li>
+                    {/* <li><a href="/career">Career</a></li>
+                    <li><a href="/career-detail">Career Detail</a></li> */}
                     <li><a href="/tour-guide">Tour Guide</a></li>
                     <li><a href="/gallery">Gallery</a></li>
                     <li><a href="/faq">FAQ</a></li>
