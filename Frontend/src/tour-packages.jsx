@@ -118,9 +118,10 @@ useEffect(() => {
                         </figure>
                         <div className="package-price">
                           <h6>
-                            <span>
-                              {pkg.price ? `$${pkg.price}` : "$1,900"}{" "}
-                            </span>
+                           <span>
+  ${Math.round(pkg.salePrice ? pkg.salePrice / pkg.groupSize : pkg.regularPrice / pkg.groupSize).toLocaleString()}
+</span>
+
                             / per person
                           </h6>
                         </div>
@@ -133,7 +134,7 @@ useEffect(() => {
                               </li>
                               <li>
                                 <i className="fas fa-user-friends"></i>{" "}
-                                People: {pkg.people || "5"}
+                                People: {pkg.groupSize || "5"}
                               </li>
                               <li>
                                 <i className="fas fa-map-marker-alt"></i>{" "}

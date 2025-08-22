@@ -62,7 +62,7 @@ function App() {
       <Route path="/about" element={<About />} />
       <Route path='/blog-archive' element={<Blogarchive />} />
       <Route path='/blog-archive-left' element={<BlogArchiveLeft />} />
-      <Route path='/blog-single' element={<Blog_single />} />
+      <Route path='/blog-single/:id' element={<Blog_single />} />
       <Route path="/booking" element={<Booking />} />
       <Route path='/blog-archive-both' element={<BlogArchiveBoth />} />
       <Route path='/tour-cart' element={<TourCart />} />

@@ -15,7 +15,7 @@ const DbPackageActive = () => {
   const fetchPackages = async (page) => {
     try {
       const res = await api.get("/packages", {
-        params: { status: "Active", page: page, limit: 1 }
+        params: { status: "Active", page: page, limit: 5 }
       });
       setPackages(res.data.packages);
       setTotalPages(res.data.totalPages);

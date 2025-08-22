@@ -34,8 +34,8 @@ exports.getPackages = async (req, res) => {
     }
 
     // pagination params
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 5; // You can change 5 to default items per page
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit) ; // You can change 5 to default items per page
     const skip = (page - 1) * limit;
 
     const total = await Package.countDocuments(filter);
