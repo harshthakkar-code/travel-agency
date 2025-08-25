@@ -70,7 +70,7 @@ exports.createStripeCheckoutSession = async (req, res) => {
       line_items: [
         {
           price_data: {
-            currency: 'usd', // or INR, etc.
+            currency: 'inr', // or INR, etc.
             product_data: {
               name: packageDetails.packageTitle,
               description: `${packageDetails.destination} - ${packageDetails.tripDuration}`,
@@ -92,7 +92,8 @@ exports.createStripeCheckoutSession = async (req, res) => {
       userId,
       sessionId: session.id,
       amount: totalAmount,
-      currency: 'usd',
+      // currency: 'usd',
+      currency: 'inr',
       user: userDetails,
       billingAddress,
       package: packageDetails,

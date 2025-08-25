@@ -1,5 +1,5 @@
 const Review = require('../models/Review');
-
+const User = require('../models/User'); 
 // Get all reviews (can filter by product or package via query params)
 exports.getReviews = async (req, res) => {
   try {
@@ -17,8 +17,17 @@ exports.getReviews = async (req, res) => {
 exports.createReview = async (req, res) => {
   try {
     const { product, package: packageId, rating, comment } = req.body;
+
+    // Check if user already reviewed this package
+    const existing = await Review.findOne({ user: req.user._id, package: packageId });
+    if (existing) {
+      return res.status(400).json({ message: "User has already submitted a review for this package." });
+    }
+    const user = await User.findById(req.user._id).select('firstName lastName');
+
     const review = new Review({
       user: req.user._id,
+      userName: `${user.firstName} ${user.lastName}`,
       product,
       package: packageId,
       rating,
