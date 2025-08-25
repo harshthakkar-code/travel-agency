@@ -38,6 +38,21 @@ const Package_detail = () => {
     fetchPackage();
   }, [id]);
 
+
+  // Add this useEffect after your existing useEffect for fetching package data
+useEffect(() => {
+  // Initialize form with localStorage data if available and state is empty
+  const storedUser = localStorage.getItem('user');
+  const storedEmail = localStorage.getItem('userEmail');
+  
+  setBookingData(prev => ({
+    ...prev,
+    name_booking: prev.name_booking || storedUser || '',
+    email_booking: prev.email_booking || storedEmail || ''
+  }));
+}, []); // Run once on component mount
+
+
   // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -398,7 +413,7 @@ const Package_detail = () => {
                             <input 
                               name="phone_booking" 
                               type="tel" 
-                              placeholder="Number *" 
+                              placeholder="Phone Number *" 
                               value={bookingData.phone_booking}
                               onChange={handleInputChange}
                               className={errors.phone_booking ? 'is-invalid' : ''}
@@ -424,6 +439,7 @@ const Package_detail = () => {
                               value={bookingData.date}
                               onChange={handleInputChange}
                               placeholder="Date *" 
+                              min={new Date().toISOString().split('T')[0]}
                             />
                             {errors.date && (
                               <div className="invalid-feedback" style={{
@@ -440,7 +456,7 @@ const Package_detail = () => {
                         <div className="col-sm-12">
                           <h4 className="">Add Options</h4>
                         </div>
-                        <div className="col-sm-6">
+                        <div className="col-sm-6" style={{ paddingLeft: '14px'}}>
                           <div className="form-group">
                             <label className="checkbox-list">
                               <input 
@@ -454,7 +470,7 @@ const Package_detail = () => {
                             </label>
                           </div>
                         </div>
-                        <div className="col-sm-6">
+                        <div className="col-sm-6" style={{ paddingLeft: '14px'}}>
                           <div className="form-group">
                             <label className="checkbox-list">
                               <input 
@@ -468,7 +484,7 @@ const Package_detail = () => {
                             </label>
                           </div>
                         </div>
-                        <div className="col-sm-6">
+                        <div className="col-sm-6" style={{ paddingLeft: '14px'}}>
                           <div className="form-group">
                             <label className="checkbox-list">
                               <input 
@@ -482,7 +498,7 @@ const Package_detail = () => {
                             </label>
                           </div>
                         </div>
-                        <div className="col-sm-6">
+                        <div className="col-sm-6" style={{ paddingLeft: '14px'}}>
                           <div className="form-group">
                             <label className="checkbox-list">
                               <input 
