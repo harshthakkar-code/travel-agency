@@ -6,6 +6,9 @@ import { Link, useNavigate } from "react-router-dom";
 const Tour_packages = () => {
   const [packages, setPackages] = useState([]);
   const [wishlist, setWishlist] = useState([]);
+  const [averageRatings, setAverageRatings] = useState({}); // NEW STATE
+  const [reviewsCount, setReviewsCount] = useState({}); // NEW STATE for reviews count
+
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -40,6 +43,61 @@ useEffect(() => {
   };
   fetchWishlist();
 }, []);
+
+
+
+// Update your existing useEffect for reviews
+// Updated useEffect to fetch reviews count and average ratings
+useEffect(() => {
+  const fetchReviewsCount = async () => {
+    try {
+      const res = await api.get("/reviews");
+      const reviews = res.data || [];
+      
+      // Count reviews and calculate average rating per package
+      const counts = {};
+      const ratings = {};
+      
+      reviews.forEach(review => {
+        const packageId = review.package; // Direct string ID in your format
+        const rating = review.rating || 0;
+        
+        if (packageId) {
+          // Count reviews
+          counts[packageId] = (counts[packageId] || 0) + 1;
+          
+          // Sum ratings for average calculation
+          if (!ratings[packageId]) {
+            ratings[packageId] = { sum: 0, count: 0 };
+          }
+          ratings[packageId].sum += rating;
+          ratings[packageId].count += 1;
+        }
+      });
+      
+      // Calculate average ratings
+      const averageRatings = {};
+      Object.keys(ratings).forEach(packageId => {
+        const { sum, count } = ratings[packageId];
+        averageRatings[packageId] = count > 0 ? parseFloat((sum / count).toFixed(1)) : 0;
+      });
+      
+      setReviewsCount(counts);
+      setAverageRatings(averageRatings);
+      
+      console.log('Reviews Count:', counts);
+      console.log('Average Ratings:', averageRatings);
+    } catch (error) {
+      console.error('Failed to fetch reviews:', error);
+      setReviewsCount({});
+      setAverageRatings({});
+    }
+  };
+
+  if (packages.length > 0) {
+    fetchReviewsCount();
+  }
+}, [packages]);
 
 
 
@@ -108,85 +166,138 @@ useEffect(() => {
           <div className="container">
             <div className="package-inner">
               <div className="row">
-                {packages.length > 0 ? (
-                  packages.map((pkg, idx) => (
-                    <div className="col-lg-4 col-md-6" key={pkg._id || idx}>
-                      <div className="package-wrap">
-                        <figure className="feature-image">
-                         
-  <img src={pkg.imageUrl || "/assets/images/img5.jpg"} alt="" />
-                        </figure>
-                        <div className="package-price">
-                          <h6>
-                           <span>
-  ${Math.round(pkg.salePrice ? pkg.salePrice / pkg.groupSize : pkg.regularPrice / pkg.groupSize).toLocaleString()}
-</span>
-
-                            / per person
-                          </h6>
-                        </div>
-                        <div className="package-content-wrap">
-                          <div className="package-meta text-center">
-                            <ul>
-                              <li>
-                                <i className="far fa-clock"></i>{" "}
-                                {pkg.tripDuration || "7D/6N"}
-                              </li>
-                              <li>
-                                <i className="fas fa-user-friends"></i>{" "}
-                                People: {pkg.groupSize || "5"}
-                              </li>
-                              <li>
-                                <i className="fas fa-map-marker-alt"></i>{" "}
-                                {pkg.destination || "-"}
-                              </li>
-                            </ul>
-                          </div>
-                          <div className="package-content">
-                            <h3>
-                              {pkg.title || "Package Title"}
-
-                            </h3>
-                            <div className="review-area">
-                              <span className="review-text">
-                                ({pkg.reviewsCount || 25} reviews)
+                {packages.length > 0
+                  ? packages.map((pkg, idx) => (
+                      <div className="col-lg-4 col-md-6" key={pkg._id || idx}>
+                        <div className="package-wrap">
+                          <figure className="feature-image">
+                            <img
+                              src={pkg.imageUrl || "/assets/images/img5.jpg"}
+                              alt=""
+                              onClick={() =>
+                                handleProtectedAction(() =>
+                                  handleBookNow(pkg._id)
+                                )
+                              }
+                              style={{ cursor: "pointer" }}
+                            />
+                          </figure>
+                          <div className="package-price">
+                            <h6>
+                              <span>
+                                $
+                                {Math.round(
+                                  pkg.salePrice
+                                    ? pkg.salePrice / pkg.groupSize
+                                    : pkg.regularPrice / pkg.groupSize
+                                ).toLocaleString()}
                               </span>
-                              <div
-                                className="rating-start"
-                                title={`Rated ${pkg.rating || 5} out of 5`}
-                              >
-                                <span
-                                  style={{
-                                    width: `${(pkg.rating || 5) * 20}%`,
-                                  }}
-                                ></span>
-                              </div>
+                              / per person
+                            </h6>
+                          </div>
+                          <div className="package-content-wrap">
+                            <div className="package-meta text-center">
+                              <ul>
+                                <li>
+                                  <i className="far fa-clock"></i>{" "}
+                                  {pkg.tripDuration || "7D/6N"}
+                                </li>
+                                <li>
+                                  <i className="fas fa-user-friends"></i>{" "}
+                                  People: {pkg.groupSize || "5"}
+                                </li>
+                                <li>
+                                  <i className="fas fa-map-marker-alt"></i>{" "}
+                                  {pkg.destination || "-"}
+                                </li>
+                              </ul>
                             </div>
-                            <p>
-                              {pkg.description ||
-                                "Lorem ipsum dolor sit amet, consectetur adipiscing elit luctus nec ullam. Ut elit tellus, luctus nec ullam elit tellpus."}
-                            </p>
-                            <div className="btn-wrap">
-                             
-                             <a style={{ cursor: "pointer" }}
-                            className="button-text width-6 cursor-pointer"
-                            onClick={() => handleProtectedAction(() => handleBookNow(pkg._id))}
-                          >
-                            Book Now <i className="fas fa-arrow-right"></i>
-                          </a>
-                              <a style={{ cursor: "pointer" }} onClick={() => toggleWishlist(pkg._id)} className="button-text width-6">
-                                Wish List<i  className={`  ${wishlist.includes(pkg._id) ? "fa fa-solid fa-heart" : "far fa-heart"}`}></i>
-                              </a>
+                            <div className="package-content">
+                              <h3
+                                onClick={() =>
+                                  handleProtectedAction(() =>
+                                    handleBookNow(pkg._id)
+                                  )
+                                }
+                                style={{ cursor: "pointer" }}
+                              >
+                                {pkg.title || "Package Title"}
+                              </h3>
+                              <div className="review-area">
+                                {reviewsCount[pkg._id] &&
+                                reviewsCount[pkg._id] > 0 ? (
+                                  <>
+                                    <span className="review-text">
+                                      ({reviewsCount[pkg._id]} reviews)
+                                    </span>
+                                    <div
+                                      className="rating-start"
+                                      title={`Rated ${(
+                                        averageRatings[pkg._id] || 0
+                                      ).toFixed(1)} out of 5`}
+                                    >
+                                      <span
+                                        style={{
+                                          width: `${
+                                            (averageRatings[pkg._id] || 0) * 20
+                                          }%`,
+                                        }}
+                                      ></span>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <span
+                                    className="no-reviews-text"
+                                    style={{
+                                      color: "#999",
+                                      fontSize: "14px",
+                                      fontStyle: "italic",
+                                    }}
+                                  >
+                                    No reviews yet for this package
+                                  </span>
+                                )}
+                              </div>
+
+                              <p>
+                                {pkg.description.slice(0, 40) ||
+                                  "Lorem ipsum dolor sit amet, consectetur adipiscing elit luctus nec ullam. Ut elit tellus, luctus nec ullam elit tellpus."}
+                              </p>
+                              <div className="btn-wrap">
+                                <a
+                                  style={{ cursor: "pointer" }}
+                                  className="button-text width-6 cursor-pointer"
+                                  onClick={() =>
+                                    handleProtectedAction(() =>
+                                      handleBookNow(pkg._id)
+                                    )
+                                  }
+                                >
+                                  Book Now{" "}
+                                  <i className="fas fa-arrow-right"></i>
+                                </a>
+                                <a
+                                  style={{ cursor: "pointer" }}
+                                  onClick={() => toggleWishlist(pkg._id)}
+                                  className="button-text width-6"
+                                >
+                                  Wish List
+                                  <i
+                                    className={`  ${
+                                      wishlist.includes(pkg._id)
+                                        ? "fa fa-solid fa-heart"
+                                        : "far fa-heart"
+                                    }`}
+                                  ></i>
+                                </a>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))
-                ) : (
-                  // If no packages, display nothing or fallback message
-                  null
-                )}
+                    ))
+                  : // If no packages, display nothing or fallback message
+                    null}
               </div>
               {/* ...Any other rows/sections remain unchanged... */}
             </div>
@@ -195,7 +306,7 @@ useEffect(() => {
 
         {/* Activity, Footer, etc. --- KEEP ALL ORIGINAL JSX BELOW UNCHANGED */}
 
-         {/* Activity Section */}
+        {/* Activity Section */}
         <section className="activity-section">
           <div className="container">
             <div className="section-heading text-center">
@@ -203,7 +314,12 @@ useEffect(() => {
                 <div className="col-lg-8 offset-lg-2">
                   <h5 className="dash-style">TRAVEL BY ACTIVITY</h5>
                   <h2>ADVENTURE & ACTIVITY</h2>
-                  <p>Mollit voluptatem perspiciatis convallis elementum corporis quo veritatis aliquid blandit, blandit torquent, odit placeat. Adipiscing repudiandae eius cursus? Nostrum magnis maxime curae placeat.</p>
+                  <p>
+                    Mollit voluptatem perspiciatis convallis elementum corporis
+                    quo veritatis aliquid blandit, blandit torquent, odit
+                    placeat. Adipiscing repudiandae eius cursus? Nostrum magnis
+                    maxime curae placeat.
+                  </p>
                 </div>
               </div>
             </div>
@@ -305,142 +421,144 @@ useEffect(() => {
       </main>
 
       {/* FOOTER COMPONENT GOES HERE */}
-     <footer id="colophon" className="site-footer footer-primary">
-          <div className="top-footer">
-            <div className="container">
-              <div className="row">
-                <div className="col-lg-3 col-md-6">
-                  <aside className="widget widget_text">
-                    <h3 className="widget-title">About Travel</h3>
-                    <div className="textwidget widget-text">
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut
-                      elit tellus, luctus nec ullamcorper mattis, pulvinar dapibus
-                      leo.
-                    </div>
-                    <div className="award-img">
-                      <a href="#">
-                        <img src="/assets/images/logo6.png" alt="" />
-                      </a>
-                      <a href="#">
-                        <img src="/assets/images/logo2.png" alt="" />
-                      </a>
-                    </div>
-                  </aside>
-                </div>
-                <div className="col-lg-3 col-md-6">
-                  <aside className="widget widget_text">
-                    <h3 className="widget-title">CONTACT INFORMATION</h3>
-                    <div className="textwidget widget-text">
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                      <ul>
-                        <li>
-                          <a href="#">
-                            <i className="fas fa-phone-alt"></i> +01 (977) 2599
-                            12
-                          </a>
-                        </li>
-                        <li>
-                          <a href="#">
-                            <i className="fas fa-envelope"></i>{" "}
-                            <span
-                              className="__cf_email__"
-                              data-cfemail="bcdfd3d1ccddd2c5fcd8d3d1ddd5d292dfd3d1"
-                            >
-                              [email&#160;protected]
-                            </span>
-                          </a>
-                        </li>
-                        <li>
-                          <i className="fas fa-map-marker-alt"></i> 3146 Koontz,
-                          California
-                        </li>
-                      </ul>
-                    </div>
-                  </aside>
-                </div>
-                <div className="col-lg-3 col-md-6">
-                  <aside className="widget widget_recent_post">
-                    <h3 className="widget-title">Latest Post</h3>
-                    <ul>
-                      <li>
-                        <h5>
-                          <a href="#">Life is a beautiful journey not a destination</a>
-                        </h5>
-                        <div className="entry-meta">
-                          <span className="post-on">
-                            <a href="#">August 17, 2021</a>
-                          </span>
-                          <span className="comments-link">
-                            <a href="#">No Comments</a>
-                          </span>
-                        </div>
-                      </li>
-                      <li>
-                        <h5>
-                          <a href="#">Take only memories, leave only footprints</a>
-                        </h5>
-                        <div className="entry-meta">
-                          <span className="post-on">
-                            <a href="#">August 17, 2021</a>
-                          </span>
-                          <span className="comments-link">
-                            <a href="#">No Comments</a>
-                          </span>
-                        </div>
-                      </li>
-                    </ul>
-                  </aside>
-                </div>
-                <div className="col-lg-3 col-md-6">
-                  <aside className="widget widget_newslatter">
-                    <h3 className="widget-title">SUBSCRIBE US</h3>
-                    <div className="widget-text">
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                    </div>
-                    <form className="newslatter-form">
-                      <input type="email" name="s" placeholder="Your Email.." />
-                      <input type="submit" name="s" value="SUBSCRIBE NOW" />
-                    </form>
-                  </aside>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="buttom-footer">
-            <div className="container">
-              <div className="row align-items-center">
-                <div className="col-md-5">
-                  <div className="footer-menu">
-                    <ul>
-                      <li>
-                        <a href="#">Privacy Policy</a>
-                      </li>
-                      <li>
-                        <a href="#">Term & Condition</a>
-                      </li>
-                      <li>
-                        <a href="#">FAQ</a>
-                      </li>
-                    </ul>
+      <footer id="colophon" className="site-footer footer-primary">
+        <div className="top-footer">
+          <div className="container">
+            <div className="row">
+              <div className="col-lg-3 col-md-6">
+                <aside className="widget widget_text">
+                  <h3 className="widget-title">About Travel</h3>
+                  <div className="textwidget widget-text">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut
+                    elit tellus, luctus nec ullamcorper mattis, pulvinar dapibus
+                    leo.
                   </div>
-                </div>
-                <div className="col-md-2 text-center">
-                  <div className="footer-logo">
+                  <div className="award-img">
                     <a href="#">
-                      <img src="/assets/images/travele-logo.png" alt="" />
+                      <img src="/assets/images/logo6.png" alt="" />
+                    </a>
+                    <a href="#">
+                      <img src="/assets/images/logo2.png" alt="" />
                     </a>
                   </div>
-                </div>
-                <div className="col-md-5">
-                  <div className="copy-right text-right">
-                    Copyright © 2021 Travele. All rights reserveds
+                </aside>
+              </div>
+              <div className="col-lg-3 col-md-6">
+                <aside className="widget widget_text">
+                  <h3 className="widget-title">CONTACT INFORMATION</h3>
+                  <div className="textwidget widget-text">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                    <ul>
+                      <li>
+                        <a href="#">
+                          <i className="fas fa-phone-alt"></i> +01 (977) 2599 12
+                        </a>
+                      </li>
+                      <li>
+                        <a href="#">
+                          <i className="fas fa-envelope"></i>{" "}
+                          <span
+                            className="__cf_email__"
+                            data-cfemail="bcdfd3d1ccddd2c5fcd8d3d1ddd5d292dfd3d1"
+                          >
+                            [email&#160;protected]
+                          </span>
+                        </a>
+                      </li>
+                      <li>
+                        <i className="fas fa-map-marker-alt"></i> 3146 Koontz,
+                        California
+                      </li>
+                    </ul>
                   </div>
+                </aside>
+              </div>
+              <div className="col-lg-3 col-md-6">
+                <aside className="widget widget_recent_post">
+                  <h3 className="widget-title">Latest Post</h3>
+                  <ul>
+                    <li>
+                      <h5>
+                        <a href="#">
+                          Life is a beautiful journey not a destination
+                        </a>
+                      </h5>
+                      <div className="entry-meta">
+                        <span className="post-on">
+                          <a href="#">August 17, 2021</a>
+                        </span>
+                        <span className="comments-link">
+                          <a href="#">No Comments</a>
+                        </span>
+                      </div>
+                    </li>
+                    <li>
+                      <h5>
+                        <a href="#">
+                          Take only memories, leave only footprints
+                        </a>
+                      </h5>
+                      <div className="entry-meta">
+                        <span className="post-on">
+                          <a href="#">August 17, 2021</a>
+                        </span>
+                        <span className="comments-link">
+                          <a href="#">No Comments</a>
+                        </span>
+                      </div>
+                    </li>
+                  </ul>
+                </aside>
+              </div>
+              <div className="col-lg-3 col-md-6">
+                <aside className="widget widget_newslatter">
+                  <h3 className="widget-title">SUBSCRIBE US</h3>
+                  <div className="widget-text">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                  </div>
+                  <form className="newslatter-form">
+                    <input type="email" name="s" placeholder="Your Email.." />
+                    <input type="submit" name="s" value="SUBSCRIBE NOW" />
+                  </form>
+                </aside>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="buttom-footer">
+          <div className="container">
+            <div className="row align-items-center">
+              <div className="col-md-5">
+                <div className="footer-menu">
+                  <ul>
+                    <li>
+                      <a href="#">Privacy Policy</a>
+                    </li>
+                    <li>
+                      <a href="#">Term & Condition</a>
+                    </li>
+                    <li>
+                      <a href="#">FAQ</a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <div className="col-md-2 text-center">
+                <div className="footer-logo">
+                  <a href="#">
+                    <img src="/assets/images/travele-logo.png" alt="" />
+                  </a>
+                </div>
+              </div>
+              <div className="col-md-5">
+                <div className="copy-right text-right">
+                  Copyright © 2021 Travele. All rights reserveds
                 </div>
               </div>
             </div>
           </div>
-        </footer>
-
+        </div>
+      </footer>
 
       {/* Back To Top Button */}
       <a id="backTotop" href="#" className="to-top-icon">

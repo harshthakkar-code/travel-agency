@@ -179,7 +179,7 @@
 //         </div>
 
 //         <div className="copyrights">
-//           Copyright © 2021 Travele. All rights reserveds.
+//           Copyright © 2025 Travele. All rights reserveds.
 //         </div>
 
 //         {/* Inline CSS for pagination styling */}
@@ -495,7 +495,7 @@ const BlogList = () => {
         </div>
 
         <div className="copyrights">
-          Copyright © 2021 Travele. All rights reserveds.
+          Copyright © 2025 Travele. All rights reserveds.
         </div>
 
         {/* CSS for popup and pagination styling */}

@@ -404,7 +404,7 @@ const Header = () => {
                       <a href="/destination">Destination</a>
                     </li>
                     <li>
-                      <a href="/tour-packages">Tour Packages</a>
+                      <a href="/">Tour Packages</a>
                     </li>
                     <li>
                       <a href="/package-offer">Package Offer</a>

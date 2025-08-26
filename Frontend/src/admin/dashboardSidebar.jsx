@@ -34,6 +34,8 @@ const DashboardSidebar = () => {
               <li><a href="/admin/db-package-expired"><i className="fas fa-ban"></i>Expired Packages</a></li>
             </ul>
           </li>
+          <li><a href="/admin/blogs"><i className="fas fa-blog"></i>Blogs</a></li>
+          <li><a href="/admin/add-blog"><i className="fas fa-plus"></i>Add Blog</a></li>
           <li><a href="/admin/db-booking"><i className="fas fa-ticket-alt"></i> Booking & Enquiry</a></li>
           {/* <li><a href="/admin/db-wishlist"><i className="far fa-heart"></i>Wishlist</a></li> */}
           <li><a href="/admin/db-comment"><i className="fas fa-comments"></i>Comments</a></li>

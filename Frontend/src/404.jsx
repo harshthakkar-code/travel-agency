@@ -17,13 +17,14 @@ const Page404 = () => (
             <span>404</span>
             <h1>Oops! That page can't be found</h1>
             <h4>
-              It looks like nothing was found at this location. Maybe try one of the links below or a search?
+              It looks like nothing was found at this location. Maybe the page you
+              are looking for was removed, renamed or might never existed.
             </h4>
             <div className="search-form-wrap">
-              <form className="search-form">
+              {/* <form className="search-form">
                 <input type="text" name="search" placeholder="Search..." />
                 <button className="search-btn"><i className="fas fa-search"></i></button>
-              </form>
+              </form> */}
             </div>
           </div>
         </div>

@@ -18,6 +18,10 @@ const packageSchema = new mongoose.Schema({
   mapUrl: String,
   destination: String,
   status: { type: String, enum: ['Active', 'Pending', 'Expired'], default: 'Pending' },
+  program: [{
+    city: { type: String, required: true },
+    activities: [{ type: String, required: true }]
+  }],
   isPopular: { type: Boolean, default: false },
 }, { timestamps: true });
 

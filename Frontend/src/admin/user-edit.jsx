@@ -154,7 +154,7 @@
 // //       </div>
 // //       {/* Copyright footer, etc. */}
 // //       <div className="copyrights">
-// //         Copyright © 2021 Travele. All rights reserveds.
+// //         Copyright © 2025 Travele. All rights reserveds.
 // //       </div>
 // //     </div>
 // //   </div>
@@ -556,7 +556,7 @@
 //         </div>
 
 //         <div className="copyrights">
-//           Copyright © 2021 Travele. All rights reserveds.
+//           Copyright © 2025 Travele. All rights reserveds.
 //         </div>
 //       </div>
 //     </div>
@@ -831,7 +831,7 @@ const UserEdit = () => {
         </div>
 
         <div className="copyrights">
-          Copyright © 2021 Travele. All rights reserveds.
+          Copyright © 2025 Travele. All rights reserveds.
         </div>
       </div>
     </div>

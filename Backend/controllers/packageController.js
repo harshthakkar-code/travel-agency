@@ -3,13 +3,37 @@ const Package = require('../models/Package');
 // Add new package
 exports.createPackage = async (req, res) => {
   try {
+    // Validate program structure if provided
+    if (req.body.program && Array.isArray(req.body.program)) {
+      for (let cityData of req.body.program) {
+        if (!cityData.city || !cityData.activities || !Array.isArray(cityData.activities)) {
+          return res.status(400).json({ 
+            message: "Invalid program structure. Each city must have a name and activities array." 
+          });
+        }
+        
+        // Filter out empty activities
+        cityData.activities = cityData.activities.filter(activity => 
+          activity && activity.trim() !== ''
+        );
+        
+        if (cityData.activities.length === 0) {
+          return res.status(400).json({ 
+            message: `City "${cityData.city}" must have at least one activity.` 
+          });
+        }
+      }
+    }
+
     const pkg = new Package(req.body);
     const saved = await pkg.save();
     res.status(201).json(saved);
   } catch (error) {
+    console.error('Error creating package:', error);
     res.status(400).json({ message: error.message });
   }
 };
+;
 
 // Get all packages (optionally filter by status)
 // exports.getPackages = async (req, res) => {
