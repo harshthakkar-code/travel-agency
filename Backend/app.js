@@ -26,7 +26,6 @@ app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/wishlist', require('./routes/wishlistRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/blogs', require('./routes/blogRoutes'));
-app.use('/api/careers', require('./routes/careerRoutes'));
 app.use('/api/contact', require('./routes/contactRoutes'));
 app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/reviews', require('./routes/reviewRoutes'));

@@ -1,176 +1,261 @@
-const request = require('supertest');
-const app = require('../app');
+const httpMocks = require('node-mocks-http');
 const User = require('../models/User');
+const userController = require('../controllers/userController'); // adjust path if different
 
 jest.mock('../models/User');
 
-jest.mock('../middleware/authMiddleware', () => ({
-  protect: (req, res, next) => {
-    // default to a user, override in specific tests if needed
-    req.user = { _id: 'user1', role: 'admin' };
-    next();
-  },
-}));
-
-describe('User API', () => {
+describe('User Controller', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('GET /api/users', () => {
-    it('should return all users with optional role filter', async () => {
-      const users = [
-        { _id: '1', firstName: 'John', email: 'john@example.com' },
-        { _id: '2', firstName: 'Jane', email: 'jane@example.com' }
-      ];
-      User.find.mockReturnValue({
-        select: jest.fn().mockResolvedValue(users),
+  describe('getUsers', () => {
+    it('returns users with optional role filter and total count', async () => {
+      const req = httpMocks.createRequest({
+        method: 'GET',
+        url: '/api/users',
+        query: { role: 'user' },
       });
-      User.countDocuments.mockResolvedValue(users.length);
+      const res = httpMocks.createResponse();
 
-      const res = await request(app).get('/api/users?role=admin');
+      const mockUsers = [{ _id: 'u1', firstName: 'A' }, { _id: 'u2', firstName: 'B' }];
+      // Mock chained .select on find
+      const selectMock = jest.fn().mockResolvedValue(mockUsers);
+      User.find.mockReturnValue({ select: selectMock });
+      User.countDocuments.mockResolvedValue(2);
 
-      expect(User.find).toHaveBeenCalledWith({ role: 'admin' });
-      expect(User.countDocuments).toHaveBeenCalledWith({ role: 'admin' });
+      await userController.getUsers(req, res);
+
+      expect(User.find).toHaveBeenCalledWith({ role: 'user' });
+      expect(selectMock).toHaveBeenCalledWith('-password');
+      expect(User.countDocuments).toHaveBeenCalledWith({ role: 'user' });
+
       expect(res.statusCode).toBe(200);
-      expect(res.body).toHaveProperty('totalUsers', users.length);
-      expect(res.body).toHaveProperty('users', users);
+      const data = res._getJSONData();
+      expect(data).toEqual({ totalUsers: 2, users: mockUsers });
     });
 
-    it('should return 500 on error', async () => {
-      User.find.mockReturnValue({
-        select: jest.fn().mockRejectedValue(new Error('DB error')),
-      });
+    it('returns users without filter', async () => {
+      const req = httpMocks.createRequest({ method: 'GET', url: '/api/users', query: {} });
+      const res = httpMocks.createResponse();
 
-      const res = await request(app).get('/api/users');
+      const mockUsers = [];
+      const selectMock = jest.fn().mockResolvedValue(mockUsers);
+      User.find.mockReturnValue({ select: selectMock });
+      User.countDocuments.mockResolvedValue(0);
+
+      await userController.getUsers(req, res);
+
+      expect(User.find).toHaveBeenCalledWith({});
+      expect(selectMock).toHaveBeenCalledWith('-password');
+      expect(User.countDocuments).toHaveBeenCalledWith({});
+
+      expect(res.statusCode).toBe(200);
+      const data = res._getJSONData();
+      expect(data).toEqual({ totalUsers: 0, users: [] });
+    });
+
+    it('handles server error', async () => {
+      const req = httpMocks.createRequest({ method: 'GET', url: '/api/users' });
+      const res = httpMocks.createResponse();
+
+      User.find.mockImplementation(() => { throw new Error('DB error'); });
+
+      await userController.getUsers(req, res);
 
       expect(res.statusCode).toBe(500);
-      expect(res.body).toHaveProperty('message', 'DB error');
+      const data = res._getJSONData();
+      expect(data).toHaveProperty('message', 'DB error');
     });
   });
 
-  describe('GET /api/users/:id', () => {
-    it('should return a user by id', async () => {
-      const user = { _id: '1', firstName: 'John', email: 'john@example.com' };
-      User.findById.mockReturnValue({
-        select: jest.fn().mockResolvedValue(user),
-      });
+  describe('getUserById', () => {
+    it('returns user by id', async () => {
+      const req = httpMocks.createRequest({ method: 'GET', params: { id: 'u1' } });
+      const res = httpMocks.createResponse();
 
-      const res = await request(app).get('/api/users/1');
+      const selectMock = jest.fn().mockResolvedValue({ _id: 'u1', firstName: 'A' });
+      User.findById.mockReturnValue({ select: selectMock });
 
-      expect(User.findById).toHaveBeenCalledWith('1');
+      await userController.getUserById(req, res);
+
+      expect(User.findById).toHaveBeenCalledWith('u1');
+      expect(selectMock).toHaveBeenCalledWith('-password');
       expect(res.statusCode).toBe(200);
-      expect(res.body).toEqual(user);
+      expect(res._getJSONData()).toEqual({ _id: 'u1', firstName: 'A' });
     });
 
-    it('should return 404 if user not found', async () => {
-      User.findById.mockReturnValue({
-        select: jest.fn().mockResolvedValue(null),
-      });
+    it('returns 404 if not found', async () => {
+      const req = httpMocks.createRequest({ method: 'GET', params: { id: 'missing' } });
+      const res = httpMocks.createResponse();
 
-      const res = await request(app).get('/api/users/invalid');
+      const selectMock = jest.fn().mockResolvedValue(null);
+      User.findById.mockReturnValue({ select: selectMock });
+
+      await userController.getUserById(req, res);
 
       expect(res.statusCode).toBe(404);
-      expect(res.body).toHaveProperty('message', 'User not found');
+      expect(res._getJSONData()).toHaveProperty('message', 'User not found');
     });
 
-    it('should return 500 on error', async () => {
-      User.findById.mockReturnValue({
-        select: jest.fn().mockRejectedValue(new Error('DB error')),
-      });
+    it('handles server error', async () => {
+      const req = httpMocks.createRequest({ method: 'GET', params: { id: 'u1' } });
+      const res = httpMocks.createResponse();
 
-      const res = await request(app).get('/api/users/1');
+      User.findById.mockImplementation(() => { throw new Error('DB error'); });
+
+      await userController.getUserById(req, res);
 
       expect(res.statusCode).toBe(500);
-      expect(res.body).toHaveProperty('message', 'DB error');
+      expect(res._getJSONData()).toHaveProperty('message', 'DB error');
     });
   });
 
-  describe('PUT /api/users/:id', () => {
-    it('should update user details', async () => {
-      const reqBody = {
-        firstName: 'Updated',
-        lastName: 'User',
-        email: 'updated@example.com',
-        mobile: '1234567890',
-        country: 'Country',
-        city: 'City',
-        dateOfBirth: '1990-01-01',
-        role: 'admin'
+  describe('updateUser', () => {
+    it('updates provided fields and returns updated user', async () => {
+      const req = httpMocks.createRequest({
+        method: 'PUT',
+        params: { id: 'u1' },
+        body: {
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@example.com',
+          mobile: '9999999999',
+          country: 'IN',
+          city: 'Mumbai',
+          dateOfBirth: '1990-01-01',
+          role: 'admin',
+        },
+      });
+      const res = httpMocks.createResponse();
+
+      const mockUser = {
+        _id: 'u1',
+        save: jest.fn().mockResolvedValue({
+          _id: 'u1',
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@example.com',
+          mobile: '9999999999',
+          country: 'IN',
+          city: 'Mumbai',
+          dateOfBirth: '1990-01-01',
+          role: 'admin',
+        }),
       };
-      const mockUserInstance = {
+      User.findById.mockResolvedValue(mockUser);
+
+      await userController.updateUser(req, res);
+
+      // Fields assigned
+      expect(mockUser.firstName).toBe('John');
+      expect(mockUser.lastName).toBe('Doe');
+      expect(mockUser.email).toBe('john@example.com');
+      expect(mockUser.mobile).toBe('9999999999');
+      expect(mockUser.country).toBe('IN');
+      expect(mockUser.city).toBe('Mumbai');
+      expect(mockUser.dateOfBirth).toBe('1990-01-01');
+      expect(mockUser.role).toBe('admin');
+      expect(mockUser.save).toHaveBeenCalled();
+
+      expect(res.statusCode).toBe(200);
+      expect(res._getJSONData()).toEqual({
+        _id: 'u1',
         firstName: 'John',
         lastName: 'Doe',
         email: 'john@example.com',
-        mobile: '9876543210',
-        country: 'OldCountry',
-        city: 'OldCity',
-        dateOfBirth: '1980-01-01',
-        role: 'user',
-        save: jest.fn().mockResolvedValue({ _id: '1', ...reqBody }),
-      };
-      User.findById.mockResolvedValue(mockUserInstance);
-
-      const res = await request(app)
-        .put('/api/users/1')
-        .send(reqBody);
-
-      expect(User.findById).toHaveBeenCalledWith('1');
-      expect(mockUserInstance.save).toHaveBeenCalled();
-      expect(res.statusCode).toBe(200);
-      expect(res.body).toEqual(expect.objectContaining(reqBody));
+        mobile: '9999999999',
+        country: 'IN',
+        city: 'Mumbai',
+        dateOfBirth: '1990-01-01',
+        role: 'admin',
+      });
     });
 
-    it('should return 404 if user to update not found', async () => {
+    it('returns 404 when user not found', async () => {
+      const req = httpMocks.createRequest({ method: 'PUT', params: { id: 'missing' }, body: {} });
+      const res = httpMocks.createResponse();
+
       User.findById.mockResolvedValue(null);
 
-      const res = await request(app)
-        .put('/api/users/invalid')
-        .send({ firstName: 'Test' });
+      await userController.updateUser(req, res);
 
       expect(res.statusCode).toBe(404);
-      expect(res.body).toHaveProperty('message', 'User not found');
+      expect(res._getJSONData()).toHaveProperty('message', 'User not found');
     });
 
-    it('should return 500 on error', async () => {
-      User.findById.mockRejectedValue(new Error('DB error'));
+    it('handles server error', async () => {
+      const req = httpMocks.createRequest({ method: 'PUT', params: { id: 'u1' }, body: {} });
+      const res = httpMocks.createResponse();
 
-      const res = await request(app)
-        .put('/api/users/1')
-        .send({ firstName: 'Test' });
+      User.findById.mockImplementation(() => { throw new Error('DB error'); });
+
+      await userController.updateUser(req, res);
 
       expect(res.statusCode).toBe(500);
-      expect(res.body).toHaveProperty('message', 'DB error');
+      expect(res._getJSONData()).toHaveProperty('message', 'DB error');
+    });
+
+    it('updates only provided fields (partial update)', async () => {
+      const req = httpMocks.createRequest({
+        method: 'PUT',
+        params: { id: 'u1' },
+        body: { city: 'Pune' },
+      });
+      const res = httpMocks.createResponse();
+
+      const mockUser = {
+        _id: 'u1',
+        city: 'Old',
+        save: jest.fn().mockResolvedValue({ _id: 'u1', city: 'Pune' }),
+      };
+      User.findById.mockResolvedValue(mockUser);
+
+      await userController.updateUser(req, res);
+
+      expect(mockUser.city).toBe('Pune');
+      expect(mockUser.save).toHaveBeenCalled();
+      expect(res.statusCode).toBe(200);
+      expect(res._getJSONData()).toEqual({ _id: 'u1', city: 'Pune' });
     });
   });
 
-  describe('DELETE /api/users/:id', () => {
-    it('should delete a user', async () => {
-      User.findByIdAndDelete.mockResolvedValue({ _id: '1' });
+  describe('deleteUser', () => {
+    it('deletes user and returns success message', async () => {
+      const req = httpMocks.createRequest({ method: 'DELETE', params: { id: 'u1' } });
+      const res = httpMocks.createResponse();
 
-      const res = await request(app).delete('/api/users/1');
+      User.findByIdAndDelete.mockResolvedValue({ _id: 'u1' });
 
-      expect(User.findByIdAndDelete).toHaveBeenCalledWith('1');
+      await userController.deleteUser(req, res);
+
+      expect(User.findByIdAndDelete).toHaveBeenCalledWith('u1');
       expect(res.statusCode).toBe(200);
-      expect(res.body).toHaveProperty('message', 'User removed');
+      expect(res._getJSONData()).toEqual({ message: 'User removed' });
     });
 
-    it('should return 404 if user to delete not found', async () => {
+    it('returns 404 when user not found', async () => {
+      const req = httpMocks.createRequest({ method: 'DELETE', params: { id: 'missing' } });
+      const res = httpMocks.createResponse();
+
       User.findByIdAndDelete.mockResolvedValue(null);
 
-      const res = await request(app).delete('/api/users/invalid');
+      await userController.deleteUser(req, res);
 
       expect(res.statusCode).toBe(404);
-      expect(res.body).toHaveProperty('message', 'User not found');
+      expect(res._getJSONData()).toHaveProperty('message', 'User not found');
     });
 
-    it('should return 500 on error', async () => {
-      User.findByIdAndDelete.mockRejectedValue(new Error('DB error'));
+    it('handles server error', async () => {
+      const req = httpMocks.createRequest({ method: 'DELETE', params: { id: 'u1' } });
+      const res = httpMocks.createResponse();
 
-      const res = await request(app).delete('/api/users/1');
+      User.findByIdAndDelete.mockImplementation(() => { throw new Error('DB error'); });
+
+      await userController.deleteUser(req, res);
 
       expect(res.statusCode).toBe(500);
-      expect(res.body).toHaveProperty('message', 'DB error');
+      expect(res._getJSONData()).toHaveProperty('message', 'DB error');
     });
   });
 });

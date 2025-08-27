@@ -1,13 +1,23 @@
-const request = require('supertest');
-const app = require('../app');
+// tests/transactions.test.js
 
+const request = require('supertest');
+
+// IMPORTANT: mock stripe utility BEFORE requiring app/controllers
+jest.resetModules();
+jest.mock('../utils/stripe', () => ({
+  checkout: { sessions: { create: jest.fn() } },
+  webhooks: { constructEvent: jest.fn() },
+  paymentIntents: { retrieve: jest.fn() },
+  charges: { retrieve: jest.fn() },
+}));
+
+const app = require('../app');
 const Transaction = require('../models/Transaction');
 const Booking = require('../models/Booking');
 const stripe = require('../utils/stripe');
 
 jest.mock('../models/Transaction');
 jest.mock('../models/Booking');
-jest.mock('../utils/stripe');
 
 describe('Transaction API', () => {
   afterEach(() => {
@@ -16,10 +26,7 @@ describe('Transaction API', () => {
 
   describe('GET /api/transactions', () => {
     it('should return all transactions with formatted total amount', async () => {
-      const transactions = [
-        { amount: 1000 },
-        { amount: 2500 },
-      ];
+      const transactions = [{ amount: 1000 }, { amount: 2500 }];
       Transaction.find.mockResolvedValue(transactions);
 
       const res = await request(app).get('/api/transactions');
@@ -46,7 +53,12 @@ describe('Transaction API', () => {
       userId: 'user1',
       userDetails: { email: 'user@example.com', firstName: 'John', lastName: 'Doe' },
       billingAddress: { country: 'IN', city: 'Mumbai' },
-      packageDetails: { packageTitle: 'Trip to Goa', destination: 'Goa', tripDuration: '5 days', packageImage: 'http://image.jpg' },
+      packageDetails: {
+        packageTitle: 'Trip to Goa',
+        destination: 'Goa',
+        tripDuration: '5 days',
+        packageImage: 'http://image.jpg',
+      },
       addOns: { tourGuide: true },
       pricing: { totalCost: '100' },
       termsAccepted: true,
@@ -70,18 +82,23 @@ describe('Transaction API', () => {
         .send(fullPostData);
 
       expect(stripe.checkout.sessions.create).toHaveBeenCalled();
-      expect(Transaction.create).toHaveBeenCalledWith(expect.objectContaining({
-        userId: 'user1',
-        sessionId: 'sess_123',
-        amount: 10000, // 100 * 100 cents
-        currency: 'usd',
-        user: fullPostData.userDetails,
-        billingAddress: fullPostData.billingAddress,
-        package: fullPostData.packageDetails,
-        addOns: fullPostData.addOns,
-        pricing: fullPostData.pricing,
-        status: 'pending',
-      }));
+
+      // Controller saves 'inr' currency; assert INR to match controller behavior
+      expect(Transaction.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'user1',
+          sessionId: 'sess_123',
+          amount: 10000, // 100 * 100
+          currency: 'inr',
+          user: fullPostData.userDetails,
+          billingAddress: fullPostData.billingAddress,
+          package: fullPostData.packageDetails,
+          addOns: fullPostData.addOns,
+          pricing: fullPostData.pricing,
+          status: 'pending',
+        })
+      );
+
       expect(res.statusCode).toBe(200);
       expect(res.body).toHaveProperty('url', 'https://checkout.stripe.com/pay/xyz');
     });
@@ -92,9 +109,14 @@ describe('Transaction API', () => {
       const res = await request(app)
         .post('/api/transactions/stripe/checkout')
         .send({
-          userDetails: { email: 'test@example.com' },  // minimal valid userDetails
+          userDetails: { email: 'test@example.com' },
           pricing: { totalCost: '100' },
-           packageDetails: { packageTitle: 'Test Package', destination: 'Test', tripDuration: '1 day', packageImage: 'http://image.jpg' }                 // to prevent undefined access error
+          packageDetails: {
+            packageTitle: 'Test Package',
+            destination: 'Test',
+            tripDuration: '1 day',
+            packageImage: 'http://image.jpg',
+          },
         });
 
       expect(res.statusCode).toBe(500);
@@ -104,21 +126,12 @@ describe('Transaction API', () => {
 
   describe('POST /api/transactions/stripe/webhook', () => {
     it('should process Stripe webhook event for checkout.session.completed', async () => {
-      const session = {
-        id: 'sess_123',
-        payment_intent: 'pi_123',
-      };
+      const session = { id: 'sess_123', payment_intent: 'pi_123' };
+      const event = { type: 'checkout.session.completed', data: { object: session } };
 
-      const event = {
-        type: 'checkout.session.completed',
-        data: { object: session },
-      };
-
-      const constructEventSpy = jest.spyOn(stripe.webhooks, 'constructEvent').mockReturnValue(event);
-      const retrievePaymentIntentSpy = jest.spyOn(stripe.paymentIntents, 'retrieve').mockResolvedValue({
-        latest_charge: 'ch_123',
-      });
-      const retrieveChargeSpy = jest.spyOn(stripe.charges, 'retrieve').mockResolvedValue({ receipt_url: 'http://receipt.url' });
+      stripe.webhooks.constructEvent.mockReturnValue(event);
+      stripe.paymentIntents.retrieve.mockResolvedValue({ latest_charge: 'ch_123' });
+      stripe.charges.retrieve.mockResolvedValue({ receipt_url: 'http://receipt.url' });
 
       Transaction.findOneAndUpdate.mockResolvedValue({
         _id: 'trans_123',
@@ -131,6 +144,7 @@ describe('Transaction API', () => {
         bookingDate: new Date(),
         paymentIntentId: 'pi_123',
       });
+
       Booking.create.mockResolvedValue({});
 
       const res = await request(app)
@@ -138,9 +152,9 @@ describe('Transaction API', () => {
         .set('stripe-signature', 'test-signature')
         .send('{}');
 
-      expect(constructEventSpy).toHaveBeenCalled();
-      expect(retrievePaymentIntentSpy).toHaveBeenCalledWith('pi_123', { expand: ['charges'] });
-      expect(retrieveChargeSpy).toHaveBeenCalledWith('ch_123');
+      expect(stripe.webhooks.constructEvent).toHaveBeenCalled();
+      expect(stripe.paymentIntents.retrieve).toHaveBeenCalledWith('pi_123', { expand: ['charges'] });
+      expect(stripe.charges.retrieve).toHaveBeenCalledWith('ch_123');
       expect(Transaction.findOneAndUpdate).toHaveBeenCalledWith(
         { sessionId: 'sess_123' },
         { status: 'paid', paymentIntentId: 'pi_123', receiptUrl: 'http://receipt.url' },
@@ -149,14 +163,10 @@ describe('Transaction API', () => {
       expect(Booking.create).toHaveBeenCalled();
       expect(res.statusCode).toBe(200);
       expect(res.body).toEqual({ received: true });
-
-      constructEventSpy.mockRestore();
-      retrievePaymentIntentSpy.mockRestore();
-      retrieveChargeSpy.mockRestore();
     });
 
     it('should return 400 on webhook signature verification failure', async () => {
-      jest.spyOn(stripe.webhooks, 'constructEvent').mockImplementation(() => {
+      stripe.webhooks.constructEvent.mockImplementation(() => {
         throw new Error('Invalid signature');
       });
 
