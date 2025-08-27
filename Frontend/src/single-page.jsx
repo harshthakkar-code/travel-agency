@@ -251,4 +251,3 @@ const Single_page = () => {
 };
 
 export default Single_page;
-
