@@ -273,6 +273,7 @@ const DbEditBlog = () => {
                             type="file"
                             name="myfile"
                             accept="image/*"
+                            data-testid="file-input"
                             onChange={handleFileChange}
                           />
                         </div>

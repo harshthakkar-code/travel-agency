@@ -216,6 +216,7 @@ const DbAddBlog = () => {
                           <span className="upload-btn">Upload a image</span>
                           <input
                             type="file"
+                            data-testid="file-input"
                             name="myfile"
                             accept="image/*"
                             onChange={handleFileChange}
