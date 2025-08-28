@@ -1,7 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import About from './about.jsx';
 import Contact from './contact.jsx';
-import Destination from './destination.jsx';
+// import Destination from './destination.jsx';
 import TourPackages from './tour-packages.jsx';
 import PackageDetail from './package-detail.jsx';
 import Booking from './booking.jsx';
@@ -47,7 +47,7 @@ function App() {
       <Route path="/tour-packages" element={<TourPackages />} />
       <Route path="/package-offer" element={<PackageOffer />} />
       <Route path="/package-detail/:id" element={<PackageDetail />} />
-      <Route path="/destination" element={<Destination />} />
+      {/* <Route path="/destination" element={<Destination />} /> */}
       <Route path="/single-page" element={<Single_page />} />
 
       {/* -------- User & Admin Accessible Routes -------- */}
