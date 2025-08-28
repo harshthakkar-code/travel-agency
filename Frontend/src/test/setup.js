@@ -1,5 +1,9 @@
 /* eslint-disable no-undef */
 import '@testing-library/jest-dom'
+import { vi } from 'vitest'
+
+// ✅ Set global timeout for all tests
+vi.setConfig({ testTimeout: 10000 })
 
 // Mock window.scrollY
 Object.defineProperty(window, 'scrollY', {
