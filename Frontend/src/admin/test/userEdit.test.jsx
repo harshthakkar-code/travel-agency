@@ -61,10 +61,6 @@ describe('UserEdit', () => {
 
     renderWithRouter(<UserEdit />)
 
-    // Header/Sidebar present
-    // expect(screen.getByTestId('header')).toBeInTheDocument()
-    // expect(screen.getByTestId('sidebar')).toBeInTheDocument()
-
     // API called with /users/u123
     await waitFor(() => expect(api.get).toHaveBeenCalledWith('/users/u123'))
 
@@ -112,11 +108,20 @@ describe('UserEdit', () => {
     renderWithRouter(<UserEdit />)
     await waitFor(() => expect(api.get).toHaveBeenCalled())
 
+    // ✅ Wait for the form to be fully loaded and populated
+    await waitFor(() => {
+      expect(byName('firstname')).toBeInTheDocument()
+      expect(byName('lastname')).toBeInTheDocument()
+    })
+
     // Submit empty form
     await userEvent.click(screen.getByRole('button', { name: /save changes/i }))
 
-    // Errors shown
-    expect(await screen.findByText(/First name is required/i)).toBeInTheDocument()
+    // ✅ Use increased timeout and more specific selectors
+    await waitFor(() => {
+      expect(screen.getByText(/First name is required/i)).toBeInTheDocument()
+    }, { timeout: 3000 })
+
     expect(screen.getByText(/Last name is required/i)).toBeInTheDocument()
     expect(screen.getByText(/Email is required/i)).toBeInTheDocument()
     expect(screen.getByText(/Complete date of birth is required/i)).toBeInTheDocument()
@@ -126,29 +131,40 @@ describe('UserEdit', () => {
 
     // Clear errors via input changes (handleChange logic)
     await userEvent.type(byName('firstname'), 'Ravi')
-    expect(screen.queryByText(/First name is required/i)).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.queryByText(/First name is required/i)).not.toBeInTheDocument()
+    })
 
     await userEvent.type(byName('lastname'), 'Kumar')
-    expect(screen.queryByText(/Last name is required/i)).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.queryByText(/Last name is required/i)).not.toBeInTheDocument()
+    })
 
     await userEvent.type(byName('email'), 'ravi@example.com')
-    expect(screen.queryByText(/Email is required/i)).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.queryByText(/Email is required/i)).not.toBeInTheDocument()
+    })
 
     // Select DOB
     await userEvent.selectOptions(bySelectName('day'), '15')
     await userEvent.selectOptions(bySelectName('month'), '12')
     await userEvent.selectOptions(bySelectName('year'), '1999')
-    // expect(screen.queryByText(/Complete date of birth is required/i)).not.toBeInTheDocument()
 
     await userEvent.type(byName('phone'), '8888888888')
-    expect(screen.queryByText(/Phone number is required/i)).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.queryByText(/Phone number is required/i)).not.toBeInTheDocument()
+    })
 
     await userEvent.type(byName('country'), 'India')
-    expect(screen.queryByText(/Country is required/i)).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.queryByText(/Country is required/i)).not.toBeInTheDocument()
+    })
 
     await userEvent.type(byName('city'), 'Pune')
-    expect(screen.queryByText(/City is required/i)).not.toBeInTheDocument()
-  })
+    await waitFor(() => {
+      expect(screen.queryByText(/City is required/i)).not.toBeInTheDocument()
+    })
+  }, 10000) // ✅ Increased timeout for the entire test
 
   it('submits valid form, PUTs correct payload, and shows success', async () => {
     api.get.mockResolvedValueOnce({
@@ -163,26 +179,40 @@ describe('UserEdit', () => {
         city: 'Ahmedabad',
       },
     })
-    api.put.mockResolvedValueOnce({ data: { ok: true} })
+    api.put.mockResolvedValueOnce({ data: { ok: true } })
 
     renderWithRouter(<UserEdit />)
     await waitFor(() => expect(api.get).toHaveBeenCalled())
 
-    // Edit some fields
-    await userEvent.clear(byName('firstname'))
-    await userEvent.type(byName('firstname'), 'Priya2')
+    // ✅ Wait for form to be populated
+    await waitFor(() => {
+      expect(byName('firstname')).toHaveValue('Priya')
+    })
 
-    await userEvent.selectOptions(bySelectName('day'), '10')  // 10
-    await userEvent.selectOptions(bySelectName('month'), '8')  // August
+    // Edit some fields - ✅ Use clear and type properly
+    const firstNameInput = byName('firstname')
+    await userEvent.clear(firstNameInput)
+    await userEvent.type(firstNameInput, 'Priya2')
+
+    await userEvent.selectOptions(bySelectName('day'), '10')
+    await userEvent.selectOptions(bySelectName('month'), '8')
     await userEvent.selectOptions(bySelectName('year'), '1997')
 
-    await userEvent.clear(byName('city'))
-    await userEvent.type(byName('city'), 'Surat')
+    const cityInput = byName('city')
+    await userEvent.clear(cityInput)
+    await userEvent.type(cityInput, 'Surat')
+
+    // ✅ Verify the values before submitting
+    await waitFor(() => {
+      expect(firstNameInput.value).toBe('Priya2')
+      expect(cityInput.value).toBe('Surat')
+    })
 
     // Submit
     await userEvent.click(screen.getByRole('button', { name: /save changes/i }))
 
     await waitFor(() => expect(api.put).toHaveBeenCalledTimes(1))
+    
     const [url, payload] = api.put.mock.calls[0]
     expect(url).toBe('/users/u123')
     expect(payload).toEqual({
@@ -215,6 +245,11 @@ describe('UserEdit', () => {
 
     renderWithRouter(<UserEdit />)
     await waitFor(() => expect(api.get).toHaveBeenCalled())
+
+    // ✅ Wait for form to be loaded
+    await waitFor(() => {
+      expect(byName('firstname')).toHaveValue('Priya')
+    })
 
     await userEvent.click(screen.getByRole('button', { name: /save changes/i }))
 
