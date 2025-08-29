@@ -364,7 +364,7 @@ const BlogArchive = () => {
                     )}
 
                     {/* No Blogs State */}
-                    {!loading && !error && blogs.length === 0 && (
+                    {!loading && !error && blogs?.length === 0 && (
                       <div className="col-12 text-center" style={{ padding: "50px 0" }}>
                         <h3>No blogs found.</h3>
                         <p>Check back later for new content!</p>
@@ -372,7 +372,7 @@ const BlogArchive = () => {
                     )}
 
                     {/* Dynamic Blog Posts */}
-                    {!loading && !error && blogs.map((blog) => (
+                    {!loading && !error && Array.isArray(blogs) && blogs.map((blog) => (
                       <div key={blog._id} className="grid-item col-md-6">
                         <article className="post">
                           <figure className="feature-image">
