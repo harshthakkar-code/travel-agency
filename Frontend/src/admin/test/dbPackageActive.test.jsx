@@ -60,6 +60,80 @@ describe('DbPackageActive', () => {
     }))
   })
 
+
+  it('renders correct badge class for different status values', async () => {
+  const pkgs = [
+    { _id: '1', title: 'Active Pkg', tripDuration: '3 day / 2 night', destination: 'Goa', status: 'Active' },
+    { _id: '2', title: 'Inactive Pkg', tripDuration: '4 day / 3 night', destination: 'Delhi', status: 'Inactive' },
+  ]
+  
+  api.get.mockResolvedValueOnce({ data: { packages: pkgs, totalPages: 1 } })
+
+  render(
+    <MemoryRouter>
+      <DbPackageActive />
+    </MemoryRouter>
+  )
+
+  await waitFor(() => expect(api.get).toHaveBeenCalled())
+
+  // Check badge classes
+  const activeBadge = document.querySelector('.badge.badge-success')
+  const inactiveBadge = document.querySelector('.badge.badge-secondary')
+  
+  expect(activeBadge).toBeInTheDocument()
+  expect(inactiveBadge).toBeInTheDocument()
+})
+
+
+it('handles single page pagination correctly', async () => {
+  api.get.mockResolvedValueOnce({
+    data: { packages: makePackages(2), totalPages: 1 },
+  })
+
+  render(
+    <MemoryRouter>
+      <DbPackageActive />
+    </MemoryRouter>
+  )
+
+  await waitFor(() => expect(api.get).toHaveBeenCalled())
+
+  // Both prev and next should be disabled on single page
+  const prevButton = document.querySelector('.pagination .page-item:first-child')
+  const nextButton = document.querySelector('.pagination .page-item:last-child')
+  
+  expect(prevButton.className).toMatch(/disabled/)
+  expect(nextButton.className).toMatch(/disabled/)
+  
+  // Only page 1 should be visible
+  expect(screen.getByText('1')).toBeInTheDocument()
+  expect(screen.queryByText('2')).not.toBeInTheDocument()
+})
+
+
+it('does not change page when clicking disabled prev/next buttons', async () => {
+  api.get.mockResolvedValueOnce({
+    data: { packages: makePackages(5), totalPages: 3 },
+  })
+
+  render(
+    <MemoryRouter>
+      <DbPackageActive />
+    </MemoryRouter>
+  )
+
+  await waitFor(() => expect(api.get).toHaveBeenCalledTimes(1))
+
+  // Try clicking disabled prev button on page 1
+  const prevButton = document.querySelector('.pagination .page-item:first-child')
+  fireEvent.click(prevButton)
+  
+  // Should still be on page 1, no additional API calls
+  await waitFor(() => expect(api.get).toHaveBeenCalledTimes(1))
+})
+
+
   it('shows empty state when no active packages', async () => {
     api.get.mockResolvedValueOnce({
       data: { packages: [], totalPages: 1 },
@@ -138,6 +212,51 @@ describe('DbPackageActive', () => {
     // expect(mockedNavigate).toHaveBeenCalledWith('/admin/edit-package/1')
     
   })
+
+
+  it('handles pagination flow from first to last page', async () => {
+  // Mock responses for different pages
+  api.get.mockResolvedValueOnce({ data: { packages: makePackages(5), totalPages: 3 } }) // Page 1
+  api.get.mockResolvedValueOnce({ data: { packages: makePackages(5), totalPages: 3 } }) // Page 3
+
+  render(
+    <MemoryRouter>
+      <DbPackageActive />
+    </MemoryRouter>
+  )
+
+  await waitFor(() => expect(api.get).toHaveBeenCalledTimes(1))
+
+  // Click page 3 directly
+  fireEvent.click(screen.getByText('3'))
+  await waitFor(() => expect(api.get).toHaveBeenCalledTimes(2))
+
+  // Verify we're on last page (next button disabled)
+  const nextButton = document.querySelector('.pagination .page-item:last-child')
+  expect(nextButton.className).toMatch(/disabled/)
+  
+  // Prev should be enabled
+  const prevButton = document.querySelector('.pagination .page-item:first-child')
+  expect(prevButton.className).not.toMatch(/disabled/)
+})
+
+
+it('calls fetchPackages on component mount', async () => {
+  api.get.mockResolvedValueOnce({
+    data: { packages: [], totalPages: 1 },
+  })
+
+  render(
+    <MemoryRouter>
+      <DbPackageActive />
+    </MemoryRouter>
+  )
+
+  expect(api.get).toHaveBeenCalledWith('/packages', {
+    params: { status: 'Active', page: 1, limit: 5 },
+  })
+})
+
 
   it('pagination: clicking page numbers and prev/next triggers refetch and updates disabled states', async () => {
     // Page 1 load

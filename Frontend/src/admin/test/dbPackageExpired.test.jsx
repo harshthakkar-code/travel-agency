@@ -96,6 +96,225 @@ describe('DbPackageExpired', () => {
         expect(screen.getByText('1')).toBeInTheDocument()
         expect(screen.getByText('2')).toBeInTheDocument()
     })
+
+it('does not change page when clicking disabled prev button on first page', async () => {
+  api.get.mockResolvedValueOnce({
+    data: { packages: makePackages(2), totalPages: 3 },
+  })
+
+  render(
+    <MemoryRouter>
+      <DbPackageExpired />
+    </MemoryRouter>
+  )
+
+  await waitFor(() => expect(api.get).toHaveBeenCalledTimes(1))
+
+  // Try clicking disabled prev button on page 1
+  const prevButton = document.querySelector('.pagination .page-item:first-child')
+  expect(prevButton.className).toMatch(/disabled/)
+  
+  fireEvent.click(prevButton)
+  
+  // Should still be on page 1, no additional API calls
+  await waitFor(() => expect(api.get).toHaveBeenCalledTimes(1))
+  
+  // Verify we're still on page 1 by checking active state
+  const page1 = screen.getByText('1').closest('.page-item')
+  expect(page1.className).toMatch(/active/)
+})
+
+
+
+it('does not change page when clicking disabled next button on last page', async () => {
+  // Start on page 1
+  api.get.mockResolvedValueOnce({ data: { packages: makePackages(2), totalPages: 2 } })
+  // Go to page 2 (last page)
+  api.get.mockResolvedValueOnce({ data: { packages: makePackages(2), totalPages: 2 } })
+
+  render(
+    <MemoryRouter>
+      <DbPackageExpired />
+    </MemoryRouter>
+  )
+
+  await waitFor(() => expect(api.get).toHaveBeenCalledTimes(1))
+
+  // Go to last page
+  fireEvent.click(screen.getByText('2'))
+  await waitFor(() => expect(api.get).toHaveBeenCalledTimes(2))
+
+  // Try clicking disabled next button
+  const nextButton = document.querySelector('.pagination .page-item:last-child')
+  expect(nextButton.className).toMatch(/disabled/)
+  
+  fireEvent.click(nextButton)
+  
+  // Should still be on page 2, no additional API calls
+  await waitFor(() => expect(api.get).toHaveBeenCalledTimes(2))
+})
+
+
+it('handles single page pagination correctly - both prev and next disabled', async () => {
+  api.get.mockResolvedValueOnce({
+    data: { packages: makePackages(3), totalPages: 1 },
+  })
+
+  render(
+    <MemoryRouter>
+      <DbPackageExpired />
+    </MemoryRouter>
+  )
+
+  await waitFor(() => expect(api.get).toHaveBeenCalled())
+
+  // Both prev and next should be disabled on single page
+  const prevButton = document.querySelector('.pagination .page-item:first-child')
+  const nextButton = document.querySelector('.pagination .page-item:last-child')
+  
+  expect(prevButton.className).toMatch(/disabled/)
+  expect(nextButton.className).toMatch(/disabled/)
+  
+  // Only page 1 should be visible
+  expect(screen.getByText('1')).toBeInTheDocument()
+  expect(screen.queryByText('2')).not.toBeInTheDocument()
+})
+
+
+it('navigates to previous page when clicking prev button', async () => {
+  // Page 1
+  api.get.mockResolvedValueOnce({ data: { packages: makePackages(2), totalPages: 3 } })
+  // Page 2  
+  api.get.mockResolvedValueOnce({ data: { packages: makePackages(2), totalPages: 3 } })
+  // Back to Page 1
+  api.get.mockResolvedValueOnce({ data: { packages: makePackages(2), totalPages: 3 } })
+
+  render(
+    <MemoryRouter>
+      <DbPackageExpired />
+    </MemoryRouter>
+  )
+
+  await waitFor(() => expect(api.get).toHaveBeenCalledTimes(1))
+
+  // Go to page 2
+  fireEvent.click(screen.getByText('2'))
+  await waitFor(() => expect(api.get).toHaveBeenCalledTimes(2))
+
+  // Now click prev to go back to page 1
+  const prevButton = document.querySelector('.pagination .page-item:first-child .page-link')
+  fireEvent.click(prevButton)
+  await waitFor(() => expect(api.get).toHaveBeenCalledTimes(3))
+
+  // Verify prev is disabled again (we're back on page 1)
+  const prevLi = document.querySelector('.pagination .page-item:first-child')
+  expect(prevLi.className).toMatch(/disabled/)
+})
+
+
+it('calls API with correct parameters for different pages', async () => {
+  // Page 1
+  api.get.mockResolvedValueOnce({ data: { packages: makePackages(2), totalPages: 3 } })
+  // Page 3
+  api.get.mockResolvedValueOnce({ data: { packages: makePackages(2), totalPages: 3 } })
+
+  render(
+    <MemoryRouter>
+      <DbPackageExpired />
+    </MemoryRouter>
+  )
+
+  await waitFor(() => expect(api.get).toHaveBeenCalledTimes(1))
+  
+  // Verify first call
+  expect(api.get).toHaveBeenCalledWith('/packages', {
+    params: { status: 'Expired', page: 1, limit: 5 },
+  })
+
+  // Click page 3
+  fireEvent.click(screen.getByText('3'))
+  await waitFor(() => expect(api.get).toHaveBeenCalledTimes(2))
+
+  // Verify second call
+  expect(api.get).toHaveBeenLastCalledWith('/packages', {
+    params: { status: 'Expired', page: 3, limit: 5 },
+  })
+})
+
+
+it('renders dash for null and undefined destination values', async () => {
+  const pkgs = [
+    { _id: '1', title: 'No Dest 1', tripDuration: '3 day / 2 night', destination: null, status: 'Expired' },
+    { _id: '2', title: 'No Dest 2', tripDuration: '4 day / 3 night', destination: undefined, status: 'Expired' },
+    { _id: '3', title: 'With Dest', tripDuration: '5 day / 4 night', destination: 'Mumbai', status: 'Expired' },
+  ]
+  
+  api.get.mockResolvedValueOnce({ data: { packages: pkgs, totalPages: 1 } })
+
+  render(
+    <MemoryRouter>
+      <DbPackageExpired />
+    </MemoryRouter>
+  )
+
+  await waitFor(() => expect(api.get).toHaveBeenCalled())
+
+  expect(screen.getByText('No Dest 1')).toBeInTheDocument()
+  expect(screen.getByText('No Dest 2')).toBeInTheDocument()
+  expect(screen.getByText('With Dest')).toBeInTheDocument()
+  expect(screen.getByText('Mumbai')).toBeInTheDocument()
+  
+  // Should have 2 dashes for null/undefined destinations
+  const dashes = screen.getAllByText('-')
+  expect(dashes.length).toBe(2)
+})
+
+
+it('fetches packages on component mount', async () => {
+  api.get.mockResolvedValueOnce({
+    data: { packages: [], totalPages: 1 },
+  })
+
+  render(
+    <MemoryRouter>
+      <DbPackageExpired />
+    </MemoryRouter>
+  )
+
+  // Should call API immediately on mount
+  expect(api.get).toHaveBeenCalledWith('/packages', {
+    params: { status: 'Expired', page: 1, limit: 5 },
+  })
+  
+  await waitFor(() => expect(api.get).toHaveBeenCalledTimes(1))
+})
+
+
+it('applies active class to current page number', async () => {
+  api.get.mockResolvedValueOnce({
+    data: { packages: makePackages(2), totalPages: 3 },
+  })
+
+  render(
+    <MemoryRouter>
+      <DbPackageExpired />
+    </MemoryRouter>
+  )
+
+  await waitFor(() => expect(api.get).toHaveBeenCalled())
+
+  // Page 1 should be active initially
+  const page1Li = screen.getByText('1').closest('.page-item')
+  expect(page1Li.className).toMatch(/active/)
+
+  // Other pages should not be active
+  const page2Li = screen.getByText('2').closest('.page-item')
+  const page3Li = screen.getByText('3').closest('.page-item')
+  expect(page2Li.className).not.toMatch(/active/)
+  expect(page3Li.className).not.toMatch(/active/)
+})
+
+
     it('shows error when fetch fails and clears on subsequent successful fetch (page change)', async () => {
         // First request fails (page 1)
         api.get.mockRejectedValueOnce(new Error('network'))

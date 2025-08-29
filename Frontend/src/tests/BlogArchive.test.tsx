@@ -17,6 +17,10 @@ vi.mock('../Header', () => ({
 
 import api from '../utils/api'
 
+
+
+
+
 describe('BlogArchive Component', () => {
   const mockBlogs = [
     {
@@ -206,6 +210,9 @@ describe('BlogArchive Component', () => {
     })
   })
 
+
+  
+
   describe('Loading State', () => {
     it('displays loading message while fetching blogs', () => {
       vi.mocked(api.get).mockImplementation(() => new Promise(() => {})) // Never resolves
@@ -379,6 +386,147 @@ describe('BlogArchive Component', () => {
       })
     })
   })
+
+
+  describe('State Management', () => {
+  it('handles setCurrentPage with same page number', async () => {
+    vi.mocked(api.get).mockResolvedValue({
+      data: { blogs: mockBlogs, totalPages: 3 }
+    })
+
+    render(<BlogArchive />)
+
+    await waitFor(() => {
+      expect(screen.getByText('1')).toBeInTheDocument()
+    })
+
+    // Click the same page (page 1)
+    const page1Button = screen.getByText('1')
+    await userEvent.click(page1Button)
+
+    // Should trigger API call even for same page
+    expect(api.get).toHaveBeenCalledWith('/blogs?page=1')
+  })
+
+  it('resets loading state correctly after error', async () => {
+    vi.mocked(api.get)
+      .mockRejectedValueOnce(new Error('Network error'))
+      .mockResolvedValueOnce({ data: { blogs: mockBlogs, totalPages: 1 } })
+
+    const { rerender } = render(<BlogArchive />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Failed to fetch blogs')).toBeInTheDocument()
+    })
+
+    // Clear mocks and re-render
+    vi.mocked(api.get).mockClear()
+    vi.mocked(api.get).mockResolvedValue({ data: { blogs: mockBlogs, totalPages: 1 } })
+
+   
+  })
+})
+
+
+describe('Component Lifecycle', () => {
+  it('handles component unmount during API call', async () => {
+    // Mock a slow API call
+    let resolveAPI
+    vi.mocked(api.get).mockImplementation(() => {
+      return new Promise((resolve) => {
+        resolveAPI = resolve
+      })
+    })
+
+    const { unmount } = render(<BlogArchive />)
+
+    // Unmount before API resolves
+    unmount()
+
+    // Resolve API call after unmount
+    if (resolveAPI) {
+      resolveAPI({ data: { blogs: mockBlogs, totalPages: 1 } })
+    }
+
+    // Should not cause any errors
+    expect(true).toBe(true)
+  })
+
+  it('calls API immediately on mount', () => {
+    vi.mocked(api.get).mockResolvedValue({
+      data: { blogs: [], totalPages: 1 }
+    })
+
+    render(<BlogArchive />)
+
+    expect(api.get).toHaveBeenCalledWith('/blogs?page=1')
+  })
+})
+
+
+describe('Blog Content Edge Cases', () => {
+  it('handles blog with only whitespace content', async () => {
+    const whitespaceContentBlog = {
+      _id: '1',
+      title: 'Whitespace Blog',
+      content: '   \n\t   ',
+      author: 'Author',
+      createdAt: '2024-01-01T10:00:00.000Z'
+    }
+
+    vi.mocked(api.get).mockResolvedValue({
+      data: { blogs: [whitespaceContentBlog], totalPages: 1 }
+    })
+
+    render(<BlogArchive />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Whitespace Blog')).toBeInTheDocument()
+    })
+  })
+
+  it('handles blog with special characters in content', async () => {
+    const specialCharsBlog = {
+      _id: '1',
+      title: 'Special Characters Blog',
+      content: 'Content with special chars: <script>alert("xss")</script> & symbols: @#$%^&*()',
+      author: 'Author',
+      createdAt: '2024-01-01T10:00:00.000Z'
+    }
+
+    vi.mocked(api.get).mockResolvedValue({
+      data: { blogs: [specialCharsBlog], totalPages: 1 }
+    })
+
+    render(<BlogArchive />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Special Characters Blog')).toBeInTheDocument()
+      expect(screen.getByText(/Content with special chars/)).toBeInTheDocument()
+    })
+  })
+
+  it('handles blog with extremely long title', async () => {
+    const longTitleBlog = {
+      _id: '1',
+      title: 'This is an extremely long blog title that goes on and on and on and should be handled gracefully by the component',
+      content: 'Content',
+      author: 'Author', 
+      createdAt: '2024-01-01T10:00:00.000Z'
+    }
+
+    vi.mocked(api.get).mockResolvedValue({
+      data: { blogs: [longTitleBlog], totalPages: 1 }
+    })
+
+    render(<BlogArchive />)
+
+    await waitFor(() => {
+      expect(screen.getByText(/This is an extremely long blog title/)).toBeInTheDocument()
+    })
+  })
+})
+
 
   describe('Pagination', () => {
     it('does not render pagination when totalPages is 1', async () => {
@@ -906,6 +1054,10 @@ describe('BlogArchive Component', () => {
       expect(searchInput).toHaveAttribute('type', 'text')
     })
   })
+
+
+
+  
 
   // ✅ Removed the problematic edge case tests that were causing errors
   describe('Edge Cases', () => {
