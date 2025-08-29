@@ -17,15 +17,17 @@ Object.defineProperty(window, 'localStorage', {
 })
 
 // Mock window.location
-Object.defineProperty(window, 'location', {
-  value: {
-    href: '',
-  },
+delete window.location
+window.location = { href: '' } as any
+
+// Mock scrollY
+Object.defineProperty(window, 'scrollY', {
   writable: true,
+  value: 0,
 })
 
-// Mock scrollTo
-Object.defineProperty(window, 'scrollY', {
+// Mock pageYOffset (alternative to scrollY)
+Object.defineProperty(window, 'pageYOffset', {
   writable: true,
   value: 0,
 })
@@ -37,6 +39,7 @@ describe('Header Component', () => {
     vi.clearAllMocks()
     mockLocalStorage.getItem.mockReturnValue(null)
     window.scrollY = 0
+    window.pageYOffset = 0
     window.location.href = ''
     
     // Mock console methods
@@ -52,7 +55,6 @@ describe('Header Component', () => {
     it('renders header with correct structure', () => {
       renderHeader()
       
-      // Main header element
       expect(document.querySelector('#masthead.site-header.header-primary')).toBeInTheDocument()
       expect(document.querySelector('.top-header')).toBeInTheDocument()
       expect(document.querySelector('.bottom-header')).toBeInTheDocument()
@@ -223,6 +225,7 @@ describe('Header Component', () => {
     it('shows user dropdown when authenticated', () => {
       renderHeader()
       
+      expect(screen.getByText('Welcome, John Doe')).toBeInTheDocument()
       expect(document.querySelector('.fas.fa-chevron-down')).toBeInTheDocument()
     })
 
@@ -303,11 +306,50 @@ describe('Header Component', () => {
         expect(screen.getByText('My Bookings')).toBeInTheDocument()
       })
       
-      // Click outside
-      await user.click(document.body)
+      // Click outside the dropdown
+      const outsideElement = document.querySelector('.site-header')
+      await user.click(outsideElement as HTMLElement)
       
       await waitFor(() => {
         expect(screen.queryByText('My Bookings')).not.toBeInTheDocument()
+      })
+    })
+
+    it('handles multiple dropdown toggle clicks', async () => {
+      renderHeader()
+      const user = userEvent.setup()
+      
+      const userButton = screen.getByText('Welcome, John Doe').closest('button')
+      
+      // First click - open dropdown
+      await user.click(userButton as HTMLElement)
+      await waitFor(() => {
+        expect(screen.getByText('My Bookings')).toBeInTheDocument()
+      })
+      
+      // Second click - close dropdown
+      await user.click(userButton as HTMLElement)
+      await waitFor(() => {
+        expect(screen.queryByText('My Bookings')).not.toBeInTheDocument()
+      })
+      
+      // Third click - open again
+      await user.click(userButton as HTMLElement)
+      await waitFor(() => {
+        expect(screen.getByText('My Bookings')).toBeInTheDocument()
+      })
+    })
+
+    it('displays correct user info in dropdown header', async () => {
+      renderHeader()
+      const user = userEvent.setup()
+      
+      const userButton = screen.getByText('Welcome, John Doe').closest('button')
+      await user.click(userButton as HTMLElement)
+      
+      await waitFor(() => {
+        expect(screen.getByText('Signed in as')).toBeInTheDocument()
+        expect(screen.getByText('john@example.com')).toBeInTheDocument()
       })
     })
   })
@@ -324,6 +366,7 @@ describe('Header Component', () => {
         const bottomHeader = document.querySelector('.bottom-header') as HTMLElement
         expect(bottomHeader.style.position).toBe('fixed')
         expect(bottomHeader.style.backgroundColor).toBe('rgb(255, 255, 255)')
+        expect(bottomHeader.style.boxShadow).toBe('0 2px 6px rgba(0,0,0,0.15)')
       })
     })
 
@@ -339,22 +382,6 @@ describe('Header Component', () => {
       
       await waitFor(() => {
         expect(topHeader.style.display).toBe('none')
-      })
-    })
-
-    it('changes navigation link colors when scrolled', async () => {
-      renderHeader()
-      
-      // Simulate scroll
-      Object.defineProperty(window, 'scrollY', { value: 150, writable: true })
-      fireEvent.scroll(window)
-      
-      await waitFor(() => {
-        // Navigation links should have dark color when scrolled
-        const navLinks = document.querySelectorAll('#navigation a')
-        navLinks.forEach(link => {
-          const linkElement = link as HTMLElement
-        })
       })
     })
 
@@ -374,6 +401,46 @@ describe('Header Component', () => {
       })
     })
 
+    it('updates scroll state correctly for small scroll values', async () => {
+      renderHeader()
+      
+      // Small scroll (less than threshold)
+      Object.defineProperty(window, 'scrollY', { value: 50, writable: true })
+      fireEvent.scroll(window)
+      
+      await waitFor(() => {
+        const bottomHeader = document.querySelector('.bottom-header') as HTMLElement
+        expect(bottomHeader.style.position).toBe('relative')
+        expect(bottomHeader.style.backgroundColor).toBe('transparent')
+      })
+    })
+
+    it('updates scroll state at exact threshold', async () => {
+      renderHeader()
+      
+      // Exact threshold value
+      Object.defineProperty(window, 'scrollY', { value: 100, writable: true })
+      fireEvent.scroll(window)
+      
+      await waitFor(() => {
+        const topHeader = document.querySelector('.top-header') as HTMLElement
+        expect(topHeader.style.display).toBe('block')
+      })
+    })
+
+    it('updates scroll state just above threshold', async () => {
+      renderHeader()
+      
+      // Just above threshold
+      Object.defineProperty(window, 'scrollY', { value: 101, writable: true })
+      fireEvent.scroll(window)
+      
+      await waitFor(() => {
+        const topHeader = document.querySelector('.top-header') as HTMLElement
+        expect(topHeader.style.display).toBe('none')
+      })
+    })
+
     it('removes scroll event listener on unmount', () => {
       const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener')
       const { unmount } = renderHeader()
@@ -390,7 +457,6 @@ describe('Header Component', () => {
       
       renderHeader()
       
-      // Should render without crashing and show login/register
       expect(document.querySelector('#masthead')).toBeInTheDocument()
       expect(screen.getByText('Login')).toBeInTheDocument()
       expect(screen.getByText('Register')).toBeInTheDocument()
@@ -399,33 +465,41 @@ describe('Header Component', () => {
     it('handles partial localStorage data gracefully', () => {
       mockLocalStorage.getItem.mockImplementation((key) => {
         if (key === 'token') return 'mock-token'
-        // user data is missing
         if (key === 'user') return null
         return null
       })
       
       renderHeader()
       
-      // Should not crash and show non-authenticated state
       expect(document.querySelector('#masthead')).toBeInTheDocument()
       expect(screen.getByText('Login')).toBeInTheDocument()
     })
 
-    it('handles authentication state changes correctly', () => {
-      // Start with no auth
-      mockLocalStorage.getItem.mockReturnValue(null)
-      
-      const { rerender } = renderHeader()
-      expect(screen.getByText('Login')).toBeInTheDocument()
-      
-      // Change to authenticated
+    it('handles invalid user data in localStorage', () => {
       mockLocalStorage.getItem.mockImplementation((key) => {
         if (key === 'token') return 'mock-token'
-        if (key === 'user') return 'John Doe'
+        if (key === 'user') return 'invalid-json'
         return null
       })
       
-      rerender(<Header />)
+      renderHeader()
+      
+      // Should show authenticated state since user data is just a string
+      expect(screen.getByText('Welcome, invalid-json')).toBeInTheDocument()
+    })
+
+    it('handles error in parsing user data gracefully', () => {
+      // Mock scenario where token exists but user data causes issues
+      mockLocalStorage.getItem.mockImplementation((key) => {
+        if (key === 'token') return 'mock-token'
+        if (key === 'user') return null // This would cause the component to show login
+        return null
+      })
+      
+      renderHeader()
+      
+      expect(screen.getByText('Login')).toBeInTheDocument()
+      expect(screen.getByText('Register')).toBeInTheDocument()
     })
   })
 
@@ -466,17 +540,110 @@ describe('Header Component', () => {
       
       expect(removeEventListenerSpy).toHaveBeenCalledWith('mousedown', expect.any(Function))
     })
+
+    it('handles dropdown click outside detection correctly', async () => {
+      mockLocalStorage.getItem.mockImplementation((key) => {
+        if (key === 'token') return 'mock-token'
+        if (key === 'user') return 'John Doe'
+        return null
+      })
+      
+      renderHeader()
+      const user = userEvent.setup()
+      
+      // Open dropdown
+      const userButton = screen.getByText('Welcome, John Doe').closest('button')
+      await user.click(userButton as HTMLElement)
+      
+      await waitFor(() => {
+        expect(screen.getByText('My Bookings')).toBeInTheDocument()
+      })
+      
+      // Create a mousedown event on dropdown element itself (should not close)
+      const dropdownMenu = document.querySelector('.user-dropdown')
+      fireEvent.mouseDown(dropdownMenu as HTMLElement)
+      
+      // Dropdown should still be open
+      expect(screen.getByText('My Bookings')).toBeInTheDocument()
+      
+      // Click outside the dropdown
+      fireEvent.mouseDown(document.body)
+      
+      await waitFor(() => {
+        expect(screen.queryByText('My Bookings')).not.toBeInTheDocument()
+      })
+    })
+  })
+
+  describe('Dynamic Styling', () => {
+    it('applies correct auth button styling when not scrolled', () => {
+      renderHeader()
+      
+      const loginBtn = screen.getByText('Login').closest('a') as HTMLElement
+      const registerBtn = screen.getByText('Register').closest('a') as HTMLElement
+      
+      expect(loginBtn.style.color).toBe('rgb(255, 255, 255)')
+      expect(registerBtn.style.backgroundColor).toBe('rgb(255, 255, 255)')
+      expect(registerBtn.style.color).toBe('rgb(16, 31, 70)')
+    })
+
+    it('applies correct auth button styling when scrolled', async () => {
+      renderHeader()
+      
+      // Simulate scroll
+      Object.defineProperty(window, 'scrollY', { value: 150, writable: true })
+      fireEvent.scroll(window)
+      
+      await waitFor(() => {
+        const loginBtn = screen.getByText('Login').closest('a') as HTMLElement
+        const registerBtn = screen.getByText('Register').closest('a') as HTMLElement
+        
+        expect(loginBtn.style.color).toBe('rgb(16, 31, 70)')
+        expect(registerBtn.style.backgroundColor).toBe('rgb(16, 31, 70)')
+        expect(registerBtn.style.color).toBe('rgb(255, 255, 255)')
+      })
+    })
+
+    it('applies correct user button styling when authenticated and not scrolled', () => {
+      mockLocalStorage.getItem.mockImplementation((key) => {
+        if (key === 'token') return 'mock-token'
+        if (key === 'user') return 'John Doe'
+        return null
+      })
+      
+      renderHeader()
+      
+      const userButton = screen.getByText('Welcome, John Doe').closest('button') as HTMLElement
+      expect(userButton.style.color).toBe('rgb(255, 255, 255)')
+    })
+
+    it('applies correct user button styling when authenticated and scrolled', async () => {
+      mockLocalStorage.getItem.mockImplementation((key) => {
+        if (key === 'token') return 'mock-token'
+        if (key === 'user') return 'John Doe'
+        return null
+      })
+      
+      renderHeader()
+      
+      // Simulate scroll
+      Object.defineProperty(window, 'scrollY', { value: 150, writable: true })
+      fireEvent.scroll(window)
+      
+      await waitFor(() => {
+        const userButton = screen.getByText('Welcome, John Doe').closest('button') as HTMLElement
+        expect(userButton.style.color).toBe('rgb(16, 31, 70)')
+      })
+    })
   })
 
   describe('Accessibility', () => {
     it('has proper ARIA attributes', () => {
       renderHeader()
       
-      // Navigation should be accessible
       const nav = document.querySelector('nav#navigation')
       expect(nav).toBeInTheDocument()
       
-      // Buttons should be keyboard accessible
       const searchButton = document.querySelector('.search-icon')
       expect(searchButton).toBeInTheDocument()
     })
@@ -484,7 +651,6 @@ describe('Header Component', () => {
     it('has proper heading structure', () => {
       renderHeader()
       
-      // Site title should be accessible
       const siteTitle = document.querySelector('.site-title')
       expect(siteTitle).toBeInTheDocument()
     })
@@ -525,35 +691,72 @@ describe('Header Component', () => {
     })
   })
 
-  describe('Dynamic Styling', () => {
-    it('applies correct auth button styling when not scrolled', () => {
+  describe('Blog Navigation Links', () => {
+    it('has correct blog navigation link attributes', () => {
       renderHeader()
+      const blogLinks = {
+        'Blog List': '/blog-archive',
+        'Blog Left Sidebar': '/blog-archive-left',
+        'Blog Both Sidebar': '/blog-archive-both',
+        'Blog Single': '/blog-single'
+      }
       
-      const loginBtn = screen.getByText('Login').closest('a') as HTMLElement
-      const registerBtn = screen.getByText('Register').closest('a') as HTMLElement
+      Object.entries(blogLinks).forEach(([text, href]) => {
+        const link = screen.getByText(text).closest('a')
+        expect(link).toHaveAttribute('href', href)
+      })
+    })
+  })
+
+
+  describe('User Interaction Edge Cases', () => {
+    it('handles rapid dropdown toggle clicks', async () => {
+      mockLocalStorage.getItem.mockImplementation((key) => {
+        if (key === 'token') return 'mock-token'
+        if (key === 'user') return 'John Doe'
+        return null
+      })
       
-      // Not scrolled - white text on transparent/colored background
-      expect(loginBtn.style.color).toBe('rgb(255, 255, 255)')
-      expect(registerBtn.style.backgroundColor).toBe('rgb(255, 255, 255)')
-      expect(registerBtn.style.color).toBe('rgb(16, 31, 70)')
+      renderHeader()
+      const user = userEvent.setup()
+      
+      const userButton = screen.getByText('Welcome, John Doe').closest('button')
+      
+      // Rapid clicks
+      await user.click(userButton as HTMLElement)
+      await user.click(userButton as HTMLElement)
+      await user.click(userButton as HTMLElement)
+      
+      // Should handle gracefully without errors
+      expect(userButton).toBeInTheDocument()
     })
 
-    it('applies correct auth button styling when scrolled', async () => {
-      renderHeader()
+    it('handles scroll events during dropdown interaction', async () => {
+      mockLocalStorage.getItem.mockImplementation((key) => {
+        if (key === 'token') return 'mock-token'
+        if (key === 'user') return 'John Doe'
+        return null
+      })
       
-      // Simulate scroll
+      renderHeader()
+      const user = userEvent.setup()
+      
+      const userButton = screen.getByText('Welcome, John Doe').closest('button')
+      await user.click(userButton as HTMLElement)
+      
+      await waitFor(() => {
+        expect(screen.getByText('My Bookings')).toBeInTheDocument()
+      })
+      
+      // Simulate scroll while dropdown is open
       Object.defineProperty(window, 'scrollY', { value: 150, writable: true })
       fireEvent.scroll(window)
       
-      await waitFor(() => {
-        const loginBtn = screen.getByText('Login').closest('a') as HTMLElement
-        const registerBtn = screen.getByText('Register').closest('a') as HTMLElement
-        
-        // Scrolled - dark text on white background
-        expect(loginBtn.style.color).toBe('rgb(16, 31, 70)')
-        expect(registerBtn.style.backgroundColor).toBe('rgb(16, 31, 70)')
-        expect(registerBtn.style.color).toBe('rgb(255, 255, 255)')
-      })
+      // Dropdown should still be functional
+      const logoutButton = screen.getByText('Logout')
+      await user.click(logoutButton)
+      
+      expect(window.location.href).toBe('/')
     })
   })
 })
