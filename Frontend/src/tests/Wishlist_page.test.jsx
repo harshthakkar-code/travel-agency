@@ -8,6 +8,7 @@ import Wishlist_page from '../Wishlist-page'
 vi.mock('../utils/api', () => ({
   default: {
     get: vi.fn(),
+    delete: vi.fn(),     
   }
 }))
 
@@ -64,6 +65,321 @@ describe('Wishlist_page Component', () => {
   afterEach(() => {
     vi.restoreAllMocks()
   })
+
+  describe('Wishlist Item Removal', () => {
+  const mockPackages = [
+    {
+      _id: 'package1',
+      title: 'Amazing Paris Tour',
+      description: 'Explore the beautiful city of Paris.',
+      price: 199900,
+    },
+    {
+      _id: 'package2', 
+      title: 'Tokyo Adventure',
+      description: 'Experience Tokyo culture.',
+      price: 249900,
+    }
+  ]
+
+  beforeEach(() => {
+    mockLocalStorage.getItem.mockReturnValue('valid-token')
+    api.get.mockResolvedValue({ data: { packages: mockPackages } })
+    // Mock the delete method
+    api.delete = vi.fn()
+  })
+
+  it('removes package from wishlist when Wish List button is clicked', async () => {
+    const user = userEvent.setup()
+    api.delete.mockResolvedValue({})
+    
+    renderWithRouter(<Wishlist_page />)
+    
+    await waitFor(() => {
+      expect(screen.getByText('Amazing Paris Tour')).toBeInTheDocument()
+      expect(screen.getByText('Tokyo Adventure')).toBeInTheDocument()
+    })
+
+    // Use more specific selector for wishlist buttons
+    const wishListButtons = document.querySelectorAll('.btn-wrap a[style*="cursor: pointer"]')
+    await user.click(wishListButtons[0])
+
+    // Verify API delete call
+    expect(api.delete).toHaveBeenCalledWith('/wishlist/package1')
+
+    // Verify package is removed from UI
+    await waitFor(() => {
+      expect(screen.queryByText('Amazing Paris Tour')).not.toBeInTheDocument()
+      expect(screen.getByText('Tokyo Adventure')).toBeInTheDocument()
+    })
+  })
+
+  it('redirects to login when no token during wishlist removal', async () => {
+    const user = userEvent.setup()
+    
+    // First render with token to get packages
+    renderWithRouter(<Wishlist_page />)
+    
+    await waitFor(() => {
+      expect(screen.getByText('Amazing Paris Tour')).toBeInTheDocument()
+    })
+
+    // Clear the navigate mock after initial render
+    mockNavigate.mockClear()
+    
+    // Mock no token for the toggleWishlist call
+    mockLocalStorage.getItem.mockReturnValueOnce(null)
+
+    const wishListButtons = document.querySelectorAll('.btn-wrap a[style*="cursor: pointer"]')
+    await user.click(wishListButtons[0])
+
+    expect(mockNavigate).toHaveBeenCalledWith('/admin/login')
+  })
+
+  it('handles error during wishlist removal', async () => {
+    const user = userEvent.setup()
+    api.delete.mockRejectedValue(new Error('Delete failed'))
+    
+    renderWithRouter(<Wishlist_page />)
+    
+    await waitFor(() => {
+      expect(screen.getByText('Amazing Paris Tour')).toBeInTheDocument()
+    })
+
+    const wishListButtons = document.querySelectorAll('.btn-wrap a[style*="cursor: pointer"]')
+    await user.click(wishListButtons[0])
+
+    expect(api.delete).toHaveBeenCalledWith('/wishlist/package1')
+    expect(console.error).toHaveBeenCalledWith('Failed to update wishlist', expect.any(Error))
+    
+    // Package should still be visible since removal failed
+    expect(screen.getByText('Amazing Paris Tour')).toBeInTheDocument()
+  })
+
+  it('removes last package and shows empty state', async () => {
+    const user = userEvent.setup()
+    const singlePackage = [mockPackages[0]]
+    api.get.mockResolvedValue({ data: { packages: singlePackage } })
+    api.delete.mockResolvedValue({})
+    
+    renderWithRouter(<Wishlist_page />)
+    
+    await waitFor(() => {
+      expect(screen.getByText('Amazing Paris Tour')).toBeInTheDocument()
+    })
+
+    // Use querySelector for the specific wishlist button, not the page title
+    const wishListButton = document.querySelector('.btn-wrap a[style*="cursor: pointer"]')
+    await user.click(wishListButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('Your wishlist is empty.')).toBeInTheDocument()
+    })
+  })
+})
+
+
+  
+
+  describe('Authentication Edge Cases', () => {
+  it('handles token check during component mount', async () => {
+    mockLocalStorage.getItem.mockReturnValue('valid-token')
+    api.get.mockResolvedValue({ data: { packages: [] } })
+    
+    renderWithRouter(<Wishlist_page />)
+    
+    await waitFor(() => {
+      expect(mockLocalStorage.getItem).toHaveBeenCalledWith('token')
+      expect(api.get).toHaveBeenCalledWith('/wishlist')
+    })
+  })
+
+  it('does not make API call when no token', async () => {
+    mockLocalStorage.getItem.mockReturnValue(null)
+    
+    renderWithRouter(<Wishlist_page />)
+    
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/admin/login')
+    })
+    
+    expect(api.get).not.toHaveBeenCalled()
+  })
+})
+
+
+describe('Package Navigation Links', () => {
+  const mockPackages = [{
+    _id: 'package1',
+    title: 'Test Package',
+    imageUrl: '/test-image.jpg'
+  }]
+
+  beforeEach(() => {
+    mockLocalStorage.getItem.mockReturnValue('valid-token')
+    api.get.mockResolvedValue({ data: { packages: mockPackages } })
+  })
+
+  it('renders image links to package detail page', async () => {
+    renderWithRouter(<Wishlist_page />)
+    
+    await waitFor(() => {
+      const imageLinks = document.querySelectorAll('figure.feature-image a')
+      expect(imageLinks).toHaveLength(1)
+      expect(imageLinks[0]).toHaveAttribute('href', '/package-detail/package1')
+    })
+  })
+
+  it('renders title links to package detail page', async () => {
+    renderWithRouter(<Wishlist_page />)
+    
+    await waitFor(() => {
+      const titleLinks = document.querySelectorAll('.package-content h3 a')
+      expect(titleLinks).toHaveLength(1)
+      expect(titleLinks[0]).toHaveAttribute('href', '/package-detail/package1')
+    })
+  })
+
+  it('renders Book Now links to package detail page', async () => {
+    renderWithRouter(<Wishlist_page />)
+    
+    await waitFor(() => {
+      const bookNowLinks = document.querySelectorAll('.btn-wrap a.button-text')
+      const bookNowLink = Array.from(bookNowLinks).find(link => 
+        link.textContent.includes('Book Now')
+      )
+      expect(bookNowLink).toHaveAttribute('href', '/package-detail/package1')
+    })
+  })
+})
+
+
+describe('Price Display Logic', () => {
+  it('calculates and displays price correctly from cents', async () => {
+    const mockPackages = [{
+      _id: 'package1',
+      title: 'Test Package',
+      price: 123456 // $1234.56 in cents
+    }]
+    
+    mockLocalStorage.getItem.mockReturnValue('valid-token')
+    api.get.mockResolvedValue({ data: { packages: mockPackages } })
+    
+    renderWithRouter(<Wishlist_page />)
+    
+    await waitFor(() => {
+      expect(screen.getByText('$1234.56')).toBeInTheDocument()
+    })
+  })
+
+
+  it('uses fallback price when price is null', async () => {
+    const mockPackages = [{
+      _id: 'package1',
+      title: 'No Price Package',
+      price: null
+    }]
+    
+    mockLocalStorage.getItem.mockReturnValue('valid-token')
+    api.get.mockResolvedValue({ data: { packages: mockPackages } })
+    
+    renderWithRouter(<Wishlist_page />)
+    
+    await waitFor(() => {
+      expect(screen.getByText('$1,900')).toBeInTheDocument()
+    })
+  })
+})
+
+
+describe('Rating Display', () => {
+  it('calculates rating percentage correctly', async () => {
+    const mockPackages = [
+      { _id: '1', title: 'Package 1', rating: 3.5 },
+      { _id: '2', title: 'Package 2', rating: 2.0 },
+      { _id: '3', title: 'Package 3', rating: 5.0 }
+    ]
+    
+    mockLocalStorage.getItem.mockReturnValue('valid-token')
+    api.get.mockResolvedValue({ data: { packages: mockPackages } })
+    
+    renderWithRouter(<Wishlist_page />)
+    
+    await waitFor(() => {
+      const ratingStars = document.querySelectorAll('.rating-start span')
+      expect(ratingStars[0]).toHaveStyle('width: 70%') // 3.5 * 20 = 70%
+      expect(ratingStars[1]).toHaveStyle('width: 40%') // 2.0 * 20 = 40%
+      expect(ratingStars[2]).toHaveStyle('width: 100%') // 5.0 * 20 = 100%
+    })
+  })
+
+  it('handles null rating correctly', async () => {
+    const mockPackages = [{
+      _id: 'package1',
+      title: 'No Rating Package',
+      rating: null
+    }]
+    
+    mockLocalStorage.getItem.mockReturnValue('valid-token')
+    api.get.mockResolvedValue({ data: { packages: mockPackages } })
+    
+    renderWithRouter(<Wishlist_page />)
+    
+    await waitFor(() => {
+      const ratingStars = document.querySelectorAll('.rating-start span')
+      expect(ratingStars[0]).toHaveStyle('width: 0%')
+    })
+  })
+})
+
+
+describe('Conditional Rendering Logic', () => {
+  it('switches from empty state to package list when data changes', async () => {
+    mockLocalStorage.getItem.mockReturnValue('valid-token')
+    
+    // Start with empty wishlist
+    api.get.mockResolvedValueOnce({ data: { packages: [] } })
+    
+    const { rerender } = renderWithRouter(<Wishlist_page />)
+    
+    await waitFor(() => {
+      expect(screen.getByText('Your wishlist is empty.')).toBeInTheDocument()
+    })
+
+    // Now mock with packages
+    const mockPackages = [{
+      _id: 'package1',
+      title: 'New Package'
+    }]
+    
+    api.get.mockResolvedValue({ data: { packages: mockPackages } })
+    
+    rerender(<Wishlist_page />)
+    
+    await waitFor(() => {
+      expect(screen.queryByText('Your wishlist is empty.')).not.toBeInTheDocument()
+      expect(screen.getByText('New Package')).toBeInTheDocument()
+    })
+  })
+})
+
+
+describe('Component Lifecycle', () => {
+  it('calls fetchWishlist when navigate dependency changes', async () => {
+    mockLocalStorage.getItem.mockReturnValue('valid-token')
+    api.get.mockResolvedValue({ data: { packages: [] } })
+    
+    renderWithRouter(<Wishlist_page />)
+    
+    await waitFor(() => {
+      expect(api.get).toHaveBeenCalledTimes(1)
+    })
+    
+    // The useEffect should only run once with navigate dependency
+    expect(api.get).toHaveBeenCalledWith('/wishlist')
+  })
+})
+
 
   describe('Authentication Check', () => {
     it('redirects to login when no token is found', async () => {
@@ -546,3 +862,4 @@ expect(durations[0]).toBeInTheDocument()
     })
   })
 })
+

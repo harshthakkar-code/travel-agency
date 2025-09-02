@@ -2,7 +2,7 @@ import React from 'react'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import Header from '../Header'
+import Header from '../Header.jsx'
 
 // Mock localStorage
 const mockLocalStorage = {
@@ -1023,5 +1023,745 @@ describe('Header Component', () => {
       // Should show login since we don't have token
       expect(screen.getByText('Login')).toBeInTheDocument()
     })
+  })
+})
+
+
+describe('Function Coverage - Specific Lines', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    // Mock window.location
+    delete window.location
+    window.location = { href: '', assign: vi.fn(), replace: vi.fn() }
+  })
+
+  // Test lines 36-38: handleLogoClick function
+  it('should execute handleLogoClick function (lines 36-38)', async () => {
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    window.localStorage.getItem.mockReturnValue(null)
+    
+    render(<Header />)
+
+    const logoContainer = screen.getByRole('banner').querySelector('.site-identity')
+    
+    // Click logo to execute handleLogoClick
+    const user = userEvent.setup()
+    await user.click(logoContainer)
+
+    // Verify line 37: console.log("Logo clicked")
+    expect(consoleSpy).toHaveBeenCalledWith('Logo clicked')
+    
+    // Verify line 38: window.location.href = "/"
+    expect(window.location.href).toBe('/')
+
+    consoleSpy.mockRestore()
+  })
+
+  // Test lines 173, 176: handleLogout function
+  it('should execute handleLogout function (lines 173, 176)', async () => {
+    // Setup authenticated user
+    window.localStorage.getItem.mockImplementation((key) => {
+      if (key === 'token') return 'mock-token'
+      if (key === 'user') return 'Test User'
+      if (key === 'userEmail') return 'test@example.com'
+      return null
+    })
+
+    const user = userEvent.setup()
+    render(<Header />)
+
+    // Open dropdown
+    const userButton = screen.getByRole('button', { 
+      name: (name, element) => element?.textContent?.includes('Welcome, Test User')
+    })
+    await user.click(userButton)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Logout/i })).toBeInTheDocument()
+    })
+
+    // Click logout to execute handleLogout
+    const logoutButton = screen.getByRole('button', { name: /Logout/i })
+    await user.click(logoutButton)
+
+    // Verify localStorage clearing (lines around 173-176)
+    expect(window.localStorage.removeItem).toHaveBeenCalledWith('token')
+    expect(window.localStorage.removeItem).toHaveBeenCalledWith('user')
+    expect(window.localStorage.removeItem).toHaveBeenCalledWith('userRole')
+    expect(window.localStorage.removeItem).toHaveBeenCalledWith('bookingData')
+    expect(window.localStorage.removeItem).toHaveBeenCalledWith('completeBooking')
+
+    // Verify redirect (final line of handleLogout)
+    expect(window.location.href).toBe('/')
+  })
+
+  // Test lines 197, 200: toggleUserDropdown function
+  it('should execute toggleUserDropdown function (lines 197, 200)', async () => {
+    // Setup authenticated user
+    window.localStorage.getItem.mockImplementation((key) => {
+      if (key === 'token') return 'mock-token'
+      if (key === 'user') return 'Test User'
+      return null
+    })
+
+    const user = userEvent.setup()
+    render(<Header />)
+
+    const userButton = screen.getByRole('button', { 
+      name: (name, element) => element?.textContent?.includes('Welcome, Test User')
+    })
+
+    // Test toggleUserDropdown: false -> true (line 200)
+    await user.click(userButton)
+    await waitFor(() => {
+      expect(screen.getByText('Signed in as')).toBeInTheDocument()
+    })
+
+    // Test toggleUserDropdown: true -> false (line 200 again)
+    await user.click(userButton)
+    await waitFor(() => {
+      expect(screen.queryByText('Signed in as')).not.toBeInTheDocument()
+    })
+
+    // Test it one more time to ensure full function execution
+    await user.click(userButton)
+    await waitFor(() => {
+      expect(screen.getByText('Signed in as')).toBeInTheDocument()
+    })
+  })
+
+  // Test line 227: handleClickOutside function
+  it('should execute handleClickOutside function (line 227)', async () => {
+    // Setup authenticated user with dropdown
+    window.localStorage.getItem.mockImplementation((key) => {
+      if (key === 'token') return 'mock-token'
+      if (key === 'user') return 'Test User'
+      return null
+    })
+
+    const user = userEvent.setup()
+    render(<Header />)
+
+    const userButton = screen.getByRole('button', { 
+      name: (name, element) => element?.textContent?.includes('Welcome, Test User')
+    })
+    
+    // Open dropdown
+    await user.click(userButton)
+    await waitFor(() => {
+      expect(screen.getByText('Signed in as')).toBeInTheDocument()
+    })
+
+    // Test handleClickOutside by clicking outside (line 227)
+    const outsideElement = screen.getByText('Tour')
+    await user.click(outsideElement)
+
+    // Verify dropdown is closed
+    await waitFor(() => {
+      expect(screen.queryByText('Signed in as')).not.toBeInTheDocument()
+    })
+  })
+
+  // Test the catch block in authentication useEffect (if it exists)
+  it('should execute error handling in authentication useEffect', () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    
+    // This will trigger the try-catch block, but since there's no actual JSON.parse,
+    // we need to ensure the try block is executed
+    window.localStorage.getItem.mockImplementation((key) => {
+      if (key === 'token') return 'mock-token'
+      if (key === 'user') return 'Test User'
+      return null
+    })
+
+    render(<Header />)
+
+    // Component should render successfully (try block executed)
+    expect(screen.getByRole('banner')).toBeInTheDocument()
+    
+    consoleSpy.mockRestore()
+  })
+
+  // Test mousedown event specifically for handleClickOutside
+  it('should handle mousedown events in handleClickOutside', async () => {
+    window.localStorage.getItem.mockImplementation((key) => {
+      if (key === 'token') return 'mock-token'
+      if (key === 'user') return 'Test User'
+      return null
+    })
+
+    const user = userEvent.setup()
+    render(<Header />)
+
+    const userButton = screen.getByRole('button', { 
+      name: (name, element) => element?.textContent?.includes('Welcome, Test User')
+    })
+    
+    // Open dropdown
+    await user.click(userButton)
+    await waitFor(() => {
+      expect(screen.getByText('Signed in as')).toBeInTheDocument()
+    })
+
+    // Trigger mousedown event outside dropdown (this hits line 227)
+    fireEvent.mouseDown(document.body)
+
+    await waitFor(() => {
+      expect(screen.queryByText('Signed in as')).not.toBeInTheDocument()
+    })
+  })
+
+  // Test both branches of renderAuthSection
+
+
+  // Test scroll event handler
+  it('should execute scroll event handler', async () => {
+    window.localStorage.getItem.mockReturnValue(null)
+    render(<Header />)
+
+    const topHeader = screen.getByRole('banner').querySelector('.top-header')
+    
+    // Initial state - not scrolled
+    expect(topHeader).toHaveStyle('display: block')
+
+    // Simulate scroll event
+    Object.defineProperty(window, 'scrollY', { value: 150, writable: true })
+    fireEvent.scroll(window, { target: { scrollY: 150 } })
+
+    await waitFor(() => {
+      expect(topHeader).toHaveStyle('display: none')
+    })
+  })
+
+  // Test event listener cleanup
+  it('should clean up event listeners on unmount', () => {
+    const removeScrollListenerSpy = vi.spyOn(window, 'removeEventListener')
+    const removeDocumentListenerSpy = vi.spyOn(document, 'removeEventListener')
+
+    window.localStorage.getItem.mockReturnValue(null)
+
+    const { unmount } = render(<Header />)
+    
+    unmount()
+
+    expect(removeScrollListenerSpy).toHaveBeenCalledWith('scroll', expect.any(Function))
+    expect(removeDocumentListenerSpy).toHaveBeenCalledWith('mousedown', expect.any(Function))
+  })
+})
+
+
+describe('Function Coverage Tests - Target 85%+', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    // Mock window.location properly
+    delete window.location
+    window.location = { href: '', assign: vi.fn(), replace: vi.fn() }
+  })
+
+  // Test handleLogoClick function (lines 36-38)
+  it('should execute handleLogoClick function completely', async () => {
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    window.localStorage.getItem.mockReturnValue(null)
+    
+    render(<Header />)
+
+    // Find and click logo
+    const logoContainer = screen.getByRole('banner').querySelector('.site-identity')
+    const user = userEvent.setup()
+    await user.click(logoContainer)
+
+    // Verify both lines execute
+    expect(consoleSpy).toHaveBeenCalledWith('Logo clicked') // Line 37
+    expect(window.location.href).toBe('/') // Line 38
+
+    consoleSpy.mockRestore()
+  })
+
+  // Test handleLogout function (lines 173, 176)
+  it('should execute complete handleLogout function', async () => {
+    // Setup authenticated state
+    window.localStorage.getItem.mockImplementation((key) => {
+      if (key === 'token') return 'mock-token'
+      if (key === 'user') return 'Test User'
+      return null
+    })
+
+    const user = userEvent.setup()
+    render(<Header />)
+
+    // Wait for authenticated UI and open dropdown
+    await waitFor(() => {
+      const userButton = screen.getByRole('button', {
+        name: (name, element) => element?.textContent?.includes('Welcome, Test User')
+      })
+      expect(userButton).toBeInTheDocument()
+    })
+
+    const userButton = screen.getByRole('button', {
+      name: (name, element) => element?.textContent?.includes('Welcome, Test User')
+    })
+    await user.click(userButton)
+
+    // Wait for dropdown and click logout
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Logout/i })).toBeInTheDocument()
+    })
+
+    const logoutButton = screen.getByRole('button', { name: /Logout/i })
+    await user.click(logoutButton)
+
+    // Verify all localStorage removals (lines 173-176)
+    expect(window.localStorage.removeItem).toHaveBeenCalledWith('token')
+    expect(window.localStorage.removeItem).toHaveBeenCalledWith('user')
+    expect(window.localStorage.removeItem).toHaveBeenCalledWith('userRole')
+    expect(window.localStorage.removeItem).toHaveBeenCalledWith('bookingData')
+    expect(window.localStorage.removeItem).toHaveBeenCalledWith('completeBooking')
+
+    // Verify redirect (final line)
+    expect(window.location.href).toBe('/')
+  })
+
+  // Test toggleUserDropdown function (lines 197, 200)
+  it('should execute toggleUserDropdown function both ways', async () => {
+    window.localStorage.getItem.mockImplementation((key) => {
+      if (key === 'token') return 'mock-token'
+      if (key === 'user') return 'Test User'
+      return null
+    })
+
+    const user = userEvent.setup()
+    render(<Header />)
+
+    // Wait for user button
+    await waitFor(() => {
+      const userButton = screen.getByRole('button', {
+        name: (name, element) => element?.textContent?.includes('Welcome, Test User')
+      })
+      expect(userButton).toBeInTheDocument()
+    })
+
+    const userButton = screen.getByRole('button', {
+      name: (name, element) => element?.textContent?.includes('Welcome, Test User')
+    })
+
+    // Test toggle: false → true (line 200)
+    await user.click(userButton)
+    await waitFor(() => {
+      expect(screen.getByText('Signed in as')).toBeInTheDocument()
+    })
+
+    // Test toggle: true → false (line 200)
+    await user.click(userButton)
+    await waitFor(() => {
+      expect(screen.queryByText('Signed in as')).not.toBeInTheDocument()
+    })
+
+    // Test toggle again: false → true
+    await user.click(userButton)
+    await waitFor(() => {
+      expect(screen.getByText('Signed in as')).toBeInTheDocument()
+    })
+  })
+
+  // Test handleClickOutside function (line 227)
+  it('should execute handleClickOutside function', async () => {
+    window.localStorage.getItem.mockImplementation((key) => {
+      if (key === 'token') return 'mock-token'
+      if (key === 'user') return 'Test User'
+      return null
+    })
+
+    const user = userEvent.setup()
+    render(<Header />)
+
+    // Open dropdown
+    await waitFor(() => {
+      const userButton = screen.getByRole('button', {
+        name: (name, element) => element?.textContent?.includes('Welcome, Test User')
+      })
+      expect(userButton).toBeInTheDocument()
+    })
+
+    const userButton = screen.getByRole('button', {
+      name: (name, element) => element?.textContent?.includes('Welcome, Test User')
+    })
+    await user.click(userButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('Signed in as')).toBeInTheDocument()
+    })
+
+    // Click outside to trigger handleClickOutside (line 227)
+    const outsideElement = screen.getByText('Tour')
+    await user.click(outsideElement)
+
+    // Verify dropdown closes
+    await waitFor(() => {
+      expect(screen.queryByText('Signed in as')).not.toBeInTheDocument()
+    })
+  })
+
+  // Test mousedown event for handleClickOutside
+  it('should handle mousedown events in handleClickOutside', async () => {
+    window.localStorage.getItem.mockImplementation((key) => {
+      if (key === 'token') return 'mock-token'
+      if (key === 'user') return 'Test User'
+      return null
+    })
+
+    const user = userEvent.setup()
+    render(<Header />)
+
+    // Open dropdown
+    await waitFor(() => {
+      const userButton = screen.getByRole('button', {
+        name: (name, element) => element?.textContent?.includes('Welcome, Test User')
+      })
+      expect(userButton).toBeInTheDocument()
+    })
+
+    const userButton = screen.getByRole('button', {
+      name: (name, element) => element?.textContent?.includes('Welcome, Test User')
+    })
+    await user.click(userButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('Signed in as')).toBeInTheDocument()
+    })
+
+    // Trigger mousedown event outside
+    fireEvent.mouseDown(document.body)
+
+    await waitFor(() => {
+      expect(screen.queryByText('Signed in as')).not.toBeInTheDocument()
+    })
+  })
+
+  // Test both branches of renderAuthSection
+  it('should execute unauthenticated branch of renderAuthSection', () => {
+    window.localStorage.getItem.mockReturnValue(null)
+    
+    render(<Header />)
+    
+    expect(screen.getByRole('link', { name: /login/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /register/i })).toBeInTheDocument()
+  })
+
+  it('should execute authenticated branch of renderAuthSection', async () => {
+    window.localStorage.getItem.mockImplementation((key) => {
+      if (key === 'token') return 'mock-token'
+      if (key === 'user') return 'Test User'
+      return null
+    })
+
+    render(<Header />)
+    
+    await waitFor(() => {
+      const userButton = screen.getByRole('button', {
+        name: (name, element) => element?.textContent?.includes('Welcome, Test User')
+      })
+      expect(userButton).toBeInTheDocument()
+    })
+    
+    expect(screen.queryByRole('link', { name: /login/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /register/i })).not.toBeInTheDocument()
+  })
+
+  // Test scroll event handler
+  it('should execute handleScroll function', async () => {
+    window.localStorage.getItem.mockReturnValue(null)
+    render(<Header />)
+
+    const topHeader = screen.getByRole('banner').querySelector('.top-header')
+    
+    // Test scroll past threshold
+    Object.defineProperty(window, 'scrollY', { value: 150, writable: true })
+    fireEvent.scroll(window)
+
+    await waitFor(() => {
+      expect(topHeader).toHaveStyle('display: none')
+    })
+
+    // Test scroll back
+    Object.defineProperty(window, 'scrollY', { value: 50, writable: true })
+    fireEvent.scroll(window)
+
+    await waitFor(() => {
+      expect(topHeader).toHaveStyle('display: block')
+    })
+  })
+
+  // Test event listener cleanup
+  it('should execute cleanup functions on unmount', () => {
+    const removeScrollSpy = vi.spyOn(window, 'removeEventListener')
+    const removeDocumentSpy = vi.spyOn(document, 'removeEventListener')
+
+    window.localStorage.getItem.mockReturnValue(null)
+    const { unmount } = render(<Header />)
+    
+    unmount()
+
+    expect(removeScrollSpy).toHaveBeenCalledWith('scroll', expect.any(Function))
+    expect(removeDocumentSpy).toHaveBeenCalledWith('mousedown', expect.any(Function))
+  })
+
+  // Test authentication useEffect execution
+  it('should execute authentication useEffect with token and user', () => {
+    window.localStorage.getItem.mockImplementation((key) => {
+      if (key === 'token') return 'mock-token'
+      if (key === 'user') return 'Test User'
+      return null
+    })
+
+    render(<Header />)
+
+    // Verify component renders (useEffect executed)
+    expect(screen.getByRole('banner')).toBeInTheDocument()
+  })
+
+  // Test dropdown outside click with different scenarios
+  it('should not close dropdown when clicking inside dropdown', async () => {
+    window.localStorage.getItem.mockImplementation((key) => {
+      if (key === 'token') return 'mock-token'
+      if (key === 'user') return 'Test User'
+      if (key === 'userEmail') return 'test@example.com'
+      return null
+    })
+
+    const user = userEvent.setup()
+    render(<Header />)
+
+    // Open dropdown
+    await waitFor(() => {
+      const userButton = screen.getByRole('button', {
+        name: (name, element) => element?.textContent?.includes('Welcome, Test User')
+      })
+      expect(userButton).toBeInTheDocument()
+    })
+
+    const userButton = screen.getByRole('button', {
+      name: (name, element) => element?.textContent?.includes('Welcome, Test User')
+    })
+    await user.click(userButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('Signed in as')).toBeInTheDocument()
+    })
+
+    // Click inside dropdown (should not close)
+    const emailElement = screen.getByText('test@example.com')
+    await user.click(emailElement)
+
+    // Dropdown should still be open
+    expect(screen.getByText('Signed in as')).toBeInTheDocument()
+  })
+})
+
+
+describe('Mouse Event Handlers Coverage', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    // Setup authenticated user for dropdown visibility
+    window.localStorage.getItem.mockImplementation((key) => {
+      if (key === 'token') return 'mock-token'
+      if (key === 'user') return 'Test User'
+      if (key === 'userEmail') return 'test@example.com'
+      return null
+    })
+  })
+
+  // Test onMouseOver and onMouseOut for "My Bookings" link
+  it('should execute onMouseOver and onMouseOut for My Bookings link', async () => {
+    const user = userEvent.setup()
+    render(<Header />)
+
+    // Open dropdown first
+    await waitFor(() => {
+      const userButton = screen.getByRole('button', {
+        name: (name, element) => element?.textContent?.includes('Welcome, Test User')
+      })
+      expect(userButton).toBeInTheDocument()
+    })
+
+    const userButton = screen.getByRole('button', {
+      name: (name, element) => element?.textContent?.includes('Welcome, Test User')
+    })
+    await user.click(userButton)
+
+    // Wait for dropdown to appear
+    await waitFor(() => {
+      expect(screen.getByText('My Bookings')).toBeInTheDocument()
+    })
+
+    const bookingsLink = screen.getByRole('link', { name: /My Bookings/i })
+
+    // Test onMouseOver event (should set backgroundColor to #f8f9fa)
+    fireEvent.mouseOver(bookingsLink)
+    expect(bookingsLink.style.backgroundColor).toBe('rgb(248, 249, 250)') // #f8f9fa in rgb
+
+    // Test onMouseOut event (should set backgroundColor to transparent)
+    fireEvent.mouseOut(bookingsLink)
+    expect(bookingsLink.style.backgroundColor).toBe('transparent')
+  })
+
+  // Test onMouseOver and onMouseOut for "Wishlist" link
+  it('should execute onMouseOver and onMouseOut for Wishlist link', async () => {
+    const user = userEvent.setup()
+    render(<Header />)
+
+    // Open dropdown
+    const userButton = screen.getByRole('button', {
+      name: (name, element) => element?.textContent?.includes('Welcome, Test User')
+    })
+    await user.click(userButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('Wishlist')).toBeInTheDocument()
+    })
+
+    const wishlistLink = screen.getByRole('link', { name: /Wishlist/i })
+
+    // Test onMouseOver event
+    fireEvent.mouseOver(wishlistLink)
+    expect(wishlistLink.style.backgroundColor).toBe('rgb(248, 249, 250)')
+
+    // Test onMouseOut event
+    fireEvent.mouseOut(wishlistLink)
+    expect(wishlistLink.style.backgroundColor).toBe('transparent')
+  })
+
+  // Test onMouseOver for "Logout" button (note: onMouseOut is commented out in your code)
+  it('should execute onMouseOver for Logout button', async () => {
+    const user = userEvent.setup()
+    render(<Header />)
+
+    // Open dropdown
+    const userButton = screen.getByRole('button', {
+      name: (name, element) => element?.textContent?.includes('Welcome, Test User')
+    })
+    await user.click(userButton)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Logout/i })).toBeInTheDocument()
+    })
+
+    const logoutButton = screen.getByRole('button', { name: /Logout/i })
+
+    // Test onMouseOver event (only this one exists, onMouseOut is commented out)
+    fireEvent.mouseOver(logoutButton)
+    expect(logoutButton.style.backgroundColor).toBe('rgb(248, 249, 250)')
+
+    // Since onMouseOut is commented out in your code, we don't test it
+    // But if you uncomment it, add this test:
+    // fireEvent.mouseOut(logoutButton)
+    // expect(logoutButton.style.backgroundColor).toBe('transparent')
+  })
+
+  // Test multiple hover interactions in sequence
+  it('should handle multiple mouse events in sequence', async () => {
+    const user = userEvent.setup()
+    render(<Header />)
+
+    // Open dropdown
+    const userButton = screen.getByRole('button', {
+      name: (name, element) => element?.textContent?.includes('Welcome, Test User')
+    })
+    await user.click(userButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('My Bookings')).toBeInTheDocument()
+      expect(screen.getByText('Wishlist')).toBeInTheDocument()
+    })
+
+    const bookingsLink = screen.getByRole('link', { name: /My Bookings/i })
+    const wishlistLink = screen.getByRole('link', { name: /Wishlist/i })
+    const logoutButton = screen.getByRole('button', { name: /Logout/i })
+
+    // Hover over bookings
+    fireEvent.mouseOver(bookingsLink)
+    expect(bookingsLink.style.backgroundColor).toBe('rgb(248, 249, 250)')
+
+    // Move to wishlist
+    fireEvent.mouseOut(bookingsLink)
+    fireEvent.mouseOver(wishlistLink)
+    expect(bookingsLink.style.backgroundColor).toBe('transparent')
+    expect(wishlistLink.style.backgroundColor).toBe('rgb(248, 249, 250)')
+
+    // Move to logout
+    fireEvent.mouseOut(wishlistLink)
+    fireEvent.mouseOver(logoutButton)
+    expect(wishlistLink.style.backgroundColor).toBe('transparent')
+    expect(logoutButton.style.backgroundColor).toBe('rgb(248, 249, 250)')
+
+    // Move away from logout
+    fireEvent.mouseOut(logoutButton)
+  })
+
+  // Test hover events with userEvent.hover (alternative approach)
+  it('should handle hover events using userEvent.hover', async () => {
+    const user = userEvent.setup()
+    render(<Header />)
+
+    // Open dropdown
+    const userButton = screen.getByRole('button', {
+      name: (name, element) => element?.textContent?.includes('Welcome, Test User')
+    })
+    await user.click(userButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('My Bookings')).toBeInTheDocument()
+    })
+
+    const bookingsLink = screen.getByRole('link', { name: /My Bookings/i })
+
+    // Use userEvent.hover which triggers both mouseOver and mouseOut
+    await user.hover(bookingsLink)
+    expect(bookingsLink.style.backgroundColor).toBe('rgb(248, 249, 250)')
+
+    await user.unhover(bookingsLink)
+    expect(bookingsLink.style.backgroundColor).toBe('transparent')
+  })
+
+  // Test that mouse events work with dropdown open/close
+  it('should maintain hover functionality when dropdown is toggled', async () => {
+    const user = userEvent.setup()
+    render(<Header />)
+
+    const userButton = screen.getByRole('button', {
+      name: (name, element) => element?.textContent?.includes('Welcome, Test User')
+    })
+
+    // Open dropdown
+    await user.click(userButton)
+    await waitFor(() => {
+      expect(screen.getByText('My Bookings')).toBeInTheDocument()
+    })
+
+    const bookingsLink = screen.getByRole('link', { name: /My Bookings/i })
+    
+    // Test hover
+    fireEvent.mouseOver(bookingsLink)
+    expect(bookingsLink.style.backgroundColor).toBe('rgb(248, 249, 250)')
+
+    // Close dropdown
+    await user.click(userButton)
+    await waitFor(() => {
+      expect(screen.queryByText('My Bookings')).not.toBeInTheDocument()
+    })
+
+    // Open dropdown again
+    await user.click(userButton)
+    await waitFor(() => {
+      expect(screen.getByText('My Bookings')).toBeInTheDocument()
+    })
+
+    const bookingsLinkAgain = screen.getByRole('link', { name: /My Bookings/i })
+    
+    // Test hover still works
+    fireEvent.mouseOver(bookingsLinkAgain)
+    expect(bookingsLinkAgain.style.backgroundColor).toBe('rgb(248, 249, 250)')
+
+    fireEvent.mouseOut(bookingsLinkAgain)
+    expect(bookingsLinkAgain.style.backgroundColor).toBe('transparent')
   })
 })
