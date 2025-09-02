@@ -124,42 +124,47 @@ const Package_detail = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleReviewSubmit = async (e) => {
-    e.preventDefault();
-    setReviewError("");
+const handleReviewSubmit = async (e) => {
+  e.preventDefault();
+  setReviewError("");
 
-    if (userRating === 0) {
-      setReviewError("Please select a rating.");
+  if (userRating === 0) {
+    setReviewError("Please select a rating.");
+    return;
+  }
+  
+  if (!userComment.trim()) {
+    setReviewError("Please enter a comment.");
+    return;
+  }
+
+  try {
+    // Check authentication - Firebase token and role
+    const role = localStorage.getItem("userRole");
+    if (!role) {
+      alert("Please login to submit a review.");
       return;
     }
-    if (!userComment.trim()) {
-      setReviewError("Please enter a comment.");
-      return;
-    }
 
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        alert("Please login to submit a review.");
-        return;
-      }
+    // Make API request (token automatically included by axios interceptor)
+    const response = await api.post("/reviews", {
+      package: id,
+      rating: userRating,
+      comment: userComment
+    });
 
-      const response = await api.post("/reviews", {
-        package: id,
-        rating: userRating,
-        comment: userComment
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+    // Update local state
+    setReviews(prev => [...prev, response.data]);
+    setHasReviewed(true);
+    setUserRating(0);
+    setUserComment("");
+    
+  } catch (error) {
+    console.error("Review submission error:", error);
+    setReviewError(error.response?.data?.message || "Failed to submit review.");
+  }
+};
 
-      setReviews(prev => [...prev, response.data]);
-      setHasReviewed(true);
-      setUserRating(0);
-      setUserComment("");
-    } catch (error) {
-      setReviewError(error.response?.data?.message || "Failed to submit review.");
-    }
-  };
   const averageRating = reviews.length
     ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
     : "0.0";

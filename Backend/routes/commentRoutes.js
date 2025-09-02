@@ -1,10 +1,11 @@
 const express = require('express');
 const { protect } = require('../middleware/authMiddleware');
+const { authenticateToken } = require('../middleware/firebaseAuth');
 const { createComment, getComments, deleteComment } = require('../controllers/commentController');
 const router = express.Router();
 
-router.post('/', protect, createComment);
+router.post('/', authenticateToken, createComment);
 router.get('/', getComments);
-router.delete('/:id', protect, deleteComment);
+router.delete('/:id', authenticateToken, deleteComment);
 
 module.exports = router;

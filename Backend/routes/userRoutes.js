@@ -1,5 +1,6 @@
 const express = require('express');
 const { protect } = require('../middleware/authMiddleware');
+const { authenticateToken } = require('../middleware/firebaseAuth');
 const {
   getUsers,
   getUserById,
@@ -10,15 +11,15 @@ const {
 const router = express.Router();
 
 // Get all users (Admin only)
-router.get('/', protect, getUsers);
+router.get('/', authenticateToken, getUsers);
 
 // Get single user
-router.get('/:id', protect, getUserById);
+router.get('/:id', authenticateToken, getUserById);
 
 // Update user
-router.put('/:id', protect, updateUser);
+router.put('/:id', authenticateToken, updateUser);
 
 // Delete user
-router.delete('/:id', protect, deleteUser);
+router.delete('/:id', authenticateToken, deleteUser);
 
 module.exports = router;

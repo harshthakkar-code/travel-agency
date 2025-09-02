@@ -1,9 +1,12 @@
+// routes/reviewRoutes.js
 const express = require('express');
-const { protect } = require('../middleware/authMiddleware');
+const { authenticateToken } = require('../middleware/firebaseAuth');
+const { adminOnly } = require('../middleware/adminMiddleware');
 const {
   getReviews,
   createReview,
-  deleteReview
+  deleteReview,
+  getUserReviews,
 } = require('../controllers/reviewController');
 
 const router = express.Router();
@@ -11,8 +14,9 @@ const router = express.Router();
 // Public: get reviews (optionally filtered)
 router.get('/', getReviews);
 
-// Protected: create and delete review
-router.post('/', protect, createReview);
-router.delete('/:id', protect, deleteReview);
+// Protected routes 
+router.get('/user', authenticateToken, getUserReviews);
+router.post('/', authenticateToken, createReview);
+router.delete('/:id', authenticateToken, deleteReview);
 
 module.exports = router;

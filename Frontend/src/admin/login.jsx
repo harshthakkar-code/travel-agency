@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
 import api from "../utils/api";
 import bgImage from '../admin/assets/images/bg.jpg';
 import logoImg from '../admin/assets/images/logo.png';
@@ -11,8 +12,9 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [touched, setTouched] = useState({ email: false, password: false });
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
+  const { signin } = useAuth();
   // Validation functions
   const isEmailValid = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isFormValid = () => isEmailValid(username) && password.length > 0;
@@ -25,19 +27,16 @@ const Login = () => {
       setError("Please enter a valid email and password.");
       return;
     }
+
     try {
-      const res = await api.post('/auth/login', {
-        email: username,
-        password
-      });
+      setLoading(true);
 
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('userId', res.data._id);
-      localStorage.setItem('userEmail', res.data.email);
-      localStorage.setItem('user', res.data.name);
-      localStorage.setItem('userRole', res.data.role);
+      // Use Firebase signin (AuthContext handles token/role storage)
+      await signin(username, password);
 
-      const userRole = res.data.user?.role || res.data.role;
+      // Get role from localStorage (set by AuthContext)
+      const userRole = localStorage.getItem('userRole');
+      console.log('User role after login:', userRole);
 
       if (userRole === 'user') {
         navigate("/tour-packages");
@@ -45,7 +44,9 @@ const Login = () => {
         navigate("/admin/dashboard");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      setError(err.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
   };
 

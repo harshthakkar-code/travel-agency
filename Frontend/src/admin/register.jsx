@@ -4,6 +4,7 @@ import bgImage from '../admin/assets/images/bg.jpg';
 import logoImg from '../admin/assets/images/logo.png';
 import { useNavigate } from "react-router-dom";
 import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
+import { useAuth } from "../contexts/AuthContext";
 
 const Register = () => {
   const [step, setStep] = useState(1);
@@ -22,14 +23,14 @@ const Register = () => {
   const [success, setSuccess] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   const [passwordChecks, setPasswordChecks] = useState({
     length: false,
     uppercase: false,
     number: false,
     specialChar: false
   });
-
+  const { signup } = useAuth();
   const navigate = useNavigate();
 
   const validateStep1 = () => {
@@ -93,32 +94,42 @@ const Register = () => {
     setStep(1);
   };
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    const valErrors = validateStep2();
-    if (Object.keys(valErrors).length > 0) {
-      setErrors(valErrors);
-      return;
-    }
-    try {
-      await api.post("/auth/register", form);
-      setSuccess("Registration successful! Redirecting to login...");
-      setTimeout(() => navigate("/admin/login"), 800);
-      setForm({
-        firstName: "",
-        lastName: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-        mobile: "",
-        city: "",
-        country: ""
-      });
-      setStep(1);
-    } catch (err) {
-      setErrors({ api: err.response?.data?.message || "Registration failed" });
-    }
-  };
+
+const handleRegister = async (e) => {
+  e.preventDefault();
+  const valErrors = validateStep2();
+  if (Object.keys(valErrors).length > 0) {
+    setErrors(valErrors);
+    return;
+  }
+
+  try {
+    setLoading(true);
+    
+    // Use Firebase signup (backend will automatically set default role)
+    await signup(form.email, form.password, {
+      firstName: form.firstName,
+      lastName: form.lastName,
+      mobile: form.mobile,
+      city: form.city,
+      country: form.country
+    });
+    
+    setSuccess("Registration successful! Redirecting to login...");
+    setTimeout(() => navigate("/admin/login"), 800);
+    
+    setForm({
+      firstName: "", lastName: "", email: "", password: "", 
+      confirmPassword: "", mobile: "", city: "", country: ""
+    });
+    setStep(1);
+  } catch (err) {
+    setErrors({ api: err.message || "Registration failed" });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="login-page" style={{ backgroundImage: `url(${bgImage})` }}>

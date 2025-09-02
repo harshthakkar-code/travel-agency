@@ -1,99 +1,168 @@
-  const User = require('../models/User');
+const admin = require('../config/firebase-admin');
+const firestore = admin.firestore();
 
-  // Get all users (Admin only)
-  exports.getUsers = async (req, res) => {
-    try {
-      const { role } = req.query;
+// Get all users with Firebase Auth + Firestore data
+exports.getUsers = async (req, res) => {
+  try {
+    const { role } = req.query;
+    
+    // Get all Firebase Auth users
+    const listUsersResult = await admin.auth().listUsers(1000);
+    
+    // Get all user documents from Firestore
+    const usersSnapshot = await firestore.collection('users').get();
+    const firestoreUsers = {};
+    
+    usersSnapshot.forEach(doc => {
+      firestoreUsers[doc.id] = doc.data();
+    });
 
-      const filter = {};
-      if (role) {
-        filter.role = role; // dynamic role filter
-      }
-
-      const users = await User.find(filter).select('-password');
-      const totalUsers = await User.countDocuments(filter);
-
-      res.json({
-        totalUsers,
-        users,
-      });
-    } catch (error) {
-      res.status(500).json({ message: error.message });
+    // Merge Firebase Auth and Firestore data
+    let users = listUsersResult.users.map(user => {
+      const firestoreData = firestoreUsers[user.uid] || {};
+      
+      return {
+        _id: user.uid,
+        firstName: firestoreData.firstName || user.displayName?.split(' ')[0] || 'N/A',
+        lastName: firestoreData.lastName || user.displayName?.split(' ')[1] || 'N/A',
+        email: user.email,
+        mobile: firestoreData.mobile || 'N/A',
+        phone: firestoreData.phone || 'N/A',
+        country: firestoreData.country || 'N/A',
+        city: firestoreData.city || 'N/A',
+        role: user.customClaims?.role || 'user',
+        emailVerified: user.emailVerified,
+        dateOfBirth: firestoreData.dateOfBirth || null,
+        createdAt: user.metadata.creationTime,
+      };
+    });
+    
+    // Filter by role if specified
+    if (role) {
+      users = users.filter(user => user.role === role);
     }
-  };
+    
+    res.json({
+      totalUsers: users.length,
+      users: users
+    });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
 
-
-  // Get single user
-  exports.getUserById = async (req, res) => {
-    try {
-      const user = await User.findById(req.params.id).select('-password');
-      if (!user) return res.status(404).json({ message: 'User not found' });
-      res.json(user);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
+// Get single user by Firebase UID
+exports.getUserById = async (req, res) => {
+  try {
+    const uid = req.params.id;
+    
+    // Get Firebase Auth user
+    const firebaseUser = await admin.auth().getUser(uid);
+    
+    // Get Firestore document
+    const firestoreDoc = await firestore.collection('users').doc(uid).get();
+    const firestoreData = firestoreDoc.exists ? firestoreDoc.data() : {};
+    
+    const userData = {
+      _id: firebaseUser.uid,
+      firstName: firestoreData.firstName || firebaseUser.displayName?.split(' ')[0] || 'N/A',
+      lastName: firestoreData.lastName || firebaseUser.displayName?.split(' ')[1] || 'N/A',
+      email: firebaseUser.email,
+      mobile: firestoreData.mobile || '',
+      phone: firestoreData.phone || '',
+      country: firestoreData.country || '',
+      city: firestoreData.city || '',
+      role: firebaseUser.customClaims?.role || 'user',
+      dateOfBirth: firestoreData.dateOfBirth || null,
+      emailVerified: firebaseUser.emailVerified,
+    };
+    
+    res.json(userData);
+  } catch (error) {
+    if (error.code === 'auth/user-not-found') {
+      return res.status(404).json({ message: 'User not found' });
     }
-  };
+    res.status(500).json({ message: error.message });
+  }
+};
 
-  // Update user (Admin or self)
-  exports.updateUser = async (req, res) => {
-    try {
-      const { firstName, lastName, email, mobile, country, city, dateOfBirth, role } = req.body;
-      const user = await User.findById(req.params.id);
-
-      if (!user) return res.status(404).json({ message: 'User not found' });
-
-      if (firstName) user.firstName = firstName;
-      if (lastName) user.lastName = lastName;
-      if (mobile) user.mobile = mobile;
-      if (country) user.country = country;
-      if (city) user.city = city;
-      if (dateOfBirth) user.dateOfBirth = dateOfBirth;
-      if (email) user.email = email;
-      if (role) user.role = role;
-
-      const updatedUser = await user.save();
-      res.json(updatedUser);
-    } catch (error) {
-      res.status(500).json({ message: error.message });
+// Update user in both Firebase Auth and Firestore
+exports.updateUser = async (req, res) => {
+  try {
+    const uid = req.params.id;
+    const { firstName, lastName, email, mobile, phone, country, city, role, dateOfBirth } = req.body;
+    
+    // Update Firebase Auth user (email, displayName)
+    const authUpdates = {};
+    if (email) authUpdates.email = email;
+    if (firstName && lastName) authUpdates.displayName = `${firstName} ${lastName}`;
+    
+    if (Object.keys(authUpdates).length > 0) {
+      await admin.auth().updateUser(uid, authUpdates);
     }
-  };
-
-  // const multer = require('multer');
-  // const upload = multer({ dest: 'uploads/' }); // Configure as per your storage requirements
-
-  // exports.updateUser = async (req, res) => {
-  //   try {
-  //     const { firstName, lastName, email, role, ...rest } = req.body; // req.body now parsed by multer
-  //     const user = await User.findById(req.params.id);
-
-  //     if (!user) return res.status(404).json({ message: 'User not found' });
-
-  //     if (firstName) user.firstName = firstName;
-  //     if (lastName) user.lastName = lastName;
-  //     if (email) user.email = email;
-  //     if (role) user.role = role;
-
-  //     // Handle other fields similarly...
-
-  //     // Handle file upload if any:
-  //     if (req.file) {
-  //       user.profilePhoto = req.file.filename; // Or save file path as per your logic
-  //     }
-
-  //     const updatedUser = await user.save();
-  //     res.json(updatedUser);
-  //   } catch (error) {
-  //     res.status(500).json({ message: error.message });
-  //   }
-  // };
-
-  // Delete user (Admin only)
-  exports.deleteUser = async (req, res) => {
-    try {
-      const user = await User.findByIdAndDelete(req.params.id);
-      if (!user) return res.status(404).json({ message: 'User not found' });
-      res.json({ message: 'User removed' });
-    } catch (error) {
-      res.status(500).json({ message: error.message });
+    
+    // Update custom claims (role)
+    if (role) {
+      await admin.auth().setCustomUserClaims(uid, { role });
     }
-  };
+    
+    // Update Firestore document
+    const firestoreUpdates = {};
+    if (firstName !== undefined) firestoreUpdates.firstName = firstName;
+    if (lastName !== undefined) firestoreUpdates.lastName = lastName;
+    if (mobile !== undefined) firestoreUpdates.mobile = mobile;
+    if (phone !== undefined) firestoreUpdates.phone = phone;
+    if (country !== undefined) firestoreUpdates.country = country;
+    if (city !== undefined) firestoreUpdates.city = city;
+    if (dateOfBirth !== undefined) firestoreUpdates.dateOfBirth = dateOfBirth;
+    
+    if (Object.keys(firestoreUpdates).length > 0) {
+      await firestore.collection('users').doc(uid).set(firestoreUpdates, { merge: true });
+    }
+    
+    // Get updated user data
+    const updatedUser = await admin.auth().getUser(uid);
+    const updatedFirestoreDoc = await firestore.collection('users').doc(uid).get();
+    const updatedFirestoreData = updatedFirestoreDoc.exists ? updatedFirestoreDoc.data() : {};
+    
+    const responseData = {
+      _id: updatedUser.uid,
+      firstName: updatedFirestoreData.firstName || updatedUser.displayName?.split(' ')[0] || 'N/A',
+      lastName: updatedFirestoreData.lastName || updatedUser.displayName?.split(' ')[1] || 'N/A',
+      email: updatedUser.email,
+      mobile: updatedFirestoreData.mobile || '',
+      phone: updatedFirestoreData.phone || '',
+      country: updatedFirestoreData.country || '',
+      city: updatedFirestoreData.city || '',
+      role: updatedUser.customClaims?.role || 'user',
+      dateOfBirth: updatedFirestoreData.dateOfBirth || null,
+    };
+    
+    res.json(responseData);
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Delete user from both Firebase Auth and Firestore
+exports.deleteUser = async (req, res) => {
+  try {
+    const uid = req.params.id;
+    
+    // Delete from Firebase Auth
+    await admin.auth().deleteUser(uid);
+    
+    // Delete from Firestore
+    await firestore.collection('users').doc(uid).delete();
+    
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    if (error.code === 'auth/user-not-found') {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    console.error('Error deleting user:', error);
+    res.status(500).json({ message: error.message });
+  }
+};

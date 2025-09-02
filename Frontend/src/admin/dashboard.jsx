@@ -33,18 +33,28 @@ const Dashboard = () => {
       }
     };
 
-    const fetchUsers = async () => {
-      try {
-      const res = await api.get("/users", { params: { role: "user" } });
-        setUsers(res.data.users || []);
-        setTotalUsers(res.data.totalUsers);
-      } catch (err) {
-        setErrorUsers("Failed to load users");
-        setUsers([]);
-      } finally {
-        setLoadingUsers(false);
-      }
-    };
+const fetchUsers = async () => {
+  try {
+    // Fetch all users from backend
+    const res = await api.get("/admin/firebase-users");
+    
+    // Filter to get only users with role 'user' (exclude admins)
+    const userRoleOnly = (res.data.users || []).filter(user => user.role === 'user');
+    
+    // Set users to display (limit to first 7 users)
+    setUsers(userRoleOnly.slice(0, 7));
+    
+    // Set total count to total number of users with role 'user'
+    setTotalUsers(userRoleOnly.length);
+  } catch (err) {
+    setErrorUsers("Failed to load users");
+    setUsers([]);
+  } finally {
+    setLoadingUsers(false);
+  }
+};
+
+
 
     const fetchTransactions = async () => {
       try {

@@ -3,32 +3,27 @@ import React, { useEffect, useState } from "react";
 import logoImg from '../admin/assets/images/logo.png';
 import 'popper.js';
 import userImg from '../admin/assets/images/comment.jpg';
-
+import { useAuth } from "../contexts/AuthContext";
 
 
 
 const DashboardHeader = () => {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
-
+  const { logout } = useAuth();
   // Toggle user dropdown
   const toggleUserDropdown = () => {
     setShowUserDropdown(!showUserDropdown);
   };
 
   // Handle logout
-  const handleLogout = () => {
-    // Clear all authentication and booking related data
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('bookingData');
-    localStorage.removeItem('completeBooking');
-    
-    // Reset dropdown state
-    setShowUserDropdown(false);
-    
-    // Redirect to home page
-    window.location.href = '/';
+ const handleLogout = async () => {
+    try {
+      await logout(); // CHANGED: Use Firebase logout instead of localStorage
+      setShowUserDropdown(false);
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   // Close dropdown when clicking outside

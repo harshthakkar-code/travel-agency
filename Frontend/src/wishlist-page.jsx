@@ -9,11 +9,11 @@ const Wishlist_page = () => {
 
   useEffect(() => {
     const fetchWishlist = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/admin/login");
-        return;
-      }
+      // const token = localStorage.getItem("token");
+      // if (!token) {
+      //   navigate("/admin/login");
+      //   return;
+      // }
       try {
         const res = await api.get("/wishlist");
         setWishlistPackages(res.data.packages || []);
@@ -26,11 +26,17 @@ const Wishlist_page = () => {
   }, [navigate]);
 
   const toggleWishlist = async (packageId) => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/admin/login");
-      return;
-    }
+    // const token = localStorage.getItem("token");
+    // if (!token) {
+    //   navigate("/admin/login");
+    //   return;
+    // }
+    // const role = localStorage.getItem("userRole");
+
+    // if (!role) {
+    //   // Not logged in
+    //   return <Navigate to="/admin/login" replace />;
+    // }
 
     try {
       // Since it's wishlist page, toggle means remove

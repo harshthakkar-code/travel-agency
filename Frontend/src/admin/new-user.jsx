@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import DashboardSidebar from "./dashboardSidebar";
 import DashboardHeader from "./dashboardHeader";
-import api from "../utils/api"; // your custom axios instance
-import { useNavigate } from "react-router-dom"; // ✅ import navigate
-
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext"; // Import useAuth
 
 const initialForm = {
   firstname: "",
@@ -26,8 +25,10 @@ const NewUser = () => {
   const [success, setSuccess] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [loading, setLoading] = useState(false); // Add loading state
 
-  const navigate = useNavigate(); // ✅ initialize
+  const navigate = useNavigate();
+  const { signup } = useAuth(); // Get signup from AuthContext
 
   // Validate all fields
   const validate = () => {
@@ -79,36 +80,42 @@ const NewUser = () => {
     });
   };
 
-  // Handle submit
+  // Updated handle submit for Firebase flow
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSuccess("");
+    setLoading(true);
+    
     const newErrors = validate();
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      setLoading(false);
       return;
     }
 
-    const payload = {
-      firstName: form.firstname,
-      lastName: form.lastname,
-      email: form.email,
-      password: form.password,
-      mobile: form.mobile,
-      phone: form.phone,
-      country: form.country,
-      city: form.city,
-    };
-
     try {
-      await api.post("/auth/register", payload);
+      // Use signup from AuthContext (creates Firebase user + saves to Firestore)
+      await signup(form.email, form.password, {
+        firstName: form.firstname,  // Note: firstName not firstname
+        lastName: form.lastname,    // Note: lastName not lastname
+        mobile: form.mobile,
+        phone: form.phone,
+        country: form.country,
+        city: form.city,
+      });
+
       setSuccess("User registered successfully!");
       setForm(initialForm);
       setErrors({});
+      
+      // Redirect to user list after success
       setTimeout(() => navigate("/admin/user"), 500);
     } catch (err) {
-      setErrors({ api: err.response?.data?.message || "Registration failed." });
+      console.error('Registration error:', err);
+      setErrors({ api: err.message || "Registration failed." });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -225,7 +232,12 @@ const NewUser = () => {
                     </div>
                   </div>
                   <br />
-                  <input type="submit" name="Submit" value="Submit" />
+                  <input 
+                    type="submit" 
+                    name="Submit" 
+                    value={loading ? "Creating User..." : "Submit"} 
+                    disabled={loading}
+                  />
                   {errors.api && <div style={{ color: "red", marginTop: 12 }}>{errors.api}</div>}
                   {success && <div style={{ color: "green", marginTop: 12 }}>{success}</div>}
                 </form>

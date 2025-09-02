@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
+import { useAuth } from "../src/contexts/AuthContext";
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
-
+  const { logout } = useAuth();
+  
   const handleLogoClick = () => {
     console.log("Logo clicked");
     window.location.href = "/";
@@ -24,10 +26,11 @@ const Header = () => {
 
   // Check authentication status on component mount
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    // const token = localStorage.getItem("token");
     const userData = localStorage.getItem("user");
 
-    if (token && userData) {
+    // if (token && userData) {
+    if (userData) {
       setIsAuthenticated(true);
       try {
         const parsedUser = userData;
@@ -45,21 +48,30 @@ const Header = () => {
   }, []);
 
   // Handle logout
-  const handleLogout = () => {
-    // Clear all authentication and booking related data
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("bookingData");
-    localStorage.removeItem("completeBooking");
+  // const handleLogout = () => {
+  //   // Clear all authentication and booking related data
+  //   localStorage.removeItem("token");
+  //   localStorage.removeItem("user");
+  //   localStorage.removeItem("userRole");
+  //   localStorage.removeItem("bookingData");
+  //   localStorage.removeItem("completeBooking");
 
-    // Reset states
-    setIsAuthenticated(false);
-    setUser(null);
-    setShowUserDropdown(false);
+  //   // Reset states
+  //   setIsAuthenticated(false);
+  //   setUser(null);
+  //   setShowUserDropdown(false);
 
-    // Redirect to home page
-    window.location.href = "/";
+  //   // Redirect to home page
+  //   window.location.href = "/";
+  // };
+   const handleLogout = async () => {
+    try {
+      await logout(); // CHANGED: Use Firebase logout instead of localStorage
+      setShowUserDropdown(false);
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   // Toggle user dropdown

@@ -1,5 +1,6 @@
 const express = require('express');
 const { protect } = require('../middleware/authMiddleware');
+const { authenticateToken } = require('../middleware/firebaseAuth');
 const { adminOnly } = require('../middleware/adminMiddleware');
 const {
   getProducts,
@@ -15,8 +16,8 @@ router.get('/', getProducts);
 router.get('/:id', getProductById);
 
 // Admin routes
-router.post('/', protect, adminOnly, createProduct);
-router.put('/:id', protect, adminOnly, updateProduct);
-router.delete('/:id', protect, adminOnly, deleteProduct);
+router.post('/', authenticateToken, adminOnly, createProduct);
+router.put('/:id', authenticateToken, adminOnly, updateProduct);
+router.delete('/:id', authenticateToken, adminOnly, deleteProduct);
 
 module.exports = router;

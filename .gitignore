@@ -36,6 +36,7 @@ Frontend/coverage/
 Backend/node_modules/
 Backend/dist/
 Backend/coverage/
+Backend/config/firebase-service-account.json
 
 # Environment files
 .env

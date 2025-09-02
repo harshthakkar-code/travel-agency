@@ -31,5 +31,7 @@ app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/reviews', require('./routes/reviewRoutes'));
 app.use('/api/testimonials', require('./routes/testimonialRoutes'));
 app.use('/api/transactions', require('./routes/transactionRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/firebase-auth', require('./routes/firebaseAuthRoutes'));
 
 module.exports = app;

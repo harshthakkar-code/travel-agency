@@ -171,7 +171,13 @@ exports.stripeWebhook = async (req, res) => {
     if (transaction) {
       const bookingData = {
         transactionId: transaction._id,
-        user: transaction.user,
+        user: {
+          firstName: transaction?.user?.firstName,
+          lastName: transaction?.user?.lastName,
+          fullName: transaction?.user?.fullName,
+          email: transaction?.user?.email,
+          phone: transaction?.user?.phone
+        },
         userId: transaction.userId,
         billingAddress: transaction.billingAddress,
         package: transaction.package,

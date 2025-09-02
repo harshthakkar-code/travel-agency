@@ -103,12 +103,17 @@ useEffect(() => {
 
 // Function to check auth and redirect or proceed
   const handleProtectedAction = (action) => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      // Not logged in, redirect to login page
-      navigate("/admin/login");
-      return;
-    }
+    const role = localStorage.getItem("userRole");
+        if (!role) {
+        navigate("/admin/login");
+        return;
+      }
+    // const token = localStorage.getItem("token");
+    // if (!token) {
+    //   // Not logged in, redirect to login page
+    //   navigate("/admin/login");
+    //   return;
+    // }
     action();
   };
 
@@ -117,8 +122,13 @@ useEffect(() => {
   };
 
  const toggleWishlist = async (packageId) => {
-  const token = localStorage.getItem('token');
-  if (!token) {
+  // const token = localStorage.getItem('token');
+  // if (!token) {
+  //   navigate('/admin/login');
+  //   return;
+  // }
+  const Role = localStorage.getItem('userRole');
+  if (!Role) {
     navigate('/admin/login');
     return;
   }
@@ -132,7 +142,7 @@ useEffect(() => {
       setWishlist(prev => prev.filter(id => id !== packageId));
     } else {
       // Add to wishlist
-      await api.post('/wishlist', { packageId });
+      await api.post('/wishlist', { packageId , userId: localStorage.getItem('userId') });
       setWishlist(prev => [...prev, packageId]);
     }
   } catch (error) {

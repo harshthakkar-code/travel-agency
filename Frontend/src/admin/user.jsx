@@ -1,156 +1,30 @@
-// import React, { useState, useEffect } from "react";
-// import DashboardHeader from "./dashboardHeader";
-// import DashboardSidebar from "./dashboardSidebar";
-// import api from "../utils/api"; // Axios instance
-// import { useNavigate } from "react-router-dom";
-
-// const User = () => {
-//   const [users, setUsers] = useState([]);
-//   const [error, setError] = useState("");
-
-//   const navigate = useNavigate();
-
-//   // For responsive tweaks
-//   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 768);
-//   useEffect(() => {
-//     const handleResize = () => setIsDesktop(window.innerWidth > 768);
-//     window.addEventListener("resize", handleResize);
-//     return () => window.removeEventListener("resize", handleResize);
-//   }, []);
-
-//   // Fetch users on mount
-//   useEffect(() => {
-//     const fetchUsers = async () => {
-//       try {
-//         const res = await api.get("/users", { params: { role: "user" } });
-//         setUsers(res.data);
-//       } catch (err) {
-//         console.error(err);
-//         setError("Failed to fetch users");
-//       }
-//     };
-//     fetchUsers();
-//   }, []);
-
-//   return (
-//     <div id="container-wrapper">
-//       <div id="dashboard" className="dashboard-container">
-//         {/* HEADER */}
-//         <DashboardHeader />
-//         {/* SIDEBAR */}
-//         <DashboardSidebar />
-
-//         <div className="db-info-wrap" style={isDesktop ? {} : {}}>
-//           <div className="row">
-//             <div className="col-lg-12">
-//               <div className="dashboard-box table-opp-color-box">
-//                 <h4>User Details</h4>
-//                 {error && <div style={{ color: "red" }}>{error}</div>}
-//                 <div className="table-responsive">
-//                   <table className="table">
-//                     <thead>
-//                       <tr style={{ backgroundColor: "white" }}>
-//                         <th>ID</th>
-//                         <th>Name</th>
-//                         <th>Phone</th>
-//                         <th>Email</th>
-//                         <th>Country</th>
-//                         <th>Edit</th>
-//                         <th>Delete</th>
-//                       </tr>
-//                     </thead>
-//                     <tbody>
-//                       {users.length === 0 ? (
-//                         <tr>
-//                           <td colSpan="7" style={{ textAlign: "center" }}>
-//                             No users found.
-//                           </td>
-//                         </tr>
-//                       ) : (
-//                         users.map((user) => (
-//                           <tr key={user._id}>
-//                             {/* Last 4 chars of ID */}
-//                             <td>{user._id ? user._id.slice(-4) : "----"}</td>
-//                             <td>
-//                               <span className="list-name">
-//                                 {user.firstName} {user.lastName}
-//                               </span>
-//                             </td>
-//                             <td>{user.mobile || "-"}</td>
-//                             <td>
-//                               <a href={`mailto:${user.email}`}>{user.email}</a>
-//                             </td>
-//                             <td>{user.country || "-"}</td>
-//                             <td>
-//                               <span
-//                                 className="badge badge-success"
-//                                 style={{ cursor: "pointer" }}
-//                                 title="Edit User"
-//                                 onClick={() => navigate(`/admin/user-edit/${user._id}`)}
-//                               >
-//                                 <i className="far fa-edit"></i>
-//                               </span>
-//                             </td>
-//                             <td>
-//                               <span
-//                                 className="badge badge-danger"
-//                                 style={{ cursor: "pointer" }}
-//                                 title="Delete User"
-//                               >
-//                                 <i className="far fa-trash-alt"></i>
-//                               </span>
-//                             </td>
-//                           </tr>
-//                         ))
-//                       )}
-//                     </tbody>
-//                   </table>
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* FOOTER */}
-//         <div className="copyrights">
-//           Copyright © 2025 Travele. All rights reserveds.
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default User;
-
-
 import React, { useState, useEffect } from "react";
 import DashboardHeader from "./dashboardHeader";
 import DashboardSidebar from "./dashboardSidebar";
-import api from "../utils/api"; // Axios instance
+import api from "../utils/api";
 import { useNavigate } from "react-router-dom";
 
 const User = () => {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState("");
-  const [isDesktop, setIsDesktop] = useState(window.innerWidth > 768);
-
+  const [loading, setLoading] = useState(true);
   const [showConfirm, setShowConfirm] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const handleResize = () => setIsDesktop(window.innerWidth > 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
   const fetchUsers = async () => {
     try {
-      const res = await api.get("/users", { params: { role: "user" } });
-      setUsers(res.data.users || res.data);
+      setLoading(true);
+      // Fetch Firebase users with role filtering
+      const res = await api.get("/admin/firebase-users", { params: { role: "user" } });
+      const userRoleOnly = (res.data.users || []).filter(user => user.role === 'user');
+      setUsers(userRoleOnly || []);
+      setError("");
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching users:', err);
       setError("Failed to fetch users");
+      setUsers([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -165,15 +39,33 @@ const User = () => {
 
   const confirmDelete = async () => {
     if (!userToDelete) return;
+    
     try {
       await api.delete(`/users/${userToDelete._id}`);
       setShowConfirm(false);
       setUserToDelete(null);
-      fetchUsers(); // refresh list
+      await fetchUsers(); // Refresh the list
     } catch (err) {
       console.error("Failed to delete user", err);
+      setError("Failed to delete user");
     }
   };
+
+  if (loading) {
+    return (
+      <div id="container-wrapper">
+        <div id="dashboard" className="dashboard-container">
+          <DashboardHeader />
+          <DashboardSidebar />
+          <div className="db-info-wrap">
+            <div style={{ textAlign: 'center', padding: '50px' }}>
+              Loading users...
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div id="container-wrapper">
@@ -181,21 +73,24 @@ const User = () => {
         <DashboardHeader />
         <DashboardSidebar />
 
-        <div className="db-info-wrap" style={isDesktop ? {} : {}}>
+        <div className="db-info-wrap">
           <div className="row">
             <div className="col-lg-12">
               <div className="dashboard-box table-opp-color-box">
                 <h4>User Details</h4>
-                {error && <div style={{ color: "red" }}>{error}</div>}
+                {error && <div style={{ color: "red", marginBottom: "20px" }}>{error}</div>}
+                
                 <div className="table-responsive">
                   <table className="table">
                     <thead>
                       <tr style={{ backgroundColor: "white" }}>
                         <th>ID</th>
                         <th>Name</th>
-                        <th>Phone</th>
                         <th>Email</th>
+                        <th>Mobile</th>
                         <th>Country</th>
+                        <th>City</th>
+                        {/* <th>Role</th> */}
                         <th>Edit</th>
                         <th>Delete</th>
                       </tr>
@@ -203,7 +98,7 @@ const User = () => {
                     <tbody>
                       {users.length === 0 ? (
                         <tr>
-                          <td colSpan="7" style={{ textAlign: "center" }}>
+                          <td colSpan="9" style={{ textAlign: "center" }}>
                             No users found.
                           </td>
                         </tr>
@@ -212,11 +107,17 @@ const User = () => {
                           <tr key={user._id}>
                             <td>{user._id ? user._id.slice(-4) : "----"}</td>
                             <td>{user.firstName} {user.lastName}</td>
-                            <td>{user.mobile || "-"}</td>
                             <td>
                               <a href={`mailto:${user.email}`}>{user.email}</a>
                             </td>
+                            <td>{user.mobile || "-"}</td>
                             <td>{user.country || "-"}</td>
+                            <td>{user.city || "-"}</td>
+                            {/* <td>
+                              <span className={`badge ${user.role === 'admin' ? 'badge-warning' : 'badge-info'}`}>
+                                {user.role}
+                              </span>
+                            </td> */}
                             <td>
                               <span
                                 className="badge badge-success"
@@ -273,6 +174,9 @@ const User = () => {
                 Are you sure you want to delete{" "}
                 <strong>{userToDelete.firstName} {userToDelete.lastName}</strong>?
               </p>
+              <p style={{ fontSize: '12px', color: '#666' }}>
+                This will permanently delete the user from Firebase Authentication and Firestore.
+              </p>
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
                 <button
                   onClick={() => setShowConfirm(false)}
@@ -281,7 +185,7 @@ const User = () => {
                     padding: "8px 14px", borderRadius: "4px", cursor: "pointer"
                   }}
                 >
-                  No
+                  Cancel
                 </button>
                 <button
                   onClick={confirmDelete}
@@ -298,7 +202,7 @@ const User = () => {
         )}
 
         <div className="copyrights">
-          Copyright © 2025 Travele. All rights reserveds.
+          Copyright © 2025 Travele. All rights reserved.
         </div>
       </div>
     </div>

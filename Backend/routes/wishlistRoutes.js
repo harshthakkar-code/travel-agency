@@ -1,5 +1,7 @@
 const express = require('express');
 const { protect } = require('../middleware/authMiddleware');
+const { authenticateToken } = require('../middleware/firebaseAuth');
+
 const {
   getWishlist,
   addToWishlist,
@@ -8,8 +10,8 @@ const {
 
 const router = express.Router();
 
-router.get('/', protect, getWishlist);
-router.post('/', protect, addToWishlist);
-router.delete('/:packageId', protect, removeFromWishlist);
+router.get('/', authenticateToken, getWishlist);
+router.post('/', authenticateToken, addToWishlist);
+router.delete('/:packageId', authenticateToken, removeFromWishlist);
 
 module.exports = router;

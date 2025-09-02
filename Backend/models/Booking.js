@@ -2,10 +2,10 @@ const mongoose = require('mongoose');
 
 const bookingSchema = new mongoose.Schema({
   user: {
-    type: Object, // Storing full user details object (alternate: use ObjectId ref if user collection exists)
-    required: true,
-  },
-  userId :{ type: String, required: true },
+    type: Object,
+    required: true
+  }, 
+  userId: { type: String, required: true },
   billingAddress: {
     country: String,
     street1: String,

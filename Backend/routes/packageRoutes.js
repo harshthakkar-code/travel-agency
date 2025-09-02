@@ -1,5 +1,6 @@
 const express = require('express');
 const { protect } = require('../middleware/authMiddleware');
+const { authenticateToken } = require('../middleware/firebaseAuth');
 const { adminOnly } = require('../middleware/adminMiddleware');
 const {
   createPackage,
@@ -14,16 +15,16 @@ const upload = require('../middleware/uploadImage');
 const router = express.Router();
 
 // Admin can create packages
-router.post('/', protect, adminOnly, createPackage);
+router.post('/', authenticateToken, adminOnly, createPackage);
 
 // Anyone can view packages, admin can filter status
 router.get('/', getPackages);
 router.get('/:id', getPackageById);
 
 // Admin can update and delete
-router.put('/:id', protect, adminOnly, updatePackage);
-router.delete('/:id', protect, adminOnly, deletePackage);
+router.put('/:id', authenticateToken, adminOnly, updatePackage);
+router.delete('/:id', authenticateToken, adminOnly, deletePackage);
 
 // Image upload route
-router.post('/upload-image', protect, upload.single('image'), uploadImage);
+router.post('/upload-image', authenticateToken, upload.single('image'), uploadImage);
 module.exports = router;

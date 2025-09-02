@@ -1,5 +1,6 @@
 const express = require('express');
 const { protect } = require('../middleware/authMiddleware');
+const { authenticateToken } = require('../middleware/firebaseAuth');
 const { adminOnly } = require('../middleware/adminMiddleware');
 const {
   getBlogs,
@@ -15,8 +16,8 @@ router.get('/', getBlogs);
 router.get('/:id', getBlogById);
 
 // Admin routes
-router.post('/', protect, adminOnly, createBlog);
-router.put('/:id', protect, adminOnly, updateBlog);
-router.delete('/:id', protect, adminOnly, deleteBlog);
+router.post('/', authenticateToken, adminOnly, createBlog);
+router.put('/:id', authenticateToken, adminOnly, updateBlog);
+router.delete('/:id', authenticateToken, adminOnly, deleteBlog);
 
 module.exports = router;
