@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🚀 Running pre-commit checks for full-stack app..."
+
+echo "🧪 Running frontend tests..."
+cd frontend && npm run test:run || exit 1
+
+echo "🧪 Running backend tests..."
+cd ../backend && npm test || exit 1
+
+echo "✅ All checks passed! Ready to commit."
