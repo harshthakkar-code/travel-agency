@@ -3,7 +3,7 @@ import { auth } from '../../firebase-config';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import api from '../utils/api';
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -136,21 +136,23 @@ export const AuthProvider = ({ children }) => {
         // Only refresh token if user is already logged in
         const token = localStorage.getItem('token');
         if (token) {
-          try {
-            const newToken = await user.getIdToken(true);
-            localStorage.setItem('token', newToken);
-          } catch (error) {
-            console.error('Token refresh error:', error);
-          }
+          console.log('User exists and has backend token');
+          setCurrentUser(user);
+        } else {
+          console.log('User exists but no backend token');
+          setCurrentUser(null);
         }
-        setCurrentUser(user);
       } else {
+        console.log('No Firebase user');
         setCurrentUser(null);
       }
       setLoading(false);
     });
 
-    return unsubscribe;
+    return () => {
+      console.log('Cleaning up auth state listener');
+      unsubscribe();
+    };
   }, []);
 
   const value = {
@@ -159,12 +161,12 @@ export const AuthProvider = ({ children }) => {
     signup,
     signin,
     logout,
-    trackActivity // Export trackActivity for use in other components
+    trackActivity
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };
