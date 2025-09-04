@@ -1,162 +1,361 @@
-const request = require('supertest');
-const app = require('../app');
+const bookingController = require('../controllers/bookingController');
 const Booking = require('../models/Booking');
 
-// Mock Booking model methods
+// Mock dependencies
 jest.mock('../models/Booking');
 
-// Mock auth middleware to bypass auth checks for testing
-jest.mock('../middleware/authMiddleware', () => ({
-  protect: (req, res, next) => {
-    // Mock user info in request for protected routes
-    req.user = { _id: 'user1' };
-    next();
-  },
-}));
+describe('Booking Controller', () => {
+  let req, res;
 
-describe('Booking API', () => {
-  afterEach(() => {
+  beforeEach(() => {
+    req = {
+      body: {},
+      params: {},
+      user: {
+        _id: 'testUserId',
+        uid: 'testUserId',
+        name: 'Test User',
+        email: 'test@example.com'
+      }
+    };
+    res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis()
+    };
     jest.clearAllMocks();
   });
 
-  describe('POST /api/bookings', () => {
-    it('should create a new booking and return it', async () => {
-      const bookingData = { package: { packageId: 'pkg1' }, userId: 'user1' };
-      const savedBooking = { _id: '1', ...bookingData, user: 'user1' };
+  describe('createBooking', () => {
+    it('should create a new booking successfully', async () => {
+      const bookingData = {
+        package: {
+          packageId: 'pkg123',
+          packageTitle: 'Test Package',
+          destination: 'Paris',
+          tripDuration: '7 days',
+          travelDate: '2025-12-01',
+          groupSize: 2,
+          packagePrice: 150000
+        },
+        billingAddress: {
+          country: 'USA',
+          city: 'New York',
+          street1: '123 Main St'
+        },
+        pricing: {
+          packageCost: 150000,
+          totalCost: 165000
+        }
+      };
 
-      Booking.mockImplementation(() => ({
-        save: jest.fn().mockResolvedValue(savedBooking),
-      }));
+      req.body = bookingData;
+      
+      const savedBooking = {
+        _id: 'booking123',
+        ...bookingData,
+        user: 'testUserId',
+        userId: 'testUserId',
+        status: 'Pending'
+      };
 
-      const res = await request(app).post('/api/bookings').send(bookingData);
+      const mockBookingInstance = {
+        save: jest.fn().mockResolvedValue(savedBooking)
+      };
 
-      expect(res.statusCode).toBe(201);
-      expect(res.body).toEqual(savedBooking);
+      Booking.mockImplementation(() => mockBookingInstance);
+
+      await bookingController.createBooking(req, res);
+
+      expect(Booking).toHaveBeenCalledWith({
+        ...bookingData,
+        user: 'testUserId'
+      });
+      expect(mockBookingInstance.save).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith(savedBooking);
     });
 
-    it('should return 400 on booking save error', async () => {
-      Booking.mockImplementation(() => ({
-        save: jest.fn().mockRejectedValue(new Error('Save failed')),
-      }));
+    it('should handle booking creation errors', async () => {
+      const error = new Error('Validation failed');
+      const mockBookingInstance = {
+        save: jest.fn().mockRejectedValue(error)
+      };
 
-      const res = await request(app).post('/api/bookings').send({});
+      Booking.mockImplementation(() => mockBookingInstance);
 
-      expect(res.statusCode).toBe(400);
-      expect(res.body).toHaveProperty('message', 'Save failed');
+      await bookingController.createBooking(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: error.message });
+    });
+
+    it('should handle missing required fields', async () => {
+      req.body = {}; // Empty body
+      
+      const error = new Error('Package information is required');
+      const mockBookingInstance = {
+        save: jest.fn().mockRejectedValue(error)
+      };
+
+      Booking.mockImplementation(() => mockBookingInstance);
+
+      await bookingController.createBooking(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: error.message });
     });
   });
 
-  describe('GET /api/bookings', () => {
+  describe('getBookings', () => {
     it('should return all bookings with populated user info', async () => {
-      const bookings = [{ _id: '1', user: { name: 'John', email: 'john@example.com' } }];
-      Booking.find.mockReturnValue({ populate: jest.fn().mockResolvedValue(bookings) });
+      const mockBookings = [
+        {
+          _id: 'booking1',
+          package: { packageTitle: 'Package 1' },
+          user: { name: 'John Doe', email: 'john@example.com' }
+        },
+        {
+          _id: 'booking2',
+          package: { packageTitle: 'Package 2' },
+          user: { name: 'Jane Smith', email: 'jane@example.com' }
+        }
+      ];
 
-      const res = await request(app).get('/api/bookings');
+      const mockQuery = {
+        populate: jest.fn().mockResolvedValue(mockBookings)
+      };
 
-      expect(res.statusCode).toBe(200);
-      expect(res.body).toEqual(bookings);
+      Booking.find.mockReturnValue(mockQuery);
+
+      await bookingController.getBookings(req, res);
+
+      expect(Booking.find).toHaveBeenCalledWith();
+      expect(mockQuery.populate).toHaveBeenCalledWith('user', 'name email');
+      expect(res.json).toHaveBeenCalledWith(mockBookings);
     });
 
-    it('should return 500 on error', async () => {
-      Booking.find.mockReturnValue({ populate: jest.fn().mockRejectedValue(new Error('DB error')) });
+    it('should handle database errors', async () => {
+      const error = new Error('Database connection failed');
+      const mockQuery = {
+        populate: jest.fn().mockRejectedValue(error)
+      };
 
-      const res = await request(app).get('/api/bookings');
+      Booking.find.mockReturnValue(mockQuery);
 
-      expect(res.statusCode).toBe(500);
-      expect(res.body).toHaveProperty('message', 'DB error');
-    });
-  });
+      await bookingController.getBookings(req, res);
 
-  describe('GET /api/bookings/:id (getUserBookings)', () => {
-    it('should return bookings for the logged-in user', async () => {
-      const userBookings = [{ _id: '1', userId: 'user1' }];
-      Booking.find.mockResolvedValue(userBookings);
-
-      const res = await request(app).get('/api/bookings/user1');
-
-      expect(res.statusCode).toBe(200);
-      expect(res.body).toEqual(userBookings);
-      expect(Booking.find).toHaveBeenCalledWith({ userId: 'user1' });
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ message: error.message });
     });
 
-    it('should return 500 on error', async () => {
-      Booking.find.mockRejectedValue(new Error('DB error'));
+    it('should return empty array when no bookings exist', async () => {
+      const mockQuery = {
+        populate: jest.fn().mockResolvedValue([])
+      };
 
-      const res = await request(app).get('/api/bookings/user1');
+      Booking.find.mockReturnValue(mockQuery);
 
-      expect(res.statusCode).toBe(500);
-      expect(res.body).toHaveProperty('message', 'DB error');
-    });
-  });
+      await bookingController.getBookings(req, res);
 
-  describe('GET /api/bookings/booking/:id (getBookingById)', () => {
-    it('should return booking by id if found', async () => {
-      const booking = { _id: '1', package: { packageId: 'pkg1' } };
-      Booking.findById.mockResolvedValue(booking);
-
-      const res = await request(app).get('/api/bookings/booking/1');
-
-      expect(res.statusCode).toBe(200);
-      expect(res.body).toEqual(booking);
-    });
-
-    it('should return 404 if booking not found', async () => {
-      Booking.findById.mockResolvedValue(null);
-
-      const res = await request(app).get('/api/bookings/booking/1');
-
-      expect(res.statusCode).toBe(404);
-      expect(res.body).toHaveProperty('message', 'Booking not found');
-    });
-
-    it('should return 500 on error', async () => {
-      Booking.findById.mockRejectedValue(new Error('DB error'));
-
-      const res = await request(app).get('/api/bookings/booking/1');
-
-      expect(res.statusCode).toBe(500);
-      expect(res.body).toHaveProperty('message', 'DB error');
+      expect(res.json).toHaveBeenCalledWith([]);
     });
   });
 
-  describe('PUT /api/bookings/:id', () => {
-    it('should update and return the booking', async () => {
-      const updatedBooking = { _id: '1', status: 'Confirmed' };
+  describe('updateBooking', () => {
+    beforeEach(() => {
+      req.params.id = 'booking123';
+      req.body = { status: 'Confirmed' };
+    });
+
+    it('should update booking successfully', async () => {
+      const updatedBooking = {
+        _id: 'booking123',
+        status: 'Confirmed',
+        package: { packageTitle: 'Test Package' }
+      };
+
       Booking.findByIdAndUpdate.mockResolvedValue(updatedBooking);
 
-      const res = await request(app).put('/api/bookings/1').send({ status: 'Confirmed' });
+      await bookingController.updateBooking(req, res);
 
-      expect(res.statusCode).toBe(200);
-      expect(res.body).toEqual(updatedBooking);
+      expect(Booking.findByIdAndUpdate).toHaveBeenCalledWith(
+        'booking123',
+        { status: 'Confirmed' },
+        { new: true }
+      );
+      expect(res.json).toHaveBeenCalledWith(updatedBooking);
     });
 
-    it('should return 400 on update error', async () => {
-      Booking.findByIdAndUpdate.mockRejectedValue(new Error('Update failed'));
+    it('should handle update errors', async () => {
+      const error = new Error('Update failed');
+      Booking.findByIdAndUpdate.mockRejectedValue(error);
 
-      const res = await request(app).put('/api/bookings/1').send({});
+      await bookingController.updateBooking(req, res);
 
-      expect(res.statusCode).toBe(400);
-      expect(res.body).toHaveProperty('message', 'Update failed');
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: error.message });
+    });
+
+    it('should handle invalid booking ID', async () => {
+      const error = new Error('Cast to ObjectId failed');
+      Booking.findByIdAndUpdate.mockRejectedValue(error);
+
+      await bookingController.updateBooking(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: error.message });
     });
   });
 
-  describe('DELETE /api/bookings/:id', () => {
-    it('should delete the booking and return success message', async () => {
-      Booking.findByIdAndDelete.mockResolvedValue();
+  describe('getUserBookings', () => {
+    it('should return bookings for the authenticated user', async () => {
+      const userBookings = [
+        {
+          _id: 'booking1',
+          userId: 'testUserId',
+          package: { packageTitle: 'User Package 1' },
+          status: 'Confirmed'
+        },
+        {
+          _id: 'booking2',
+          userId: 'testUserId',
+          package: { packageTitle: 'User Package 2' },
+          status: 'Pending'
+        }
+      ];
 
-      const res = await request(app).delete('/api/bookings/1');
+      Booking.find.mockResolvedValue(userBookings);
 
-      expect(res.statusCode).toBe(200);
-      expect(res.body).toHaveProperty('message', 'Booking deleted');
+      await bookingController.getUserBookings(req, res);
+
+      expect(Booking.find).toHaveBeenCalledWith({ userId: 'testUserId' });
+      expect(res.json).toHaveBeenCalledWith(userBookings);
     });
 
-    it('should return 400 on delete error', async () => {
-      Booking.findByIdAndDelete.mockRejectedValue(new Error('Delete failed'));
+    it('should return empty array when user has no bookings', async () => {
+      Booking.find.mockResolvedValue([]);
 
-      const res = await request(app).delete('/api/bookings/1');
+      await bookingController.getUserBookings(req, res);
 
-      expect(res.statusCode).toBe(400);
-      expect(res.body).toHaveProperty('message', 'Delete failed');
+      expect(res.json).toHaveBeenCalledWith([]);
+    });
+
+    it('should handle database errors', async () => {
+      const error = new Error('Database error');
+      Booking.find.mockRejectedValue(error);
+
+      await bookingController.getUserBookings(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ message: error.message });
+    });
+
+    it('should handle missing user ID', async () => {
+      req.user._id = undefined;
+      
+      await bookingController.getUserBookings(req, res);
+
+      expect(Booking.find).toHaveBeenCalledWith({ userId: undefined });
+    });
+  });
+
+  describe('getBookingById', () => {
+    beforeEach(() => {
+      req.params.id = 'booking123';
+    });
+
+    it('should return booking by id when found', async () => {
+      const booking = {
+        _id: 'booking123',
+        package: {
+          packageTitle: 'Test Package',
+          destination: 'Paris'
+        },
+        status: 'Confirmed',
+        userId: 'testUserId'
+      };
+
+      Booking.findById.mockResolvedValue(booking);
+
+      await bookingController.getBookingById(req, res);
+
+      expect(Booking.findById).toHaveBeenCalledWith('booking123');
+      expect(res.json).toHaveBeenCalledWith(booking);
+    });
+
+    it('should return 404 when booking not found', async () => {
+      Booking.findById.mockResolvedValue(null);
+
+      await bookingController.getBookingById(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Booking not found' });
+    });
+
+    it('should handle database errors', async () => {
+      const error = new Error('Database error');
+      Booking.findById.mockRejectedValue(error);
+
+      await bookingController.getBookingById(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ message: error.message });
+    });
+
+    it('should handle invalid ObjectId format', async () => {
+      const error = new Error('Cast to ObjectId failed');
+      Booking.findById.mockRejectedValue(error);
+
+      await bookingController.getBookingById(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ message: error.message });
+    });
+  });
+
+  describe('deleteBooking', () => {
+    beforeEach(() => {
+      req.params.id = 'booking123';
+    });
+
+    it('should delete booking successfully', async () => {
+      Booking.findByIdAndDelete.mockResolvedValue({
+        _id: 'booking123',
+        status: 'Cancelled'
+      });
+
+      await bookingController.deleteBooking(req, res);
+
+      expect(Booking.findByIdAndDelete).toHaveBeenCalledWith('booking123');
+      expect(res.json).toHaveBeenCalledWith({ message: 'Booking deleted' });
+    });
+
+    it('should handle deletion errors', async () => {
+      const error = new Error('Delete failed');
+      Booking.findByIdAndDelete.mockRejectedValue(error);
+
+      await bookingController.deleteBooking(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: error.message });
+    });
+
+    it('should handle invalid booking ID', async () => {
+      const error = new Error('Cast to ObjectId failed');
+      Booking.findByIdAndDelete.mockRejectedValue(error);
+
+      await bookingController.deleteBooking(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: error.message });
+    });
+
+    it('should succeed even when booking does not exist', async () => {
+      Booking.findByIdAndDelete.mockResolvedValue(null);
+
+      await bookingController.deleteBooking(req, res);
+
+      expect(res.json).toHaveBeenCalledWith({ message: 'Booking deleted' });
     });
   });
 });

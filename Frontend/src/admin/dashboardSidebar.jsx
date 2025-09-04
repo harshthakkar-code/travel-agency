@@ -4,7 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from 'react-router-dom';
 
 const DashboardSidebar = () => {
-  const { logout } = useAuth(); // This should work if properly wrapped
+  const { logout } = useAuth(); 
   const navigate = useNavigate();
 
   const handleLogout = async () => {

@@ -1,196 +1,438 @@
-// tests/review.test.js
-
-const request = require('supertest');
-
-// Important: do NOT import app at module top for tests that need per-test middleware overrides
-// For most tests we use the default (admin) middleware mock below and import app once.
-let app;
-
-// Model mocks
+const reviewController = require('../controllers/reviewController');
 const Review = require('../models/Review');
-const User = require('../models/User');
+const admin = require('../config/firebase-admin');
 
+// Mock dependencies
 jest.mock('../models/Review');
-jest.mock('../models/User');
-
-// Default auth middleware mock: admin user
-jest.mock('../middleware/authMiddleware', () => ({
-  protect: (req, res, next) => {
-    req.user = { _id: 'user1', role: 'admin' };
-    next();
-  },
+jest.mock('../config/firebase-admin', () => ({
+  auth: jest.fn()
 }));
 
-beforeAll(() => {
-  // Import app once under default (admin) middleware
-  app = require('../app');
-});
+describe('Review Controller', () => {
+  let req, res, mockAuth;
 
-afterEach(() => {
-  jest.clearAllMocks();
-});
+  beforeEach(() => {
+    req = {
+      body: {},
+      query: {},
+      params: {},
+      user: {
+        uid: 'testUserId',
+        role: 'user',
+        name: 'Test User',
+        email: 'test@example.com'
+      }
+    };
+    res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis()
+    };
 
-describe('Review API', () => {
-  describe('GET /api/reviews', () => {
-    it('should return reviews without filters', async () => {
-      const reviews = [{ _id: '1', comment: 'Good', rating: 5 }];
-      Review.find.mockReturnValue({
-        populate: jest.fn().mockResolvedValue(reviews),
-      });
+    // Setup mock auth function
+    mockAuth = {
+      getUser: jest.fn()
+    };
+    admin.auth.mockReturnValue(mockAuth);
 
-      const res = await request(app).get('/api/reviews');
-
-      expect(res.statusCode).toBe(200);
-      expect(res.body).toEqual(reviews);
-      expect(Review.find).toHaveBeenCalledWith({});
-    });
-
-    it('should filter by productId and packageId', async () => {
-      Review.find.mockReturnValue({
-        populate: jest.fn().mockResolvedValue([]),
-      });
-
-      const res = await request(app).get('/api/reviews?productId=prod1&packageId=pkg1');
-
-      expect(res.statusCode).toBe(200);
-      expect(Review.find).toHaveBeenCalledWith({ product: 'prod1', package: 'pkg1' });
-    });
-
-    it('should return 500 on error', async () => {
-      Review.find.mockImplementation(() => {
-        throw new Error('err');
-      });
-
-      const res = await request(app).get('/api/reviews');
-
-      expect(res.statusCode).toBe(500);
-      expect(res.body).toHaveProperty('message');
-    });
+    jest.clearAllMocks();
   });
 
-  describe('POST /api/reviews', () => {
-    it('should create a new review', async () => {
-      // Ensure duplicate check returns null
-      Review.findOne.mockResolvedValue(null);
+  describe('getReviews', () => {
+    it('should get all reviews without filters', async () => {
+      const mockReviews = [
+        { _id: '1', comment: 'Great product', rating: 5 },
+        { _id: '2', comment: 'Good service', rating: 4 }
+      ];
 
-      // Mock chained findById().select('firstName lastName')
-      const selectMock = jest.fn().mockResolvedValue({ firstName: 'John', lastName: 'Doe' });
-      User.findById.mockReturnValue({ select: selectMock });
-
-      // Mock instance save
-      Review.prototype.save = jest.fn().mockResolvedValue({
-        _id: 'review1',
-        rating: 4,
-        comment: 'Nice',
-        userName: 'John Doe',
-      });
-
-      const res = await request(app)
-        .post('/api/reviews')
-        .send({ package: 'pkg1', rating: 4, comment: 'Nice' });
-
-      expect(res.statusCode).toBe(201);
-      expect(res.body).toHaveProperty('_id');
-      expect(res.body).toHaveProperty('userName', 'John Doe');
-      expect(Review.findOne).toHaveBeenCalledWith({ user: 'user1', package: 'pkg1' });
-      expect(User.findById).toHaveBeenCalledWith('user1');
-      expect(selectMock).toHaveBeenCalledWith('firstName lastName');
-      expect(Review.prototype.save).toHaveBeenCalled();
-    });
-
-    it('should not create review if duplicate', async () => {
-      Review.findOne.mockResolvedValue({ _id: 'existingReview' });
-
-      const res = await request(app)
-        .post('/api/reviews')
-        .send({ package: 'pkg1', rating: 5 });
-
-      expect(res.statusCode).toBe(400);
-      expect(res.body).toHaveProperty('message');
-    });
-
-    it('should return 400 on create error', async () => {
-      Review.findOne.mockImplementation(() => {
-        throw new Error('fail');
-      });
-
-      const res = await request(app)
-        .post('/api/reviews')
-        .send({ package: 'pkg1', rating: 5 });
-
-      expect(res.statusCode).toBe(400);
-      expect(res.body).toHaveProperty('message');
-    });
-  });
-
-  describe('DELETE /api/reviews/:id', () => {
-    it('should delete review as admin', async () => {
-      const mockReview = {
-        _id: 'review1',
-        user: 'user1',
-        remove: jest.fn().mockResolvedValue(),
+      const mockQuery = {
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockResolvedValue(mockReviews)
       };
-      Review.findById.mockResolvedValue(mockReview);
 
-      const res = await request(app).delete('/api/reviews/review1');
+      Review.find.mockReturnValue(mockQuery);
 
-      expect(res.statusCode).toBe(200);
-      expect(res.body).toHaveProperty('message', 'Review deleted');
-      expect(Review.findById).toHaveBeenCalledWith('review1');
-      expect(mockReview.remove).toHaveBeenCalled();
+      await reviewController.getReviews(req, res);
+
+      expect(Review.find).toHaveBeenCalledWith({});
+      expect(mockQuery.populate).toHaveBeenCalledWith('product', 'name');
+      expect(mockQuery.populate).toHaveBeenCalledWith('package', 'packageTitle');
+      expect(mockQuery.sort).toHaveBeenCalledWith({ createdAt: -1 });
+      expect(res.json).toHaveBeenCalledWith(mockReviews);
     });
 
-    it('should forbid deletion if not admin or owner', async () => {
-      // For this test, re-require app with a non-admin user via module isolation
-      jest.resetModules();
+    it('should filter reviews by productId', async () => {
+      req.query.productId = 'product123';
+      
+      const mockQuery = {
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockResolvedValue([])
+      };
 
-      // Re-mock models for this isolated module load
-      const mockFindById = jest.fn().mockResolvedValue({
-        _id: 'review1',
-        user: { equals: jest.fn().mockReturnValue(false) }, // not the same user
-        remove: jest.fn(), // should not be called
+      Review.find.mockReturnValue(mockQuery);
+
+      await reviewController.getReviews(req, res);
+
+      expect(Review.find).toHaveBeenCalledWith({ product: 'product123' });
+    });
+
+    it('should filter reviews by packageId', async () => {
+      req.query.packageId = 'package123';
+      
+      const mockQuery = {
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockResolvedValue([])
+      };
+
+      Review.find.mockReturnValue(mockQuery);
+
+      await reviewController.getReviews(req, res);
+
+      expect(Review.find).toHaveBeenCalledWith({ package: 'package123' });
+    });
+
+    it('should filter reviews by both productId and packageId', async () => {
+      req.query.productId = 'product123';
+      req.query.packageId = 'package123';
+      
+      const mockQuery = {
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockResolvedValue([])
+      };
+
+      Review.find.mockReturnValue(mockQuery);
+
+      await reviewController.getReviews(req, res);
+
+      expect(Review.find).toHaveBeenCalledWith({ 
+        product: 'product123', 
+        package: 'package123' 
+      });
+    });
+
+    it('should handle database errors', async () => {
+      const error = new Error('Database connection failed');
+      Review.find.mockImplementation(() => {
+        throw error;
       });
 
-      jest.doMock('../models/Review', () => ({
-        __esModule: true,
-        default: {},
-        findById: mockFindById,
-      }));
+      await reviewController.getReviews(req, res);
 
-      // Non-admin user in this isolated app instance
-      jest.doMock('../middleware/authMiddleware', () => ({
-        protect: (req, res, next) => {
-          req.user = { _id: 'differentUser', role: 'user' };
-          next();
-        },
-      }));
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ message: error.message });
+    });
+  });
 
-      const isolatedApp = require('../app');
+  describe('createReview', () => {
+    beforeEach(() => {
+      req.body = {
+        product: 'productId123',
+        package: 'packageId123',
+        rating: 5,
+        comment: 'Excellent service!'
+      };
+    });
 
-      const res = await request(isolatedApp).delete('/api/reviews/review1');
+    it('should create a new review successfully with Firebase displayName', async () => {
+      Review.findOne.mockResolvedValue(null);
+      
+      const mockFirebaseUser = {
+        displayName: 'Firebase User'
+      };
+      mockAuth.getUser.mockResolvedValue(mockFirebaseUser);
 
-      expect(res.statusCode).toBe(403);
-      expect(res.body).toHaveProperty('message');
+      const mockSavedReview = {
+        _id: 'reviewId123',
+        user: 'testUserId',
+        userName: 'Firebase User',
+        product: 'productId123',
+        package: 'packageId123',
+        rating: 5,
+        comment: 'Excellent service!',
+        populate: jest.fn().mockReturnThis()
+      };
+
+      const mockReviewInstance = {
+        save: jest.fn().mockResolvedValue(mockSavedReview)
+      };
+
+      Review.mockImplementation(() => mockReviewInstance);
+
+      await reviewController.createReview(req, res);
+
+      expect(Review.findOne).toHaveBeenCalledWith({
+        user: 'testUserId',
+        package: 'packageId123'
+      });
+      expect(mockReviewInstance.save).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith(mockSavedReview);
+    });
+
+    it('should create review with Firebase user without displayName', async () => {
+      Review.findOne.mockResolvedValue(null);
+      
+      const mockFirebaseUser = {
+        displayName: null
+      };
+      mockAuth.getUser.mockResolvedValue(mockFirebaseUser);
+
+      const mockSavedReview = {
+        populate: jest.fn().mockReturnThis()
+      };
+
+      const mockReviewInstance = {
+        save: jest.fn().mockResolvedValue(mockSavedReview)
+      };
+
+      Review.mockImplementation(() => mockReviewInstance);
+
+      await reviewController.createReview(req, res);
+
+      expect(mockReviewInstance.save).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(201);
+    });
+
+    it('should return 400 if user already reviewed the package', async () => {
+      const existingReview = { _id: 'existingId' };
+      Review.findOne.mockResolvedValue(existingReview);
+
+      await reviewController.createReview(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        message: "You have already submitted a review for this package."
+      });
+    });
+
+    it('should use fallback userName when Firebase getUser fails', async () => {
+      Review.findOne.mockResolvedValue(null);
+      mockAuth.getUser.mockRejectedValue(new Error('Firebase error'));
+
+      const mockSavedReview = {
+        populate: jest.fn().mockReturnThis()
+      };
+
+      const mockReviewInstance = {
+        save: jest.fn().mockResolvedValue(mockSavedReview)
+      };
+
+      Review.mockImplementation(() => mockReviewInstance);
+
+      await reviewController.createReview(req, res);
+
+      expect(mockReviewInstance.save).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(201);
+    });
+
+    it('should use user email as fallback userName when name is undefined', async () => {
+      Review.findOne.mockResolvedValue(null);
+      req.user.name = undefined;
+      mockAuth.getUser.mockRejectedValue(new Error('Firebase error'));
+
+      const mockSavedReview = {
+        populate: jest.fn().mockReturnThis()
+      };
+
+      const mockReviewInstance = {
+        save: jest.fn().mockResolvedValue(mockSavedReview)
+      };
+
+      Review.mockImplementation(() => mockReviewInstance);
+
+      await reviewController.createReview(req, res);
+
+      expect(mockReviewInstance.save).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(201);
+    });
+
+    it('should use Anonymous User as final fallback', async () => {
+      Review.findOne.mockResolvedValue(null);
+      req.user.name = undefined;
+      req.user.email = undefined;
+      mockAuth.getUser.mockRejectedValue(new Error('Firebase error'));
+
+      const mockSavedReview = {
+        populate: jest.fn().mockReturnThis()
+      };
+
+      const mockReviewInstance = {
+        save: jest.fn().mockResolvedValue(mockSavedReview)
+      };
+
+      Review.mockImplementation(() => mockReviewInstance);
+
+      await reviewController.createReview(req, res);
+
+      expect(mockReviewInstance.save).toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(201);
+    });
+
+    it('should handle database save errors', async () => {
+      Review.findOne.mockResolvedValue(null);
+      mockAuth.getUser.mockResolvedValue({ displayName: 'Test' });
+
+      const error = new Error('Save failed');
+      const mockReviewInstance = {
+        save: jest.fn().mockRejectedValue(error)
+      };
+
+      Review.mockImplementation(() => mockReviewInstance);
+
+      await reviewController.createReview(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: error.message });
+    });
+
+    it('should handle errors in findOne', async () => {
+      const error = new Error('Database error');
+      Review.findOne.mockRejectedValue(error);
+
+      await reviewController.createReview(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: error.message });
+    });
+
+    it('should handle populate errors after save', async () => {
+      Review.findOne.mockResolvedValue(null);
+      mockAuth.getUser.mockResolvedValue({ displayName: 'Test' });
+
+      const mockSavedReview = {
+        populate: jest.fn().mockRejectedValue(new Error('Populate failed'))
+      };
+
+      const mockReviewInstance = {
+        save: jest.fn().mockResolvedValue(mockSavedReview)
+      };
+
+      Review.mockImplementation(() => mockReviewInstance);
+
+      await reviewController.createReview(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Populate failed' });
+    });
+  });
+
+  describe('deleteReview', () => {
+    beforeEach(() => {
+      req.params.id = 'reviewId123';
+    });
+
+    it('should delete review when user is admin', async () => {
+      req.user.role = 'admin';
+      const mockReview = {
+        _id: 'reviewId123',
+        user: 'otherUserId'
+      };
+
+      Review.findById.mockResolvedValue(mockReview);
+      Review.findByIdAndDelete.mockResolvedValue(true);
+
+      await reviewController.deleteReview(req, res);
+
+      expect(Review.findByIdAndDelete).toHaveBeenCalledWith('reviewId123');
+      expect(res.json).toHaveBeenCalledWith({ message: 'Review deleted successfully' });
+    });
+
+    it('should delete review when user owns the review', async () => {
+      const mockReview = {
+        _id: 'reviewId123',
+        user: 'testUserId'
+      };
+
+      Review.findById.mockResolvedValue(mockReview);
+      Review.findByIdAndDelete.mockResolvedValue(true);
+
+      await reviewController.deleteReview(req, res);
+
+      expect(Review.findByIdAndDelete).toHaveBeenCalledWith('reviewId123');
+      expect(res.json).toHaveBeenCalledWith({ message: 'Review deleted successfully' });
     });
 
     it('should return 404 if review not found', async () => {
       Review.findById.mockResolvedValue(null);
 
-      const res = await request(app).delete('/api/reviews/nonexistent');
+      await reviewController.deleteReview(req, res);
 
-      expect(res.statusCode).toBe(404);
-      expect(res.body).toHaveProperty('message', 'Review not found');
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Review not found' });
     });
 
-    it('should return 500 on error', async () => {
-      Review.findById.mockImplementation(() => {
-        throw new Error('fail');
+    it('should return 403 if user is not authorized', async () => {
+      const mockReview = {
+        _id: 'reviewId123',
+        user: 'otherUserId'
+      };
+
+      Review.findById.mockResolvedValue(mockReview);
+
+      await reviewController.deleteReview(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith({ 
+        message: 'Not authorized to delete this review' 
+      });
+    });
+
+    it('should handle database errors', async () => {
+      const error = new Error('Database error');
+      Review.findById.mockRejectedValue(error);
+
+      await reviewController.deleteReview(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ message: error.message });
+    });
+  });
+
+  describe('getUserReviews', () => {
+    it('should get reviews for the authenticated user', async () => {
+      const mockReviews = [
+        { _id: '1', comment: 'My review 1', user: 'testUserId' },
+        { _id: '2', comment: 'My review 2', user: 'testUserId' }
+      ];
+
+      const mockQuery = {
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockResolvedValue(mockReviews)
+      };
+
+      Review.find.mockReturnValue(mockQuery);
+
+      await reviewController.getUserReviews(req, res);
+
+      expect(Review.find).toHaveBeenCalledWith({ user: 'testUserId' });
+      expect(mockQuery.populate).toHaveBeenCalledWith('product', 'name');
+      expect(mockQuery.populate).toHaveBeenCalledWith('package', 'packageTitle');
+      expect(mockQuery.sort).toHaveBeenCalledWith({ createdAt: -1 });
+      expect(res.json).toHaveBeenCalledWith(mockReviews);
+    });
+
+    it('should handle database errors', async () => {
+      const error = new Error('Database connection failed');
+      Review.find.mockImplementation(() => {
+        throw error;
       });
 
-      const res = await request(app).delete('/api/reviews/any');
+      await reviewController.getUserReviews(req, res);
 
-      expect(res.statusCode).toBe(500);
-      expect(res.body).toHaveProperty('message');
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ message: error.message });
+    });
+
+    it('should return empty array when user has no reviews', async () => {
+      const mockQuery = {
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockResolvedValue([])
+      };
+
+      Review.find.mockReturnValue(mockQuery);
+
+      await reviewController.getUserReviews(req, res);
+
+      expect(res.json).toHaveBeenCalledWith([]);
     });
   });
 });

@@ -1,153 +1,444 @@
-const request = require('supertest');
-const app = require('../app');
+const wishlistController = require('../controllers/wishlistController');
 const Wishlist = require('../models/Wishlist');
 
+// Mock dependencies
 jest.mock('../models/Wishlist');
 
-jest.mock('../middleware/authMiddleware', () => ({
-  protect: (req, res, next) => {
-    req.user = { _id: 'user1' }; // mock logged-in user
-    next();
-  },
-}));
+describe('Wishlist Controller', () => {
+  let req, res;
 
-describe('Wishlist API', () => {
-  afterEach(() => {
+  beforeEach(() => {
+    req = {
+      body: {},
+      params: {},
+      user: {
+        _id: 'testUserId',
+        uid: 'testUserId',
+        name: 'Test User',
+        email: 'test@example.com'
+      }
+    };
+    res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis()
+    };
     jest.clearAllMocks();
   });
 
-  describe('GET /api/wishlist', () => {
-    it('should return wishlist with packages populated', async () => {
-      const wishlist = {
-        user: 'user1',
-        packages: [{ _id: 'pkg1', title: 'Package 1' }],
+  describe('getWishlist', () => {
+    it('should return wishlist with populated packages when exists', async () => {
+      const mockWishlist = {
+        _id: 'wishlist123',
+        user: 'testUserId',
+        packages: [
+          {
+            _id: 'package1',
+            title: 'Adventure Package 1',
+            price: 299,
+            description: 'Amazing adventure'
+          },
+          {
+            _id: 'package2',
+            title: 'Cultural Package 2',
+            price: 199,
+            description: 'Cultural experience'
+          }
+        ]
       };
-      Wishlist.findOne.mockReturnValue({
-        populate: jest.fn().mockResolvedValue(wishlist),
-      });
 
-      const res = await request(app).get('/api/wishlist');
+      const mockQuery = {
+        populate: jest.fn().mockResolvedValue(mockWishlist)
+      };
 
-      expect(Wishlist.findOne).toHaveBeenCalledWith({ user: 'user1' });
-      expect(res.statusCode).toBe(200);
-      expect(res.body).toEqual(wishlist);
+      Wishlist.findOne.mockReturnValue(mockQuery);
+
+      await wishlistController.getWishlist(req, res);
+
+      expect(Wishlist.findOne).toHaveBeenCalledWith({ user: 'testUserId' });
+      expect(mockQuery.populate).toHaveBeenCalledWith('packages');
+      expect(res.json).toHaveBeenCalledWith(mockWishlist);
+      expect(res.status).not.toHaveBeenCalled();
     });
 
-    it('should return empty wishlist if none found', async () => {
-      Wishlist.findOne.mockReturnValue({
-        populate: jest.fn().mockResolvedValue(null),
+    it('should return empty wishlist structure when none exists', async () => {
+      const mockQuery = {
+        populate: jest.fn().mockResolvedValue(null)
+      };
+
+      Wishlist.findOne.mockReturnValue(mockQuery);
+
+      await wishlistController.getWishlist(req, res);
+
+      expect(res.json).toHaveBeenCalledWith({ 
+        user: 'testUserId', 
+        packages: [] 
       });
-
-      const res = await request(app).get('/api/wishlist');
-
-      expect(res.statusCode).toBe(200);
-      expect(res.body).toEqual({ user: 'user1', packages: [] });
     });
 
-    it('should return 500 on error', async () => {
-      Wishlist.findOne.mockReturnValue({
-        populate: jest.fn().mockRejectedValue(new Error('DB error')),
+    it('should handle database connection errors', async () => {
+      const error = new Error('Database connection failed');
+      const mockQuery = {
+        populate: jest.fn().mockRejectedValue(error)
+      };
+
+      Wishlist.findOne.mockReturnValue(mockQuery);
+
+      await wishlistController.getWishlist(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ message: error.message });
+    });
+
+    it('should handle findOne throwing error', async () => {
+      const error = new Error('Query failed');
+      Wishlist.findOne.mockImplementation(() => {
+        throw error;
       });
 
-      const res = await request(app).get('/api/wishlist');
+      await wishlistController.getWishlist(req, res);
 
-      expect(res.statusCode).toBe(500);
-      expect(res.body).toHaveProperty('message', 'DB error');
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ message: error.message });
+    });
+
+    it('should handle populate errors', async () => {
+      const error = new Error('Population failed');
+      const mockQuery = {
+        populate: jest.fn().mockRejectedValue(error)
+      };
+
+      Wishlist.findOne.mockReturnValue(mockQuery);
+
+      await wishlistController.getWishlist(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ message: error.message });
+    });
+
+    it('should handle missing user in request', async () => {
+      req.user = undefined;
+
+      await wishlistController.getWishlist(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        message: expect.stringContaining('_id')
+      }));
+    });
+
+    it('should return wishlist with empty packages array', async () => {
+      const mockWishlist = {
+        _id: 'wishlist123',
+        user: 'testUserId',
+        packages: []
+      };
+
+      const mockQuery = {
+        populate: jest.fn().mockResolvedValue(mockWishlist)
+      };
+
+      Wishlist.findOne.mockReturnValue(mockQuery);
+
+      await wishlistController.getWishlist(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(mockWishlist);
     });
   });
 
-  describe('POST /api/wishlist', () => {
-    it('should add package to wishlist and return updated wishlist', async () => {
-      const wishlistInstance = {
-        user: 'user1',
+  describe('addToWishlist', () => {
+    beforeEach(() => {
+      req.body = { packageId: 'package123' };
+    });
+
+    it('should add package to existing wishlist when not already present', async () => {
+      const existingWishlist = {
+        _id: 'wishlist123',
+        user: 'testUserId',
+        packages: ['package456'],
+        save: jest.fn().mockResolvedValue(true)
+      };
+
+      // Mock includes method
+      existingWishlist.packages.includes = jest.fn().mockReturnValue(false);
+
+      Wishlist.findOne.mockResolvedValue(existingWishlist);
+
+      await wishlistController.addToWishlist(req, res);
+
+      expect(Wishlist.findOne).toHaveBeenCalledWith({ user: 'testUserId' });
+      expect(existingWishlist.packages.includes).toHaveBeenCalledWith('package123');
+      expect(existingWishlist.packages).toContain('package123');
+      expect(existingWishlist.save).toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith(existingWishlist);
+    });
+
+    it('should not add duplicate package to wishlist', async () => {
+      const existingWishlist = {
+        _id: 'wishlist123',
+        user: 'testUserId',
+        packages: ['package123'], // Package already exists
+        save: jest.fn().mockResolvedValue(true)
+      };
+
+      existingWishlist.packages.includes = jest.fn().mockReturnValue(true);
+
+      Wishlist.findOne.mockResolvedValue(existingWishlist);
+
+      await wishlistController.addToWishlist(req, res);
+
+      expect(existingWishlist.packages.includes).toHaveBeenCalledWith('package123');
+      expect(existingWishlist.packages).toHaveLength(1);
+      expect(existingWishlist.save).toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith(existingWishlist);
+    });
+
+    it('should create new wishlist when none exists', async () => {
+      Wishlist.findOne.mockResolvedValue(null);
+
+      const newWishlist = {
+        user: 'testUserId',
+        packages: ['package123'],
+        save: jest.fn().mockResolvedValue(true)
+      };
+
+      newWishlist.packages.includes = jest.fn().mockReturnValue(false);
+
+      Wishlist.mockImplementation(() => newWishlist);
+
+      await wishlistController.addToWishlist(req, res);
+
+      expect(Wishlist).toHaveBeenCalledWith({ 
+        user: 'testUserId', 
+        packages: [] 
+      });
+      expect(newWishlist.packages).toContain('package123');
+      expect(newWishlist.save).toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith(newWishlist);
+    });
+
+    it('should handle save errors for existing wishlist', async () => {
+      const error = new Error('Save operation failed');
+      const existingWishlist = {
         packages: [],
-        save: jest.fn().mockResolvedValue(true),
+        save: jest.fn().mockRejectedValue(error)
       };
-      Wishlist.findOne.mockResolvedValue(wishlistInstance);
 
-      // mock includes to return false so new package is added
-      wishlistInstance.packages.includes = jest.fn().mockReturnValue(false);
+      existingWishlist.packages.includes = jest.fn().mockReturnValue(false);
+      Wishlist.findOne.mockResolvedValue(existingWishlist);
 
-      const res = await request(app)
-        .post('/api/wishlist')
-        .send({ packageId: 'newPkg' });
+      await wishlistController.addToWishlist(req, res);
 
-      expect(Wishlist.findOne).toHaveBeenCalledWith({ user: 'user1' });
-      expect(wishlistInstance.packages.includes).toHaveBeenCalledWith('newPkg');
-      expect(wishlistInstance.packages).toContain('newPkg');
-      expect(wishlistInstance.save).toHaveBeenCalled();
-      expect(res.statusCode).toBe(200);
-      // Check that response body has expected keys and package added
-      expect(res.body.packages).toContain('newPkg');
-      expect(res.body.user).toBeDefined();
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: error.message });
     });
 
-    it('should create wishlist if none exists and add package', async () => {
+    it('should handle save errors for new wishlist', async () => {
+      const error = new Error('Save operation failed');
       Wishlist.findOne.mockResolvedValue(null);
 
-      // Mock Wishlist constructor and save method
-      const saveMock = jest.fn().mockResolvedValue(true);
-      const wishlistMockInstance = {
-        packages: ['newPkg'],
-        save: saveMock,
+      const newWishlist = {
+        packages: [],
+        save: jest.fn().mockRejectedValue(error)
       };
-      const wishlistConstructorMock = jest.fn(() => wishlistMockInstance);
-      Wishlist.mockImplementation(wishlistConstructorMock);
 
-      const res = await request(app)
-        .post('/api/wishlist')
-        .send({ packageId: 'newPkg' });
+      newWishlist.packages.includes = jest.fn().mockReturnValue(false);
+      Wishlist.mockImplementation(() => newWishlist);
 
-      expect(wishlistConstructorMock).toHaveBeenCalledWith({ user: 'user1', packages: [] });
-      expect(saveMock).toHaveBeenCalled();
-      expect(res.statusCode).toBe(200);
-      expect(res.body.packages).toContain('newPkg');
+      await wishlistController.addToWishlist(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: error.message });
     });
 
-    it('should return 400 on error', async () => {
-      Wishlist.findOne.mockRejectedValue(new Error('DB error'));
+    it('should handle database findOne errors', async () => {
+      const error = new Error('Database query failed');
+      Wishlist.findOne.mockRejectedValue(error);
 
-      const res = await request(app).post('/api/wishlist').send({ packageId: 'pkg1' });
+      await wishlistController.addToWishlist(req, res);
 
-      expect(res.statusCode).toBe(400);
-      expect(res.body).toHaveProperty('message', 'DB error');
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: error.message });
+    });
+
+    it('should handle missing packageId in request body', async () => {
+      req.body = {}; // Missing packageId
+
+      const existingWishlist = {
+        packages: [],
+        save: jest.fn().mockResolvedValue(true)
+      };
+
+      existingWishlist.packages.includes = jest.fn().mockReturnValue(false);
+      Wishlist.findOne.mockResolvedValue(existingWishlist);
+
+      await wishlistController.addToWishlist(req, res);
+
+      expect(existingWishlist.packages).toContain(undefined);
+      expect(res.json).toHaveBeenCalledWith(existingWishlist);
+    });
+
+    it('should handle missing user in request', async () => {
+      req.user = undefined;
+
+      await wishlistController.addToWishlist(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        message: expect.stringContaining('_id')
+      }));
+    });
+
+    it('should add multiple different packages to wishlist', async () => {
+      const existingWishlist = {
+        packages: ['package456', 'package789'],
+        save: jest.fn().mockResolvedValue(true)
+      };
+
+      existingWishlist.packages.includes = jest.fn().mockReturnValue(false);
+      Wishlist.findOne.mockResolvedValue(existingWishlist);
+
+      await wishlistController.addToWishlist(req, res);
+
+      expect(existingWishlist.packages).toContain('package123');
+      expect(existingWishlist.packages).toHaveLength(3);
     });
   });
 
-  describe('DELETE /api/wishlist/:packageId', () => {
-    it('should remove package from wishlist and return updated wishlist', async () => {
-      const wishlistInstance = {
-        packages: ['pkg1', 'pkg2'],
-        save: jest.fn().mockResolvedValue(true),
-      };
-      Wishlist.findOne.mockResolvedValue(wishlistInstance);
-
-      const res = await request(app).delete('/api/wishlist/pkg1');
-
-      expect(Wishlist.findOne).toHaveBeenCalledWith({ user: 'user1' });
-      expect(wishlistInstance.packages).not.toContain('pkg1');
-      expect(wishlistInstance.save).toHaveBeenCalled();
-      expect(res.statusCode).toBe(200);
-      // Check that response body packages array excludes removed package
-      expect(res.body.packages).not.toContain('pkg1');
+  describe('removeFromWishlist', () => {
+    beforeEach(() => {
+      req.params.packageId = 'package123';
     });
 
-    it('should return 404 if wishlist not found', async () => {
+    it('should remove package from wishlist successfully', async () => {
+      const mockWishlist = {
+        _id: 'wishlist123',
+        user: 'testUserId',
+        packages: [
+          { toString: () => 'package123' },
+          { toString: () => 'package456' }
+        ],
+        save: jest.fn().mockResolvedValue(true)
+      };
+
+      Wishlist.findOne.mockResolvedValue(mockWishlist);
+
+      await wishlistController.removeFromWishlist(req, res);
+
+      expect(Wishlist.findOne).toHaveBeenCalledWith({ user: 'testUserId' });
+      expect(mockWishlist.packages).toHaveLength(1);
+      expect(mockWishlist.packages.some(pkg => pkg.toString() === 'package123')).toBe(false);
+      expect(mockWishlist.save).toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith(mockWishlist);
+    });
+
+    it('should return 404 when wishlist not found', async () => {
       Wishlist.findOne.mockResolvedValue(null);
 
-      const res = await request(app).delete('/api/wishlist/pkg1');
+      await wishlistController.removeFromWishlist(req, res);
 
-      expect(res.statusCode).toBe(404);
-      expect(res.body).toHaveProperty('message', 'Wishlist not found');
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Wishlist not found' });
     });
 
-    it('should return 400 on error', async () => {
-      Wishlist.findOne.mockRejectedValue(new Error('DB error'));
+    it('should handle removal of non-existent package', async () => {
+      const mockWishlist = {
+        packages: [
+          { toString: () => 'package456' },
+          { toString: () => 'package789' }
+        ],
+        save: jest.fn().mockResolvedValue(true)
+      };
 
-      const res = await request(app).delete('/api/wishlist/pkg1');
+      Wishlist.findOne.mockResolvedValue(mockWishlist);
 
-      expect(res.statusCode).toBe(400);
-      expect(res.body).toHaveProperty('message', 'DB error');
+      await wishlistController.removeFromWishlist(req, res);
+
+      expect(mockWishlist.packages).toHaveLength(2); // No change
+      expect(mockWishlist.save).toHaveBeenCalled();
+    });
+
+    it('should handle database findOne errors', async () => {
+      const error = new Error('Database query failed');
+      Wishlist.findOne.mockRejectedValue(error);
+
+      await wishlistController.removeFromWishlist(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: error.message });
+    });
+
+    it('should handle save errors', async () => {
+      const error = new Error('Save operation failed');
+      const mockWishlist = {
+        packages: [{ toString: () => 'package123' }],
+        save: jest.fn().mockRejectedValue(error)
+      };
+
+      Wishlist.findOne.mockResolvedValue(mockWishlist);
+
+      await wishlistController.removeFromWishlist(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({ message: error.message });
+    });
+
+    it('should remove all instances of the same package', async () => {
+      const mockWishlist = {
+        packages: [
+          { toString: () => 'package123' },
+          { toString: () => 'package456' },
+          { toString: () => 'package123' }
+        ],
+        save: jest.fn().mockResolvedValue(true)
+      };
+
+      Wishlist.findOne.mockResolvedValue(mockWishlist);
+
+      await wishlistController.removeFromWishlist(req, res);
+
+      expect(mockWishlist.packages).toHaveLength(1);
+      expect(mockWishlist.packages[0].toString()).toBe('package456');
+    });
+
+    it('should handle empty wishlist packages array', async () => {
+      const mockWishlist = {
+        packages: [],
+        save: jest.fn().mockResolvedValue(true)
+      };
+
+      Wishlist.findOne.mockResolvedValue(mockWishlist);
+
+      await wishlistController.removeFromWishlist(req, res);
+
+      expect(mockWishlist.packages).toHaveLength(0);
+      expect(mockWishlist.save).toHaveBeenCalled();
+    });
+
+    it('should handle missing packageId parameter', async () => {
+      req.params.packageId = undefined;
+
+      const mockWishlist = {
+        packages: [{ toString: () => 'package123' }],
+        save: jest.fn().mockResolvedValue(true)
+      };
+
+      Wishlist.findOne.mockResolvedValue(mockWishlist);
+
+      await wishlistController.removeFromWishlist(req, res);
+
+      // Should filter out packages that match undefined
+      expect(mockWishlist.packages).toHaveLength(1);
+    });
+
+    it('should handle missing user in request', async () => {
+      req.user = undefined;
+
+      await wishlistController.removeFromWishlist(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        message: expect.stringContaining('_id')
+      }));
     });
   });
 });

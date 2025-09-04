@@ -12,18 +12,22 @@ const DbPackageActive = () => {
 
   const navigate = useNavigate();
 
-  const fetchPackages = async (page) => {
-    try {
-      const res = await api.get("/packages", {
-        params: { status: "Active", page: page, limit: 5 }
-      });
-      setPackages(res.data.packages);
-      setTotalPages(res.data.totalPages);
-      setError("");
-    } catch (err) {
-      setError("Failed to fetch packages");
-    }
-  };
+const fetchPackages = async (page) => {
+  try {
+    const res = await api.get("/packages", { 
+      params: { status: "Active", page: page, limit: 5 } 
+    });
+    
+    // Add safety checks here - this is the critical fix
+    setPackages(res.data?.packages || []);
+    setTotalPages(res.data?.totalPages || 1);
+    setError("");
+  } catch (err) {
+    setError("Failed to fetch packages");
+    setPackages([]); // Ensure packages is always an array
+  }
+};
+
 
   useEffect(() => {
     fetchPackages(currentPage);
@@ -52,7 +56,7 @@ const DbPackageActive = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {packages.length === 0 ? (
+                  {(!packages || packages.length === 0) ? (
                     <tr>
                       <td colSpan="5" style={{ textAlign: "center" }}>
                         No active packages available.

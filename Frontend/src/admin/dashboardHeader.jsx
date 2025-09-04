@@ -16,7 +16,7 @@ const DashboardHeader = () => {
   };
 
   // Handle logout
- const handleLogout = async () => {
+  const handleLogout = async () => {
     try {
       await logout(); // CHANGED: Use Firebase logout instead of localStorage
       setShowUserDropdown(false);
@@ -167,76 +167,78 @@ const DashboardHeader = () => {
         </div> */}
 
         {/* Profile Dropdown */}
-    <div className="dropdown user-dropdown" style={{ position: 'relative' }}>
-      <div className="dropdown-toggle" style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-        <div className="dropdown-item profile-sec" style={{ display: 'flex', alignItems: 'center' }}>
-          <img src={userImg} alt="Profile" style={{ width: '32px', height: '32px', borderRadius: '50%', marginRight: '8px' }} />
-          <span>
-            <span className="user-name">{userName}</span>
-          </span>
-          <i 
-            className="fas fa-caret-down" 
-            onClick={toggleUserDropdown}
-            style={{ 
-              marginLeft: '8px', 
-              cursor: 'pointer',
-              transition: 'transform 0.3s ease',
-              transform: showUserDropdown ? 'rotate(180deg)' : 'rotate(0deg)'
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Dropdown Menu */}
-      {showUserDropdown && (
-        <div 
-          className="dropdown-menu account-menu" 
-          style={{ 
-            display: 'block',
-            position: 'absolute', 
-            top: '100%', 
-            right: '0', 
-            background: '#fff', 
-            boxShadow: '0 4px 15px rgba(0,0,0,0.1)', 
-            borderRadius: '6px', 
-            minWidth: '150px', 
-            zIndex: 9999,
-            marginTop: '5px',
-            border: '1px solid #e9ecef'
-          }}
-        >
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-            <li>
-              <button 
-                onClick={handleLogout} 
-                style={{ 
-                  width: '100%', 
-                  textAlign: 'left', 
-                  padding: '10px 15px', 
-                  background: 'none', 
-                  border: 'none', 
-                  color: '#dc3545', 
+        <div className="dropdown user-dropdown" style={{ position: 'relative' }}>
+          <div className="dropdown-toggle" style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+            <div className="dropdown-item profile-sec" style={{ display: 'flex', alignItems: 'center' }}>
+              <img src={userImg} alt="Profile" style={{ width: '32px', height: '32px', borderRadius: '50%', marginRight: '8px' }} />
+              <span>
+                <span className="user-name">{userName}</span>
+              </span>
+              <i
+                className="fas fa-caret-down"
+                data-testid="caret-icon"
+                onClick={toggleUserDropdown}
+                style={{
+                  marginLeft: '8px',
                   cursor: 'pointer',
-                  fontSize: '14px',
-                  borderRadius: '6px',
-                  display: 'flex',
-                  alignItems: 'center'
+                  transition: 'transform 0.3s ease',
+                  transform: showUserDropdown ? 'rotate(180deg)' : 'rotate(0deg)'
                 }}
-                onMouseOver={(e) => e.target.style.backgroundColor = '#f8f9fa'}
-                onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
-              >
-                <div style={{ padding: '10px 15px', borderBottom: '1px solid #f8f9fa', fontSize: '12px', color: '#6c757d' }}>
-                  Signed in as <br />
-                  <strong style={{ color: '#333' }}>{localStorage.getItem('userEmail')}</strong>
-                </div>
-                <i className="fas fa-sign-out-alt" style={{ marginRight: '8px', width: '15px' }}></i>
-                Logout
-              </button>
-            </li>
-          </ul>
+              />
+
+            </div>
+          </div>
+
+          {/* Dropdown Menu */}
+          {showUserDropdown && (
+            <div
+              className="dropdown-menu account-menu"
+              style={{
+                display: 'block',
+                position: 'absolute',
+                top: '100%',
+                right: '0',
+                background: '#fff',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+                borderRadius: '6px',
+                minWidth: '150px',
+                zIndex: 9999,
+                marginTop: '5px',
+                border: '1px solid #e9ecef'
+              }}
+            >
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                <li>
+                  <button
+                    onClick={handleLogout}
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '10px 15px',
+                      background: 'none',
+                      border: 'none',
+                      color: '#dc3545',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      borderRadius: '6px',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                    onMouseOver={(e) => e.target.style.backgroundColor = '#f8f9fa'}
+                    onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                  >
+                    <div style={{ padding: '10px 15px', borderBottom: '1px solid #f8f9fa', fontSize: '12px', color: '#6c757d' }}>
+                      Signed in as <br />
+                      <strong style={{ color: '#333' }}>{localStorage.getItem('userEmail')}</strong>
+                    </div>
+                    <i className="fas fa-sign-out-alt" style={{ marginRight: '8px', width: '15px' }}></i>
+                    Logout
+                  </button>
+                </li>
+              </ul>
+            </div>
+          )}
         </div>
-      )}
-    </div>
       </div>
     </div>
   );

@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import DashboardSidebar from "./dashboardSidebar";
 import DashboardHeader from "./dashboardHeader";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext"; // Import useAuth
-
+import api from "../utils/api";
 const initialForm = {
   firstname: "",
   lastname: "",
@@ -28,7 +27,6 @@ const NewUser = () => {
   const [loading, setLoading] = useState(false); // Add loading state
 
   const navigate = useNavigate();
-  const { signup } = useAuth(); // Get signup from AuthContext
 
   // Validate all fields
   const validate = () => {
@@ -85,9 +83,8 @@ const NewUser = () => {
     e.preventDefault();
     setSuccess("");
     setLoading(true);
-    
-    const newErrors = validate();
 
+    const newErrors = validate();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       setLoading(false);
@@ -95,29 +92,33 @@ const NewUser = () => {
     }
 
     try {
-      // Use signup from AuthContext (creates Firebase user + saves to Firestore)
-      await signup(form.email, form.password, {
-        firstName: form.firstname,  // Note: firstName not firstname
-        lastName: form.lastname,    // Note: lastName not lastname
+      // Use direct API call instead of AuthContext signup
+      // This won't log in the created user or affect admin session
+      await api.post('/auth/admin/create-user', {
+        email: form.email,
+        password: form.password,
+        firstName: form.firstname,
+        lastName: form.lastname,
         mobile: form.mobile,
-        phone: form.phone,
         country: form.country,
         city: form.city,
       });
 
-      setSuccess("User registered successfully!");
+      setSuccess("User created successfully!");
       setForm(initialForm);
       setErrors({});
-      
-      // Redirect to user list after success
+
+      // Redirect to user list after success (admin stays logged in)
       setTimeout(() => navigate("/admin/user"), 500);
+
     } catch (err) {
-      console.error('Registration error:', err);
-      setErrors({ api: err.message || "Registration failed." });
+      console.error('User creation error:', err);
+      setErrors({ api: err.response?.data?.message || err.message || "User creation failed." });
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div id="container-wrapper">
@@ -138,7 +139,7 @@ const NewUser = () => {
                       <div className="form-group">
                         <label>First name</label>
                         <input name="firstname" className="form-control" type="text"
-                               value={form.firstname} onChange={handleChange} />
+                          value={form.firstname} onChange={handleChange} />
                         {errors.firstname && <div style={{ color: "red", fontSize: 12 }}>{errors.firstname}</div>}
                       </div>
                     </div>
@@ -147,7 +148,7 @@ const NewUser = () => {
                       <div className="form-group">
                         <label>Last name</label>
                         <input name="lastname" className="form-control" type="text"
-                               value={form.lastname} onChange={handleChange} />
+                          value={form.lastname} onChange={handleChange} />
                         {errors.lastname && <div style={{ color: "red", fontSize: 12 }}>{errors.lastname}</div>}
                       </div>
                     </div>
@@ -156,7 +157,7 @@ const NewUser = () => {
                       <div className="form-group">
                         <label>Mobile</label>
                         <input name="mobile" className="form-control" type="text"
-                               value={form.mobile} onChange={handleChange} />
+                          value={form.mobile} onChange={handleChange} />
                         {errors.mobile && <div style={{ color: "red", fontSize: 12 }}>{errors.mobile}</div>}
                       </div>
                     </div>
@@ -165,7 +166,7 @@ const NewUser = () => {
                       <div className="form-group">
                         <label>Phone</label>
                         <input name="phone" className="form-control" type="text"
-                               value={form.phone} onChange={handleChange} />
+                          value={form.phone} onChange={handleChange} />
                       </div>
                     </div>
                     {/* City */}
@@ -173,7 +174,7 @@ const NewUser = () => {
                       <div className="form-group">
                         <label>City</label>
                         <input name="city" className="form-control" type="text"
-                               value={form.city} onChange={handleChange} />
+                          value={form.city} onChange={handleChange} />
                         {errors.city && <div style={{ color: "red", fontSize: 12 }}>{errors.city}</div>}
                       </div>
                     </div>
@@ -182,7 +183,7 @@ const NewUser = () => {
                       <div className="form-group">
                         <label>Country</label>
                         <input name="country" className="form-control" type="text"
-                               value={form.country} onChange={handleChange} />
+                          value={form.country} onChange={handleChange} />
                         {errors.country && <div style={{ color: "red", fontSize: 12 }}>{errors.country}</div>}
                       </div>
                     </div>
@@ -191,10 +192,10 @@ const NewUser = () => {
                       <div className="form-group" style={{ position: "relative" }}>
                         <label>Password</label>
                         <input name="password" className="form-control" type={showPassword ? "text" : "password"}
-                               value={form.password} onChange={handleChange} autoComplete="new-password"/>
-                        <span onClick={() => setShowPassword(!showPassword)}>
+                          value={form.password} onChange={handleChange} autoComplete="new-password" />
+                        <span data-testid="password-toggle" onClick={() => setShowPassword(!showPassword)}>
                           <i className={`far fa-eye${showPassword ? "" : "-slash"}`}
-                             style={{ position: "absolute", right: "14px", top: "52px", cursor: "pointer", color: "#999" }}></i>
+                            style={{ position: "absolute", right: "14px", top: "52px", cursor: "pointer", color: "#999" }}></i>
                         </span>
                         {errors.password && <div style={{ color: "red", fontSize: 12 }}>{errors.password}</div>}
                       </div>
@@ -204,10 +205,10 @@ const NewUser = () => {
                       <div className="form-group" style={{ position: "relative" }}>
                         <label>Confirm Password</label>
                         <input name="confirmPassword" className="form-control" type={showConfirm ? "text" : "password"}
-                               value={form.confirmPassword} onChange={handleChange} autoComplete="new-password"/>
-                        <span onClick={() => setShowConfirm(!showConfirm)}>
+                          value={form.confirmPassword} onChange={handleChange} autoComplete="new-password" />
+                        <span data-testid="confirm-password-toggle" onClick={() => setShowConfirm(!showConfirm)}>
                           <i className={`far fa-eye${showConfirm ? "" : "-slash"}`}
-                             style={{ position: "absolute", right: "14px", top: "52px", cursor: "pointer", color: "#999" }}></i>
+                            style={{ position: "absolute", right: "14px", top: "52px", cursor: "pointer", color: "#999" }}></i>
                         </span>
                         {errors.confirmPassword && <div style={{ color: "red", fontSize: 12 }}>{errors.confirmPassword}</div>}
                       </div>
@@ -217,7 +218,7 @@ const NewUser = () => {
                       <div className="form-group">
                         <label>Email</label>
                         <input name="email" className="form-control" type="email"
-                               value={form.email} onChange={handleChange} />
+                          value={form.email} onChange={handleChange} />
                         {errors.email && <div style={{ color: "red", fontSize: 12 }}>{errors.email}</div>}
                       </div>
                     </div>
@@ -226,16 +227,16 @@ const NewUser = () => {
                       <div className="form-group">
                         <label>Confirm Email</label>
                         <input name="confirmEmail" className="form-control" type="email"
-                               value={form.confirmEmail} onChange={handleChange} />
+                          value={form.confirmEmail} onChange={handleChange} />
                         {errors.confirmEmail && <div style={{ color: "red", fontSize: 12 }}>{errors.confirmEmail}</div>}
                       </div>
                     </div>
                   </div>
                   <br />
-                  <input 
-                    type="submit" 
-                    name="Submit" 
-                    value={loading ? "Creating User..." : "Submit"} 
+                  <input
+                    type="submit"
+                    name="Submit"
+                    value={loading ? "Creating User..." : "Submit"}
                     disabled={loading}
                   />
                   {errors.api && <div style={{ color: "red", marginTop: 12 }}>{errors.api}</div>}
