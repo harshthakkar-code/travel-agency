@@ -29,10 +29,10 @@ const DbPackageExpired = () => {
   }, [currentPage]);
 
   // Pagination control handler
-  const handlePageChange = (page) => {
-    if (page < 1 || page > totalPages) return;
-    setCurrentPage(page);
-  };
+  // const handlePageChange = (page) => {
+  //   if (page < 1 || page > totalPages) return;
+  //   setCurrentPage(page);
+  // };
 
   return (
     <div id="container-wrapper">
