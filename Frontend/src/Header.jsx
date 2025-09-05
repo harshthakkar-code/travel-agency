@@ -25,27 +25,24 @@ const Header = () => {
   }, []);
 
   // Check authentication status on component mount
-  useEffect(() => {
-    // const token = localStorage.getItem("token");
-    const userData = localStorage.getItem("user");
-
-    // if (token && userData) {
-    if (userData) {
-      setIsAuthenticated(true);
-      try {
-        const parsedUser = userData;
-        setUser(parsedUser);
-      } catch (error) {
-        console.error("Error parsing user data:", error);
-        // Clear invalid data
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
-        localStorage.removeItem("userRole");
-        localStorage.removeItem("bookingData");
-        localStorage.removeItem("completeBooking");
-      }
+useEffect(() => {
+  const userData = localStorage.getItem("user");
+  if (userData) {
+    setIsAuthenticated(true);
+    try {
+      const parsedUser = JSON.parse(userData); // <-- FIX
+      setUser(parsedUser);
+    } catch (error) {
+      console.error("Error parsing user data:", error);
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      localStorage.removeItem("userRole");
+      localStorage.removeItem("bookingData");
+      localStorage.removeItem("completeBooking");
     }
-  }, []);
+  }
+}, []);
+
 
   // Handle logout
   // const handleLogout = () => {
@@ -108,6 +105,7 @@ const Header = () => {
             <button
               className="user-name-btn"
               onClick={toggleUserDropdown}
+              aria-label="user menu"
               style={{
                 background: "none",
                 border: "none",
@@ -131,6 +129,7 @@ const Header = () => {
             {showUserDropdown && (
               <div
                 className="dropdown-menu"
+                data-testid="user-dropdown"
                 style={{
                   display: "block",
                   position: "absolute",

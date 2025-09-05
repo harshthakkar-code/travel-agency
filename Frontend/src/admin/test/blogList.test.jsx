@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import BlogList from '../blogList'
 import api from '../../utils/api'
@@ -10,10 +10,12 @@ global.console = {
   ...global.console,
   error: vi.fn()
 }
-global.fetch = vi.fn(() => Promise.resolve({
-  ok: true,
-  json: () => Promise.resolve({})
-}))
+global.fetch = vi.fn(() =>
+  Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({})
+  })
+)
 
 // Mock window object
 Object.defineProperty(window, 'location', {
@@ -26,9 +28,15 @@ const mockStorage = () => {
   let store = {}
   return {
     getItem: vi.fn(key => store[key] || null),
-    setItem: vi.fn((key, value) => { store[key] = value }),
-    removeItem: vi.fn(key => { delete store[key] }),
-    clear: vi.fn(() => { store = {} })
+    setItem: vi.fn((key, value) => {
+      store[key] = value
+    }),
+    removeItem: vi.fn(key => {
+      delete store[key]
+    }),
+    clear: vi.fn(() => {
+      store = {}
+    })
   }
 }
 Object.defineProperty(window, 'localStorage', { value: mockStorage() })
@@ -137,7 +145,7 @@ describe('BlogList', () => {
 
       render(<BlogList />)
       expect(screen.getByText('Loading blogs...')).toBeInTheDocument()
-      
+
       resolvePromise({ data: { blogs: [], totalPages: 1 } })
       await waitFor(() => {
         expect(screen.queryByText('Loading blogs...')).not.toBeInTheDocument()
@@ -251,23 +259,22 @@ describe('BlogList', () => {
   })
 
   describe('Blog Actions', () => {
-    // it('handles edit button click', async () => {
-    //   api.get.mockResolvedValue({
-    //     data: { blogs: mockBlogs, totalPages: 1 }
-    //   })
+    it('handles edit button click', async () => {
+      api.get.mockResolvedValue({
+        data: { blogs: mockBlogs, totalPages: 1 }
+      })
 
-    //   render(<BlogList />)
+      render(<BlogList />)
 
-    //   // Wait for blog to load first, then find edit button
-    //   await waitFor(() => {
-    //     expect(screen.getByText('Blog One')).toBeInTheDocument()
-    //   })
+      await waitFor(() => {
+        expect(screen.getByText('Blog One')).toBeInTheDocument()
+      })
 
-    //   const editButtons = screen.getAllByText('Edit')
-    //   fireEvent.click(editButtons[0])
+      const editButtons = screen.getAllByTitle('Edit')
+      fireEvent.click(editButtons[0])
 
-    //   expect(window.location.href).toBe('/admin/edit-blog/1')
-    // })
+      expect(window.location.href).toBe('/admin/edit-blog/1')
+    })
 
     // it('opens delete confirmation dialog', async () => {
     //   api.get.mockResolvedValue({
@@ -276,150 +283,111 @@ describe('BlogList', () => {
 
     //   render(<BlogList />)
 
-    //   // Wait for all blogs to fully load and render
     //   await waitFor(() => {
     //     expect(screen.getByText('Blog One')).toBeInTheDocument()
     //     expect(screen.getByText('Blog Two')).toBeInTheDocument()
     //     expect(screen.getByText('Blog Three')).toBeInTheDocument()
     //   })
 
-    //   // Now find and verify delete buttons exist
-    //   await waitFor(() => {
-    //     const deleteButtons = screen.getAllByText('Delete')
-    //     expect(deleteButtons).toHaveLength(3)
-    //     fireEvent.click(deleteButtons[0])
-    //   })
+    //   const deleteButtons = screen.getAllByTitle('Delete')
+    //   expect(deleteButtons).toHaveLength(3)
+    //   fireEvent.click(deleteButtons[0])
 
-    //   // Wait for confirmation modal to appear
     //   await waitFor(() => {
     //     expect(screen.getByText('Are you sure you want to delete')).toBeInTheDocument()
     //     expect(screen.getByText('"Blog One"')).toBeInTheDocument()
-    //     expect(screen.getByText('This action cannot be undone.')).toBeInTheDocument()
-    //     expect(screen.getByText('Cancel')).toBeInTheDocument()
+    //     expect(screen.getByText('Yes, Delete')).toBeInTheDocument()
+    //     expect(screen.getByText('No, Cancel')).toBeInTheDocument()
     //   })
     // })
 
-    // it('cancels delete action', async () => {
-    //   api.get.mockResolvedValue({
-    //     data: { blogs: mockBlogs, totalPages: 1 }
-    //   })
+    it('cancels delete action', async () => {
+      api.get.mockResolvedValue({
+        data: { blogs: mockBlogs, totalPages: 1 }
+      })
 
-    //   render(<BlogList />)
+      render(<BlogList />)
 
-    //   // Wait for blogs to load
-    //   await waitFor(() => {
-    //     expect(screen.getByText('Blog One')).toBeInTheDocument()
-    //     expect(screen.getByText('Blog Two')).toBeInTheDocument()
-    //     expect(screen.getByText('Blog Three')).toBeInTheDocument()
-    //   })
+      await waitFor(() => {
+        expect(screen.getByText('Blog One')).toBeInTheDocument()
+      })
 
-    //   // Click delete button
-    //   await waitFor(() => {
-    //     const deleteButtons = screen.getAllByText('Delete')
-    //     fireEvent.click(deleteButtons[0])
-    //   })
+      const deleteButtons = screen.getAllByTitle('Delete')
+      fireEvent.click(deleteButtons[0])
 
-    //   // Wait for modal and click cancel
-    //   await waitFor(() => {
-    //     const cancelButton = screen.getByText('Cancel')
-    //     fireEvent.click(cancelButton)
-    //   })
+      await waitFor(() => {
+        expect(screen.getByText('No, Cancel')).toBeInTheDocument()
+      })
 
-    //   // Verify modal is closed
-    //   await waitFor(() => {
-    //     expect(screen.queryByText('Are you sure you want to delete')).not.toBeInTheDocument()
-    //   })
-    // })
+      fireEvent.click(screen.getByText('No, Cancel'))
 
-    // it('successfully deletes a blog', async () => {
-    //   api.get.mockResolvedValue({
-    //     data: { blogs: mockBlogs, totalPages: 1 }
-    //   })
-    //   api.delete.mockResolvedValue({})
+      await waitFor(() => {
+        expect(screen.queryByText('Are you sure you want to delete')).not.toBeInTheDocument()
+      })
+    })
 
-    //   render(<BlogList />)
+    it('successfully deletes a blog', async () => {
+      api.get.mockResolvedValue({
+        data: { blogs: mockBlogs, totalPages: 1 }
+      })
+      api.delete.mockResolvedValue({})
 
-    //   // Wait for all blogs to load
-    //   await waitFor(() => {
-    //     expect(screen.getByText('Blog One')).toBeInTheDocument()
-    //     expect(screen.getByText('Blog Two')).toBeInTheDocument()
-    //     expect(screen.getByText('Blog Three')).toBeInTheDocument()
-    //   })
+      render(<BlogList />)
 
-    //   // Click delete button
-    //   await waitFor(() => {
-    //     const deleteButtons = screen.getAllByText('Delete')
-    //     fireEvent.click(deleteButtons[0])
-    //   })
+      await waitFor(() => {
+        expect(screen.getByText('Blog One')).toBeInTheDocument()
+      })
 
-    //   // Wait for confirmation modal
-    //   await waitFor(() => {
-    //     expect(screen.getByText('Are you sure you want to delete')).toBeInTheDocument()
-    //   })
+      const deleteButtons = screen.getAllByTitle('Delete')
+      fireEvent.click(deleteButtons[0])
 
-    //   // Find and click the confirmation delete button
-    //   await waitFor(() => {
-    //     const allDeleteButtons = screen.getAllByText('Delete')
-    //     const confirmButton = allDeleteButtons[allDeleteButtons.length - 1]
-    //     fireEvent.click(confirmButton)
-    //   })
+      await waitFor(() => {
+        expect(screen.getByText('Yes, Delete')).toBeInTheDocument()
+      })
 
-    //   // Verify API was called and blog was removed
-    //   await waitFor(() => {
-    //     expect(api.delete).toHaveBeenCalledWith('/blogs/1')
-    //   })
+      fireEvent.click(screen.getByText('Yes, Delete'))
 
-    //   await waitFor(() => {
-    //     expect(screen.queryByText('Blog One')).not.toBeInTheDocument()
-    //   })
-    // })
+      await waitFor(() => {
+        expect(api.delete).toHaveBeenCalledWith('/blogs/1')
+      })
 
-    // it('handles delete API error', async () => {
-    //   const error = new Error('Delete failed')
-    //   api.get.mockResolvedValue({
-    //     data: { blogs: mockBlogs, totalPages: 1 }
-    //   })
-    //   api.delete.mockRejectedValue(error)
+      await waitFor(() => {
+        expect(screen.queryByText('Blog One')).not.toBeInTheDocument()
+      })
+    })
 
-    //   render(<BlogList />)
+    it('handles delete API error', async () => {
+      const error = new Error('Delete failed')
+      api.get.mockResolvedValue({
+        data: { blogs: mockBlogs, totalPages: 1 }
+      })
+      api.delete.mockRejectedValue(error)
 
-    //   // Wait for blogs to load
-    //   await waitFor(() => {
-    //     expect(screen.getByText('Blog One')).toBeInTheDocument()
-    //     expect(screen.getByText('Blog Two')).toBeInTheDocument()
-    //     expect(screen.getByText('Blog Three')).toBeInTheDocument()
-    //   })
+      render(<BlogList />)
 
-    //   // Click delete button
-    //   await waitFor(() => {
-    //     const deleteButtons = screen.getAllByText('Delete')
-    //     fireEvent.click(deleteButtons[0])
-    //   })
+      await waitFor(() => {
+        expect(screen.getByText('Blog One')).toBeInTheDocument()
+      })
 
-    //   // Wait for confirmation modal
-    //   await waitFor(() => {
-    //     expect(screen.getByText('Are you sure you want to delete')).toBeInTheDocument()
-    //   })
+      const deleteButtons = screen.getAllByTitle('Delete')
+      fireEvent.click(deleteButtons[0])
 
-    //   // Click confirm delete
-    //   await waitFor(() => {
-    //     const allDeleteButtons = screen.getAllByText('Delete')
-    //     const confirmButton = allDeleteButtons[allDeleteButtons.length - 1]
-    //     fireEvent.click(confirmButton)
-    //   })
+      await waitFor(() => {
+        expect(screen.getByText('Yes, Delete')).toBeInTheDocument()
+      })
 
-    //   // Verify error handling
-    //   await waitFor(() => {
-    //     expect(api.delete).toHaveBeenCalledWith('/blogs/1')
-    //     expect(console.error).toHaveBeenCalledWith('Error deleting blog:', error)
-    //     expect(global.alert).toHaveBeenCalledWith('Failed to delete blog')
-    //   })
+      fireEvent.click(screen.getByText('Yes, Delete'))
 
-    //   // Verify modal is closed after error
-    //   await waitFor(() => {
-    //     expect(screen.queryByText('Are you sure you want to delete')).not.toBeInTheDocument()
-    //   })
-    // })
+      await waitFor(() => {
+        expect(api.delete).toHaveBeenCalledWith('/blogs/1')
+        expect(console.error).toHaveBeenCalledWith('Error deleting blog:', error)
+        expect(global.alert).toHaveBeenCalledWith('Failed to delete blog')
+      })
+
+      await waitFor(() => {
+        expect(screen.queryByText('Are you sure you want to delete')).not.toBeInTheDocument()
+      })
+    })
 
     it('handles delete with no blogToDelete state', async () => {
       api.get.mockResolvedValue({
@@ -428,7 +396,6 @@ describe('BlogList', () => {
 
       render(<BlogList />)
 
-      // Wait for component to load
       await waitFor(() => {
         expect(screen.getByTestId('dashboard-sidebar')).toBeInTheDocument()
       })
@@ -466,6 +433,41 @@ describe('BlogList', () => {
         expect(api.get).toHaveBeenCalledWith('/blogs?page=1')
       })
     })
+
+    it('changes page when clicking next and previous buttons', async () => {
+      api.get.mockResolvedValue({
+        data: { blogs: mockBlogs, totalPages: 3 }
+      })
+
+      const { container } = render(<BlogList />)
+
+      await waitFor(() => {
+        expect(api.get).toHaveBeenCalledWith('/blogs?page=1')
+      })
+
+      // Click page number 2
+      fireEvent.click(screen.getByText('2'))
+
+      await waitFor(() => {
+        expect(api.get).toHaveBeenCalledWith('/blogs?page=2')
+      })
+
+      // Click next arrow (from page 2 to 3)
+      const nextArrowBtn = container.querySelector('.page-item:not(.disabled) .fa-chevron-right')
+      if (nextArrowBtn) fireEvent.click(nextArrowBtn.parentElement)
+
+      await waitFor(() => {
+        expect(api.get).toHaveBeenCalledWith('/blogs?page=3')
+      })
+
+      // Click previous arrow (from page 3 to 2)
+      const prevArrowBtn = container.querySelector('.page-item:not(.disabled) .fa-chevron-left')
+      if (prevArrowBtn) fireEvent.click(prevArrowBtn.parentElement)
+
+      await waitFor(() => {
+        expect(api.get).toHaveBeenCalledWith('/blogs?page=2')
+      })
+    })
   })
 
   describe('Edge Cases', () => {
@@ -477,12 +479,12 @@ describe('BlogList', () => {
 
       const { unmount } = render(<BlogList />)
       unmount()
-      
+
       resolvePromise({ data: { blogs: [], totalPages: 1 } })
       // No assertion needed - just ensuring no errors
     })
 
-    it('handles malformed date strings', async () => {
+    it('handles malformed date strings gracefully', async () => {
       const blogWithBadDate = [{
         _id: '1',
         title: 'Bad Date Blog',

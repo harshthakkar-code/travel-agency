@@ -452,4 +452,172 @@ describe('User Component - Complete Coverage', () => {
       }, { timeout: 5000 })
     })
   })
+
+describe('Edit Navigation', () => {
+  it('navigates to edit user route on edit click', async () => {
+  api.get.mockResolvedValue({ data: mockUsersData })
+
+  render(
+    <TestWrapper>
+      <User />
+    </TestWrapper>
+  )
+
+  await waitFor(() => expect(screen.getByText('John Doe')).toBeInTheDocument())
+
+  const editButtons = screen.getAllByTitle('Edit User')
+  fireEvent.click(editButtons[0])
+
+  expect(mockNavigate).toHaveBeenCalledWith('/admin/user-edit/user1234567890')
+})
+
+})
+
+describe('Edge Cases for User Data', () => {
+  it('handles user with missing _id and displays fallback', async () => {
+    const incompleteUser = {
+      users: [{
+        firstName: 'NoID',
+        lastName: 'User',
+        email: 'noid@example.com',
+        role: 'user'
+      }]
+    }
+    api.get.mockResolvedValue({ data: incompleteUser })
+
+    render(<TestWrapper><User /></TestWrapper>)
+
+    await waitFor(() => {
+      expect(screen.getByText('NoID User')).toBeInTheDocument()
+      expect(screen.getByText('----')).toBeInTheDocument() // fallback for missing _id
+    })
+  })
+
+  it('shows dash for missing mobile, country, city', async () => {
+    const missingFieldsUser = {
+      users: [{
+        _id: 'user999',
+        firstName: 'Missing',
+        lastName: 'Fields',
+        email: 'missing@example.com',
+        role: 'user'
+      }]
+    }
+    api.get.mockResolvedValue({ data: missingFieldsUser })
+
+    render(<TestWrapper><User /></TestWrapper>)
+
+    await waitFor(() => {
+      // At least 3 dashes rendered for missing mobile,country, city
+      const dashes = screen.getAllByText('-')
+      expect(dashes.length).toBeGreaterThanOrEqual(3)
+    })
+  })
+})
+
+
+describe('fetchUsers error and edge cases', () => {
+  it('shows error message on API failure', async () => {
+    api.get.mockRejectedValueOnce(new Error('API failure'))
+
+    render(<TestWrapper><User /></TestWrapper>)
+
+    await waitFor(() => {
+      expect(screen.getByText('Failed to fetch users')).toBeInTheDocument()
+    })
+  })
+
+  it('renders no users message when API returns empty or no user role', async () => {
+    // Empty users
+    api.get.mockResolvedValueOnce({ data: { users: [] } })
+
+    render(<TestWrapper><User /></TestWrapper>)
+
+    await waitFor(() => {
+      expect(screen.getByText('No users found.')).toBeInTheDocument()
+    })
+
+    // Users with no role "user"
+    api.get.mockResolvedValueOnce({
+      data: {
+        users: [
+          { _id: '1', firstName: 'Admin', lastName: 'User', role: 'admin' }
+        ]
+      }
+    })
+
+    render(<TestWrapper><User /></TestWrapper>)
+
+    await waitFor(() => {
+      expect(screen.getByText('No users found.')).toBeInTheDocument()
+    })
+  })
+})
+
+describe('Delete Confirmation Modal and Handlers', () => {
+  beforeEach(() => {
+    api.get.mockResolvedValue({ data: mockUsersData })
+  })
+
+  it('closes modal when cancel is clicked', async () => {
+    render(<TestWrapper><User /></TestWrapper>)
+
+    await waitFor(() => expect(screen.getByText('John Doe')).toBeInTheDocument())
+
+    fireEvent.click(screen.getAllByTitle('Delete User')[0])
+
+    await waitFor(() => expect(screen.getByText(/Are you sure you want to delete/i)).toBeInTheDocument())
+
+    fireEvent.click(screen.getByText('Cancel'))
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Are you sure you want to delete/i)).not.toBeInTheDocument()
+    })
+  })
+
+  it('executes confirmDelete and refreshes user list on success', async () => {
+    api.delete.mockResolvedValue({})
+
+    render(<TestWrapper><User /></TestWrapper>)
+
+    await waitFor(() => expect(screen.getByText('John Doe')).toBeInTheDocument())
+
+    fireEvent.click(screen.getAllByTitle('Delete User')[0])
+
+    await waitFor(() => expect(screen.getByText(/Are you sure you want to delete/i)).toBeInTheDocument())
+
+    fireEvent.click(screen.getByText('Yes, Delete'))
+
+    await waitFor(() => {
+      expect(api.delete).toHaveBeenCalledWith('/users/user1234567890')
+      expect(screen.queryByText(/Are you sure you want to delete/i)).not.toBeInTheDocument()
+    })
+  })
+
+  it('displays error message on delete failure', async () => {
+  api.get.mockResolvedValue({ data: mockUsersData })
+  api.delete.mockRejectedValue(new Error('Delete failed'))
+
+  render(<TestWrapper><User /></TestWrapper>)
+
+  // Wait for user row text, not title attr
+  await waitFor(() => expect(screen.getByText(/John Doe/i)).toBeInTheDocument())
+
+  const deleteButtons = screen.getAllByTitle('Delete User')
+  fireEvent.click(deleteButtons[0])
+
+  await waitFor(() => {
+    expect(screen.getByText(/Are you sure you want to delete/i)).toBeInTheDocument()
+  })
+
+  fireEvent.click(screen.getByText('Yes, Delete'))
+
+  await waitFor(() => {
+    expect(screen.getByText('Failed to delete user')).toBeInTheDocument()
+  })
+})
+
+})
+
+
 })
