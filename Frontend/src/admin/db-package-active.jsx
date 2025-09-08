@@ -9,10 +9,13 @@ const DbPackageActive = () => {
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+
 
   const navigate = useNavigate();
 
 const fetchPackages = async (page) => {
+    setLoading(true);
   try {
     const res = await api.get("/packages", { 
       params: { status: "Active", page: page, limit: 5 } 
@@ -26,6 +29,8 @@ const fetchPackages = async (page) => {
     setError("Failed to fetch packages");
     setPackages([]); // Ensure packages is always an array
   }
+    setLoading(false);
+
 };
 
 
@@ -38,6 +43,7 @@ const fetchPackages = async (page) => {
       <div id="dashboard" className="dashboard-container">
         <DashboardHeader />
         <DashboardSidebar />
+{loading && <div>Loading...</div>}
 
         <div className="db-info-wrap db-package-wrap">
           <div className="dashboard-box table-opp-color-box">
@@ -77,12 +83,14 @@ const fetchPackages = async (page) => {
                           <span
                             className="badge badge-success"
                             style={{ cursor: "pointer" }}
+                            title="Edit Package"
                             onClick={() => navigate(`/admin/edit-package/${pkg._id}`)}
                           >
                             <i className="far fa-edit"></i>
                           </span>
                           <span
                             className="badge badge-danger"
+                            title="Delete Package"
                             style={{ cursor: "pointer", marginLeft: 8 }}
                           >
                             <i className="far fa-trash-alt"></i>

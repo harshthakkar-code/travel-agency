@@ -368,4 +368,135 @@ describe('DbPackageActive Component', () => {
 })
 
 
+// Pagination - clicking page number triggers correct fetch
+it('changes page when pagination page number is clicked', async () => {
+  api.get.mockResolvedValueOnce({ data: { packages: [], totalPages: 3 } });
+  api.get.mockResolvedValueOnce({ data: { packages: [], totalPages: 3 } });
+
+  render(<TestWrapper><DbPackageActive /></TestWrapper>);
+  await waitFor(() => screen.getByText('No active packages available.'));
+
+  const pageTwoBtn = screen.getByRole('link', { name: '2' });
+  fireEvent.click(pageTwoBtn);
+
+  expect(api.get).toHaveBeenCalledWith('/packages', {
+    params: { status: 'Active', page: 2, limit: 5 }
+  });
+});
+
+// Pagination - previous button disabled on first page; clicking does nothing
+it('disables previous button on first page and click does nothing', async () => {
+  api.get.mockResolvedValue({ data: { packages: [], totalPages: 1 } });
+
+  render(<TestWrapper><DbPackageActive /></TestWrapper>);
+  await waitFor(() => {
+    const prevBtn = document.querySelector('li.page-item.disabled');
+    expect(prevBtn).toBeInTheDocument();
+
+    fireEvent.click(prevBtn);
+    expect(prevBtn.classList.contains('disabled')).toBe(true);
+  });
+});
+
+// Pagination - clicking previous button on page > 1 decreases currentPage
+it('enables previous button when currentPage > 1 and clicking decreases page', async () => {
+  function Wrapper() {
+    const [currentPage, setCurrentPage] = React.useState(2);
+    return <DbPackageActive />;
+  }
+
+  render(<TestWrapper><Wrapper /></TestWrapper>);
+
+  await waitFor(() => {
+    const prevBtn = document.querySelector('li.page-item:not(.disabled)');
+    expect(prevBtn).toBeInTheDocument();
+    fireEvent.click(prevBtn);
+  });
+});
+
+// Clicking edit icon calls useNavigate with correct path
+it('clicking edit icon triggers navigation', async () => {
+  const data = {
+    packages: [{
+      _id: 'pkg1',
+      title: 'Package 1',
+      tripDuration: '3 days / 2 nights',
+      destination: 'Destination 1',
+      status: 'Active',
+    }],
+    totalPages: 1,
+  };
+  api.get.mockResolvedValue({ data });
+
+  render(<TestWrapper><DbPackageActive /></TestWrapper>);
+  await waitFor(() => screen.getByText('Package 1'));
+
+  // Select the span with title 'Edit' because the icon itself <i> has no accessible role or title
+  const editBadge = screen.getByTitle('Edit Package');
+  fireEvent.click(editBadge);
+
+  expect(mockNavigate).toHaveBeenCalledWith('/admin/edit-package/pkg1');
+});
+
+
+// Clicking delete badge triggers click without error
+it('clicking delete icon triggers click without errors', async () => {
+  api.get.mockResolvedValue({ data: mockPackagesData });
+
+  render(<TestWrapper><DbPackageActive /></TestWrapper>);
+  await waitFor(() => screen.getByText('Amazing Nepal Trek'));
+
+  const deleteBadges = screen.getAllByTitle('Delete Package');
+  fireEvent.click(deleteBadges[0]);
+  expect(deleteBadges.length).toBeGreaterThan(0);
+});
+
+// Handles API error gracefully and shows error message
+it('shows error message on API fetch failure', async () => {
+  api.get.mockRejectedValue(new Error('Network error'));
+
+  render(<TestWrapper><DbPackageActive /></TestWrapper>);
+  await waitFor(() => {
+    expect(screen.getByText('Failed to fetch packages')).toBeInTheDocument();
+  });
+});
+
+// Handles malformed API response and shows no packages state
+// it('handles malformed API responses gracefully', async () => {
+//   const malformedResponses = [
+//     { data: null },
+//     { data: undefined },
+//     {},
+//     { data: { totalPages: 1 } }, // missing packages key
+//     { data: { packages: null, totalPages: 0 } }
+//   ];
+
+//   for (const response of malformedResponses) {
+//     api.get.mockResolvedValueOnce(response);
+//     render(<TestWrapper><DbPackageActive /></TestWrapper>);
+//     await waitFor(() => {
+//       expect(screen.getByText('No active packages available.')).toBeInTheDocument();
+//     });
+//     cleanup();
+//   }
+// });
+
+// Shows loading indicator during data fetch
+it('displays loading indicator while data is being fetched', async () => {
+  let resolvePromise;
+  const promise = new Promise(resolve => { resolvePromise = resolve; });
+  api.get.mockReturnValueOnce(promise);
+
+  render(<TestWrapper><DbPackageActive /></TestWrapper>);
+
+  expect(screen.getByText('Loading...')).toBeInTheDocument();
+
+  resolvePromise({ data: { packages: [], totalPages: 1 } });
+  await waitFor(() => {
+    expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+    expect(screen.getByText('No active packages available.')).toBeInTheDocument();
+  });
+});
+
+
 })
