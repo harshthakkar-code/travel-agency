@@ -429,4 +429,193 @@ describe('DbPackagePending Component - All Tests Pass', () => {
       expect(screen.getByText('Pending Nepal Trek')).toBeInTheDocument()
     })
   })
+
+
+  // Handles clicking page numbers for pagination
+it('changes page when page number is clicked', async () => {
+  api.get.mockResolvedValueOnce({ data: { packages: [], totalPages: 2 } });
+  api.get.mockResolvedValueOnce({ data: { packages: [], totalPages: 2 } });
+
+  render(<TestWrapper><DbPackagePending /></TestWrapper>);
+  await waitFor(() => screen.getByText('No pending packages found.'));
+
+  // Select page 2 button by role and text
+  const pageTwoBtn = screen.getByRole('link', { name: '2' });
+  fireEvent.click(pageTwoBtn);
+
+  expect(api.get).toHaveBeenCalledWith('/packages', {
+    params: { status: 'Pending', page: 2, limit: 5 }
+  });
+});
+
+
+// Handles left/right chevron navigation for pagination
+it('disables previous button on first page and next button on last page', async () => {
+  api.get.mockResolvedValue({ data: { packages: [], totalPages: 1 } });
+
+  render(<TestWrapper><DbPackagePending /></TestWrapper>);
+  await waitFor(() => screen.getByTestId('prev-page'));
+
+  const prevButton = screen.getByTestId('prev-page');
+  const nextButton = screen.getByTestId('next-page');
+
+  expect(prevButton).toHaveClass('disabled');
+  expect(nextButton).toHaveClass('disabled');
+});
+
+
+// Handles malformed API responses
+it('shows empty state for safe empty API responses', async () => {
+  const safeResponses = [
+    { data: { packages: [] } }, // empty packages array
+    { data: [] },              // array fallback
+  ];
+
+  for (const response of safeResponses) {
+    api.get.mockResolvedValueOnce(response);
+    render(<TestWrapper><DbPackagePending /></TestWrapper>);
+    await waitFor(() => {
+      expect(screen.getByText('No pending packages found.')).toBeInTheDocument();
+    });
+    cleanup();
+  }
+});
+
+
+
+
+
+it('renders delete icon and allows clicking', async () => {
+  api.get.mockResolvedValue({ data: mockPendingPackagesData });
+
+  render(<TestWrapper><DbPackagePending /></TestWrapper>);
+  await waitFor(() => screen.getByText('Pending Nepal Trek'));
+
+  const deleteIcons = screen.getAllByTitle('Delete');
+  fireEvent.click(deleteIcons[0]);
+
+  // No expect on api.delete because component does not call it yet
+  expect(deleteIcons.length).toBeGreaterThan(0);
+});
+
+
+
+// Loading state
+it('shows loading indicator while fetching packages', async () => {
+  let resolvePromise;
+  const promise = new Promise(resolve => { resolvePromise = resolve; });
+  api.get.mockReturnValueOnce(promise);
+
+  render(<TestWrapper><DbPackagePending /></TestWrapper>);
+
+  // Loading indicator should be visible immediately
+  expect(screen.getByText('Loading...')).toBeInTheDocument();
+
+  // Resolve the pending promise with valid data
+  resolvePromise({ data: { packages: [], totalPages: 1 } });
+
+  // Now wait for loading to disappear and "No pending packages found." to appear
+  await waitFor(() => {
+    expect(screen.getByText('No pending packages found.')).toBeInTheDocument();
+  });
+});
+
+
+// Pagination page number click test (explicit)
+it('changes page when a pagination page number is clicked', async () => {
+  api.get.mockResolvedValueOnce({ data: { packages: [], totalPages: 3 } });
+  api.get.mockResolvedValueOnce({ data: { packages: [], totalPages: 3 } });
+
+  render(<TestWrapper><DbPackagePending /></TestWrapper>);
+  await waitFor(() => screen.getByText('No pending packages found.'));
+
+  const pageTwoBtn = screen.getByRole('link', { name: '2' });
+  fireEvent.click(pageTwoBtn);
+
+  expect(api.get).toHaveBeenCalledWith('/packages', {
+    params: { status: 'Pending', page: 2, limit: 5 }
+  });
+});
+
+// Prev/Next buttons disabled state on boundaries
+it('disables previous button on first page and next button on last page', async () => {
+  api.get.mockResolvedValue({ data: { packages: [], totalPages: 1 } });
+
+  render(<TestWrapper><DbPackagePending /></TestWrapper>);
+  await waitFor(() => screen.getByTestId('prev-page'));
+
+  const prevButton = screen.getByTestId('prev-page');
+  const nextButton = screen.getByTestId('next-page');
+
+  expect(prevButton).toHaveClass('disabled');
+  expect(nextButton).toHaveClass('disabled');
+});
+
+// Click previous and next buttons to change page
+it('navigates pages when clicking prev and next buttons', async () => {
+  api.get.mockResolvedValue({ data: { packages: [], totalPages: 3 } });
+
+  render(<TestWrapper><DbPackagePending /></TestWrapper>);
+  await waitFor(() => screen.getByText('No pending packages found.'));
+
+  const prevButton = screen.getByTestId('prev-page');
+  const nextButton = screen.getByTestId('next-page');
+
+  // On first page, prev disabled; clicking prev does nothing
+  fireEvent.click(prevButton);
+  expect(api.get).toHaveBeenCalledTimes(1); // initial fetch
+
+  // Click next to go page 2
+  fireEvent.click(nextButton);
+  await waitFor(() => {
+    expect(api.get).toHaveBeenLastCalledWith('/packages', {
+      params: { status: 'Pending', page: 2, limit: 5 }
+    });
+  });
+
+  // Click next to go page 3
+  fireEvent.click(nextButton);
+  await waitFor(() => {
+    expect(api.get).toHaveBeenLastCalledWith('/packages', {
+      params: { status: 'Pending', page: 3, limit: 5 }
+    });
+  });
+
+  // Now next is disabled, clicking next does nothing
+  fireEvent.click(nextButton);
+  expect(api.get).toHaveBeenCalledTimes(3);
+});
+
+// Clicking edit icon calls navigate
+it('clicking edit icon triggers navigation', async () => {
+  api.get.mockResolvedValue({ data: {
+    packages: [{
+      _id: 'testid',
+      title: 'Test Package',
+      tripDuration: '5 day / 4 night',
+      destination: 'Testland',
+      status: 'Pending'
+    }],
+    totalPages: 1
+  }});
+
+  render(<TestWrapper><DbPackagePending /></TestWrapper>);
+  await waitFor(() => screen.getByText('Test Package'));
+
+  const editIcon = screen.getByTitle('Edit Package');
+  fireEvent.click(editIcon);
+
+  expect(mockNavigate).toHaveBeenCalledWith('/admin/edit-package/testid');
+});
+
+// Clicking delete icon triggers click without error (no API call yet)
+it('clicking delete icon triggers without errors', async () => {
+  api.get.mockResolvedValue({ data: mockPendingPackagesData });
+  render(<TestWrapper><DbPackagePending /></TestWrapper>);
+  await waitFor(() => screen.getByText('Pending Nepal Trek'));
+
+  const deleteIcons = screen.getAllByTitle('Delete');
+  fireEvent.click(deleteIcons[0]);
+  expect(deleteIcons.length).toBeGreaterThan(0);
+});
 })

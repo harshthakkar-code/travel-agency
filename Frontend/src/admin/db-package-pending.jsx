@@ -12,10 +12,13 @@ const DbPackagePending = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
 
   // Fetch only Pending packages from backend (paginated)
   useEffect(() => {
     const fetchPackages = async () => {
+          setLoading(true);
       try {
         const res = await api.get("/packages", {
           params: { status: "Pending", page: currentPage, limit: PACKAGES_PER_PAGE },
@@ -27,6 +30,8 @@ const DbPackagePending = () => {
         setError("Failed to fetch packages");
         setPackages([]);
       }
+          setLoading(false);
+
     };
     fetchPackages();
   }, [currentPage]);
@@ -42,6 +47,7 @@ const DbPackagePending = () => {
       <div id="dashboard" className="dashboard-container">
         <DashboardHeader />
         <DashboardSidebar />
+        {loading && <div>Loading...</div>}
 
         <div className="db-info-wrap db-package-wrap">
           <div className="dashboard-box table-opp-color-box">
@@ -107,6 +113,7 @@ const DbPackagePending = () => {
               <ul className="pagination">
                 <li
                   className={`page-item${currentPage === 1 ? " disabled" : ""}`}
+                      data-testid="prev-page"      // ADD THIS LINE
                   onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
                 >
                   <span className="page-link">
@@ -124,6 +131,7 @@ const DbPackagePending = () => {
                 ))}
                 <li
                   className={`page-item${currentPage === totalPages ? " disabled" : ""}`}
+                  data-testid="next-page"
                   onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
                 >
                   <a className="page-link" href="#">

@@ -577,4 +577,110 @@ describe('DbPackageExpired Component - Complete Coverage', () => {
       })
     })
   })
+
+
+  // Pagination page number click changes page and triggers API call
+it('changes page when pagination page number is clicked', async () => {
+  api.get.mockResolvedValueOnce({ data: { packages: [], totalPages: 3 } });
+  api.get.mockResolvedValueOnce({ data: { packages: [], totalPages: 3 } });
+
+  render(<TestWrapper><DbPackageExpired /></TestWrapper>);
+  await waitFor(() => screen.getByText('No expired packages found.'));
+
+  const pageTwoBtn = screen.getByRole('link', { name: '2' });
+  fireEvent.click(pageTwoBtn);
+
+  expect(api.get).toHaveBeenCalledWith('/packages', {
+    params: { status: 'Expired', page: 2, limit: 5 }
+  });
+});
+
+// Prev/Next buttons disable on first/last page
+it('disables prev button on first page and next button on last page', async () => {
+  api.get.mockResolvedValue({ data: { packages: [], totalPages: 1 } });
+
+  render(<TestWrapper><DbPackageExpired /></TestWrapper>);
+  await waitFor(() => screen.getByText('No expired packages found.'));
+
+  // Assume pagination buttons have class 'page-item' and cursor
+  const paginationItems = screen.getAllByRole('listitem');
+  const prevButton = paginationItems[0];
+  const nextButton = paginationItems[paginationItems.length - 1];
+
+  expect(prevButton).toHaveClass('disabled');
+  expect(nextButton).toHaveClass('disabled');
+});
+
+// Clicking prev and next buttons change page and call API
+it('navigates pages on prev and next button clicks', async () => {
+  api.get.mockResolvedValue({ data: { packages: [], totalPages: 3 } });
+
+  render(<TestWrapper><DbPackageExpired /></TestWrapper>);
+  await waitFor(() => screen.getByText('No expired packages found.'));
+
+  const paginationItems = screen.getAllByRole('listitem');
+  const prevButton = paginationItems[0];
+  const nextButton = paginationItems[paginationItems.length - 1];
+
+  // prev disabled so no effect when clicked on first page
+  fireEvent.click(prevButton);
+  expect(api.get).toHaveBeenCalledTimes(1);
+
+  // click next to page 2
+  fireEvent.click(nextButton);
+  await waitFor(() => {
+    expect(api.get).toHaveBeenLastCalledWith('/packages', {
+      params: { status: 'Expired', page: 2, limit: 5 }
+    });
+  });
+
+  // click next again to page 3
+  fireEvent.click(nextButton);
+  await waitFor(() => {
+    expect(api.get).toHaveBeenLastCalledWith('/packages', {
+      params: { status: 'Expired', page: 3, limit: 5 }
+    });
+  });
+
+  // next is disabled on last page - no effect
+  fireEvent.click(nextButton);
+  expect(api.get).toHaveBeenCalledTimes(3);
+});
+
+// Clicking edit badge icon triggers no error (consider adding navigate in future)
+it('clicking edit icon triggers interaction without errors', async () => {
+  const mockData = {
+    packages: [{
+      _id: 'exp1',
+      title: 'Expired Package Edit',
+      tripDuration: '5 day / 4 night',
+      destination: 'TestLand',
+      status: 'Expired'
+    }],
+    totalPages: 1
+  };
+
+  api.get.mockResolvedValue({ data: mockData });
+
+  render(<TestWrapper><DbPackageExpired /></TestWrapper>);
+  await waitFor(() => screen.getByText('Expired Package Edit'));
+
+  const editBadge = screen.getByTitle('Edit');
+  fireEvent.click(editBadge);
+
+  // If you add navigation you can test mockNavigate call here
+});
+
+// Clicking delete badge icon triggers click without error
+it('clicking delete icon triggers interaction without errors', async () => {
+  api.get.mockResolvedValue({ data: mockExpiredPackagesData });
+  render(<TestWrapper><DbPackageExpired /></TestWrapper>);
+  await waitFor(() => screen.getByText('Expired Nepal Trek'));
+
+  const deleteBadges = screen.getAllByTitle('Delete');
+  fireEvent.click(deleteBadges[0]);
+  expect(deleteBadges.length).toBeGreaterThan(0);
+});
+
+
 })

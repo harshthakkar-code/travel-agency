@@ -70,7 +70,7 @@ describe('TourPackages Component', () => {
       gallery: ['/image1.jpg']
     },
     {
-      _id: 'pkg2', 
+      _id: 'pkg2',
       title: 'Beach Package',
       description: 'Relaxing beach resort package with beautiful ocean views and luxury amenities for families.',
       salePrice: 800,
@@ -112,7 +112,7 @@ describe('TourPackages Component', () => {
 
     it('should call packages API on mount', async () => {
       renderComponent()
-      
+
       await waitFor(() => {
         expect(api.get).toHaveBeenCalledWith('/packages')
       })
@@ -121,22 +121,22 @@ describe('TourPackages Component', () => {
     it('should handle empty packages array', async () => {
       api.get.mockResolvedValue({ data: [] })
       renderComponent()
-      
+
       await waitFor(() => {
         expect(api.get).toHaveBeenCalled()
       })
     })
 
     it('should handle API errors gracefully', async () => {
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { })
       api.get.mockRejectedValue(new Error('API failed'))
-      
+
       renderComponent()
-      
+
       await waitFor(() => {
         expect(api.get).toHaveBeenCalled()
       })
-      
+
       consoleSpy.mockRestore()
     })
   })
@@ -169,7 +169,7 @@ describe('TourPackages Component', () => {
   describe('Package Data Handling', () => {
     it('should handle successful API response', async () => {
       renderComponent()
-      
+
       await waitFor(() => {
         expect(api.get).toHaveBeenCalledWith('/packages')
       })
@@ -187,10 +187,10 @@ describe('TourPackages Component', () => {
         destination: 'Test Location',
         gallery: []
       }]
-      
+
       api.get.mockResolvedValue({ data: packageWithSalePrice })
       renderComponent()
-      
+
       await waitFor(() => {
         expect(api.get).toHaveBeenCalled()
       })
@@ -208,10 +208,10 @@ describe('TourPackages Component', () => {
         destination: 'Regular Location',
         gallery: []
       }]
-      
+
       api.get.mockResolvedValue({ data: packageWithoutSalePrice })
       renderComponent()
-      
+
       await waitFor(() => {
         expect(api.get).toHaveBeenCalled()
       })
@@ -229,10 +229,10 @@ describe('TourPackages Component', () => {
         destination: null,
         gallery: null
       }]
-      
+
       api.get.mockResolvedValue({ data: incompletePackage })
       renderComponent()
-      
+
       await waitFor(() => {
         expect(api.get).toHaveBeenCalled()
       })
@@ -247,9 +247,9 @@ describe('TourPackages Component', () => {
         if (key === 'token') return 'valid-token'
         return null
       })
-      
+
       renderComponent()
-      
+
       // await waitFor(() => {
       //   expect(localStorageMock.getItem).toHaveBeenCalledWith('userRole')
       // })
@@ -257,9 +257,9 @@ describe('TourPackages Component', () => {
 
     it('should handle unauthenticated user actions', async () => {
       localStorageMock.getItem.mockReturnValue(null)
-      
+
       renderComponent()
-      
+
       await waitFor(() => {
         expect(api.get).toHaveBeenCalled()
       })
@@ -267,7 +267,7 @@ describe('TourPackages Component', () => {
 
     it('should check user role on component mount', async () => {
       renderComponent()
-      
+
       await waitFor(() => {
         expect(localStorageMock.getItem).toHaveBeenCalled()
       })
@@ -279,9 +279,9 @@ describe('TourPackages Component', () => {
         if (key === 'token') return 'valid-token'
         return null
       })
-      
+
       renderComponent()
-      
+
       await waitFor(() => {
         expect(localStorageMock.getItem).toHaveBeenCalled()
       })
@@ -289,9 +289,9 @@ describe('TourPackages Component', () => {
 
     it('should redirect unauthenticated users appropriately', async () => {
       localStorageMock.getItem.mockReturnValue(null)
-      
+
       renderComponent()
-      
+
       await waitFor(() => {
         expect(localStorageMock.getItem).toHaveBeenCalled()
       })
@@ -302,9 +302,9 @@ describe('TourPackages Component', () => {
   describe('Error Handling', () => {
     it('should handle network errors', async () => {
       api.get.mockRejectedValue(new Error('Network error'))
-      
+
       renderComponent()
-      
+
       await waitFor(() => {
         expect(api.get).toHaveBeenCalled()
       })
@@ -312,9 +312,9 @@ describe('TourPackages Component', () => {
 
     it('should handle timeout errors', async () => {
       api.get.mockRejectedValue(new Error('Request timeout'))
-      
+
       renderComponent()
-      
+
       await waitFor(() => {
         expect(api.get).toHaveBeenCalled()
       })
@@ -322,9 +322,9 @@ describe('TourPackages Component', () => {
 
     it('should handle invalid response format', async () => {
       api.get.mockResolvedValue({ invalidData: 'test' })
-      
+
       renderComponent()
-      
+
       await waitFor(() => {
         expect(api.get).toHaveBeenCalled()
       })
@@ -332,9 +332,9 @@ describe('TourPackages Component', () => {
 
     it('should handle null response', async () => {
       api.get.mockResolvedValue(null)
-      
+
       renderComponent()
-      
+
       await waitFor(() => {
         expect(api.get).toHaveBeenCalled()
       })
@@ -350,7 +350,7 @@ describe('TourPackages Component', () => {
 
     it('should update state after API call', async () => {
       renderComponent()
-      
+
       await waitFor(() => {
         expect(api.get).toHaveBeenCalledWith('/packages')
       })
@@ -358,13 +358,13 @@ describe('TourPackages Component', () => {
 
     it('should handle multiple re-renders', async () => {
       const { rerender } = renderComponent()
-      
+
       rerender(
         <MemoryRouter>
           <TourPackages />
         </MemoryRouter>
       )
-      
+
       await waitFor(() => {
         expect(api.get).toHaveBeenCalled()
       })
@@ -372,11 +372,11 @@ describe('TourPackages Component', () => {
 
     it('should handle component unmounting', async () => {
       const { unmount } = renderComponent()
-      
+
       await waitFor(() => {
         expect(api.get).toHaveBeenCalled()
       })
-      
+
       unmount()
       // Should not throw errors
     })
@@ -396,14 +396,14 @@ describe('TourPackages Component', () => {
         destination: 'Test Place',
         gallery: []
       }]
-      
+
       api.get.mockResolvedValue({ data: packageData })
       renderComponent()
-      
+
       await waitFor(() => {
         expect(api.get).toHaveBeenCalled()
       })
-      
+
       // Price per person should be 1000/5 = 200
     })
 
@@ -419,10 +419,10 @@ describe('TourPackages Component', () => {
         destination: 'Test Place',
         gallery: []
       }]
-      
+
       api.get.mockResolvedValue({ data: packageData })
       renderComponent()
-      
+
       await waitFor(() => {
         expect(api.get).toHaveBeenCalled()
       })
@@ -440,10 +440,10 @@ describe('TourPackages Component', () => {
         destination: null,
         gallery: null
       }]
-      
+
       api.get.mockResolvedValue({ data: packageData })
       renderComponent()
-      
+
       await waitFor(() => {
         expect(api.get).toHaveBeenCalled()
       })
@@ -474,7 +474,7 @@ describe('TourPackages Component', () => {
   describe('Performance', () => {
     it('should only make one API call on mount', async () => {
       renderComponent()
-      
+
       await waitFor(() => {
         expect(api.get).toHaveBeenCalledTimes(1)
       })
@@ -492,13 +492,89 @@ describe('TourPackages Component', () => {
         destination: `Destination ${i}`,
         gallery: []
       }))
-      
+
       api.get.mockResolvedValue({ data: largeDataset })
       renderComponent()
-      
+
       await waitFor(() => {
         expect(api.get).toHaveBeenCalled()
       })
     })
   })
+
+
+//   it('renders list of packages and triggers handleBookNow on click', async () => {
+//     // Render component with mock packages array
+//     // Simulate clicking package image/title/book button to verify handleBookNow calls
+//   });
+
+//   it('displays no packages fallback when no data', () => {
+//     // Render with empty packages array and check that no package elements exist
+//   });
+
+//   it('toggles wishlist: adds package when not previously in wishlist', async () => {
+//     localStorage.getItem.mockReturnValue('userRoleValue'); // mock logged-in user
+//     const packageId = 'pkg1';
+//     api.post.mockResolvedValueOnce({}); // mock add wishlist success
+
+//     // Call toggleWishlist with packageId
+//     // Check api.post called with expected data
+//     // Check wishlist include packageId afterward
+//   });
+
+//   it('toggles wishlist: removes package when already in wishlist', async () => {
+//     localStorage.getItem.mockReturnValue('userRoleValue'); // mock logged-in user
+//     const packageId = 'pkg1';
+//     api.delete.mockResolvedValueOnce({}); // mock delete wishlist success
+
+//     // Set initial wishlist state including packageId
+//     // Call toggleWishlist with packageId
+//     // Check api.delete called correctly
+//     // Check wishlist no longer includes packageId
+//   });
+
+//   it('redirects to login if user role not found in localStorage when toggling wishlist', () => {
+//     localStorage.getItem.mockReturnValue(null); // simulate no role
+//     // Call toggleWishlist and verify navigate called with '/admin/login'
+//   });
+
+//   it('handles API error gracefully when updating wishlist', async () => {
+//     localStorage.getItem.mockReturnValue('userRoleValue');
+//     api.post.mockRejectedValueOnce(new Error('API error'));
+
+//     // Call toggleWishlist and verify error logged
+//   });
+//  it('renders multiple packages and handles Book Now clicks', async () => {
+//   const mockPackages = [
+//     { _id: 'pkg1', title: 'Package 1', /* other fields */ },
+//     { _id: 'pkg2', title: 'Package 2', /* other fields */ },
+//   ];
+
+//   // Mock API get request inside TourPackages to return mockPackages
+//   api.get.mockResolvedValue({ data: mockPackages });
+
+//   // Mock other required APIs if needed
+//   api.post.mockResolvedValue({});
+//   api.delete.mockResolvedValue({});
+
+//   render(
+//     <MemoryRouter>
+//       <TourPackages />
+//     </MemoryRouter>
+//   );
+
+//   screen.debug();
+
+//   await waitFor(() => {
+//     expect(screen.getByText(/package 1/i)).toBeInTheDocument();
+//     expect(screen.getByText(/package 2/i)).toBeInTheDocument();
+//   });
+
+//   // Simulate clicks as before
+//   fireEvent.click(screen.getAllByRole('img')[0]);
+//   fireEvent.click(screen.getByText(/package 1/i));
+//   fireEvent.click(screen.getAllByText(/book now/i)[0]);
+// });
+
+
 })
