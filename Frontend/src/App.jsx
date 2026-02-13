@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import About from './about.jsx';
+import Home from './Home.jsx';
 import Contact from './contact.jsx';
 import TourPackages from './tour-packages.jsx';
 import PackageDetail from './package-detail.jsx';
@@ -219,7 +220,7 @@ function App() {
 
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<TourPackages />} />
+        <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path='/blog-archive' element={<Blogarchive />} />
         <Route path='/blog-single/:id' element={<Blog_single />} />
