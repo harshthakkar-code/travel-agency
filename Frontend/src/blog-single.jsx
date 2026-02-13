@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import api from "./utils/api";
+import { supabase } from "./supabaseClient";
 import Header from "./Header";
 
 const Blog_single = () => {
@@ -13,11 +13,17 @@ const Blog_single = () => {
     const fetchBlog = async () => {
       try {
         setLoading(true);
-        const response = await api.get(`/blogs/${id}`);
-        setBlog(response.data);
+        const { data, error: supabaseError } = await supabase
+          .from('blogs')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (supabaseError) throw supabaseError;
+        setBlog(data);
         setError(null);
       } catch (err) {
-        console.error('Error fetching blog:', err);
+        console.error("Error fetching blog:", err);
         setError('Failed to fetch blog');
       } finally {
         setLoading(false);
@@ -32,10 +38,10 @@ const Blog_single = () => {
   // Format date to readable format
   const formatDate = (dateString) => {
     if (!dateString) return "Unknown Date";
-    const options = { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    const options = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     };
     return new Date(dateString).toLocaleDateString('en-US', options);
   };
@@ -69,7 +75,7 @@ const Blog_single = () => {
     <div id="page" className="full-page">
       {/* Header */}
       <Header />
-      
+
       {/* Main content */}
       <main id="content" className="site-main">
         {/* Inner Banner */}
@@ -100,24 +106,28 @@ const Blog_single = () => {
                 <div className="col-lg-8 primary right-sidebar">
                   {/* Blog Image */}
                   <figure className="feature-image">
-                    <img 
-                      src={blog.image || "assets/images/img30.jpg"} 
-                      alt={blog.title} 
+                    <img
+                      src={blog.image || "/assets/images/img22.jpg"}
+                      alt={blog.title}
                     />
                   </figure>
-                  
-                  {/* Blog Content */}
-                  <article className="single-content-wrap">
-                    <div 
-                      style={{ 
-                        lineHeight: '1.6', 
-                        fontSize: '16px',
-                        whiteSpace: 'pre-wrap'
-                      }}
-                    >
-                      {blog.content}
-                    </div>
-                  </article>
+                  <div className="entry-meta">
+                    <span className="byline">
+                      <a href="#">Admin</a>
+                    </span>
+                    <span className="posted-on">
+                      <a href="#">
+                        {new Date(blog.created_at).toLocaleDateString()}
+                      </a>
+                    </span>
+                    <span className="comments-link">
+                      <a href="#">No Comments</a>
+                    </span>
+                  </div>
+                  <div className="entry-content">
+                    <p>{blog.content}</p>
+                    {/* Render blocks or formatting if needed */}
+                  </div>
 
                   {/* Tags */}
                   <div className="meta-wrap">

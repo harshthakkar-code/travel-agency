@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../src/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const { logout } = useAuth();
-  
+  const { currentUser, logout } = useAuth();
+  const navigate = useNavigate();
+
   const handleLogoClick = () => {
-    console.log("Logo clicked");
-    window.location.href = "/";
+    navigate("/");
   };
 
   useEffect(() => {
@@ -25,23 +24,8 @@ const Header = () => {
   }, []);
 
   // Check authentication status on component mount
-useEffect(() => {
-  const userData = localStorage.getItem("user");
-  if (userData) {
-    setIsAuthenticated(true);
-    try {
-      const parsedUser = JSON.parse(userData); // <-- FIX
-      setUser(parsedUser);
-    } catch (error) {
-      console.error("Error parsing user data:", error);
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
-      localStorage.removeItem("userRole");
-      localStorage.removeItem("bookingData");
-      localStorage.removeItem("completeBooking");
-    }
-  }
-}, []);
+  // Check authentication status on component mount
+  // Removed localStorage logic as we depend on AuthContext now
 
 
   // Handle logout
@@ -61,11 +45,11 @@ useEffect(() => {
   //   // Redirect to home page
   //   window.location.href = "/";
   // };
-   const handleLogout = async () => {
+  const handleLogout = async () => {
     try {
-      await logout(); // CHANGED: Use Firebase logout instead of localStorage
+      await logout();
       setShowUserDropdown(false);
-      window.location.href = '/';
+      navigate("/");
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -98,7 +82,11 @@ useEffect(() => {
 
   // Render authentication buttons
   const renderAuthSection = () => {
-    if (isAuthenticated && user) {
+    if (currentUser) {
+      // Get name from metadata or fallback
+      const firstName = currentUser.user_metadata?.first_name || currentUser.user_metadata?.firstName || "User";
+      const email = currentUser.email;
+
       return (
         <div className="header-user-section d-flex align-items-center">
           <div className="user-dropdown" style={{ position: "relative" }}>
@@ -118,7 +106,7 @@ useEffect(() => {
                 transition: "all 0.3s ease",
               }}
             >
-              Welcome, {localStorage.getItem("user")}
+              Welcome, {firstName}
               <i
                 className="fas fa-chevron-down"
                 style={{ marginLeft: "5px", fontSize: "12px" }}
@@ -154,74 +142,85 @@ useEffect(() => {
                 >
                   Signed in as <br />
                   <strong style={{ color: "#333" }}>
-                    {localStorage.getItem("userEmail")}
+                    {email}
                   </strong>
                 </div>
 
-                {/* <a 
-                  href="/profile" 
-                  style={{ 
-                    display: 'block', 
-                    padding: '10px 15px', 
-                    color: '#333', 
-                    textDecoration: 'none',
-                    fontSize: '14px',
-                    borderBottom: '1px solid #f8f9fa'
-                  }}
-                  onMouseOver={(e) => e.target.style.backgroundColor = '#f8f9fa'}
-                  onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
-                >
-                  <i className="fas fa-user" style={{ marginRight: '8px', width: '15px' }}></i>
-                  Profile
-                </a> */}
+                {localStorage.getItem("userRole") === "admin" ? (
+                  <a
+                    href="/admin/dashboard"
+                    style={{
+                      display: "block",
+                      padding: "10px 15px",
+                      color: "#333",
+                      textDecoration: "none",
+                      fontSize: "14px",
+                      borderBottom: "1px solid #f8f9fa",
+                    }}
+                    onMouseOver={(e) =>
+                      (e.target.style.backgroundColor = "#f8f9fa")
+                    }
+                    onMouseOut={(e) =>
+                      (e.target.style.backgroundColor = "transparent")
+                    }
+                  >
+                    <i
+                      className="fas fa-tachometer-alt"
+                      style={{ marginRight: "8px", width: "15px" }}
+                    ></i>
+                    Admin Dashboard
+                  </a>
+                ) : (
+                  <>
+                    <a
+                      href="/bookings"
+                      style={{
+                        display: "block",
+                        padding: "10px 15px",
+                        color: "#333",
+                        textDecoration: "none",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #f8f9fa",
+                      }}
+                      onMouseOver={(e) =>
+                        (e.target.style.backgroundColor = "#f8f9fa")
+                      }
+                      onMouseOut={(e) =>
+                        (e.target.style.backgroundColor = "transparent")
+                      }
+                    >
+                      <i
+                        className="fas fa-calendar-check"
+                        style={{ marginRight: "8px", width: "15px" }}
+                      ></i>
+                      My Bookings
+                    </a>
 
-                <a
-                  href="/bookings"
-                  style={{
-                    display: "block",
-                    padding: "10px 15px",
-                    color: "#333",
-                    textDecoration: "none",
-                    fontSize: "14px",
-                    borderBottom: "1px solid #f8f9fa",
-                  }}
-                  onMouseOver={(e) =>
-                    (e.target.style.backgroundColor = "#f8f9fa")
-                  }
-                  onMouseOut={(e) =>
-                    (e.target.style.backgroundColor = "transparent")
-                  }
-                >
-                  <i
-                    className="fas fa-calendar-check"
-                    style={{ marginRight: "8px", width: "15px" }}
-                  ></i>
-                  My Bookings
-                </a>
-
-                <a
-                  href="/wishlist"
-                  style={{
-                    display: "block",
-                    padding: "10px 15px",
-                    color: "#333",
-                    textDecoration: "none",
-                    fontSize: "14px",
-                    borderBottom: "1px solid #f8f9fa",
-                  }}
-                  onMouseOver={(e) =>
-                    (e.target.style.backgroundColor = "#f8f9fa")
-                  }
-                  onMouseOut={(e) =>
-                    (e.target.style.backgroundColor = "transparent")
-                  }
-                >
-                  <i
-                    className="fas fa-heart"
-                    style={{ marginRight: "8px", width: "15px" }}
-                  ></i>
-                  Wishlist
-                </a>
+                    <a
+                      href="/wishlist"
+                      style={{
+                        display: "block",
+                        padding: "10px 15px",
+                        color: "#333",
+                        textDecoration: "none",
+                        fontSize: "14px",
+                        borderBottom: "1px solid #f8f9fa",
+                      }}
+                      onMouseOver={(e) =>
+                        (e.target.style.backgroundColor = "#f8f9fa")
+                      }
+                      onMouseOut={(e) =>
+                        (e.target.style.backgroundColor = "transparent")
+                      }
+                    >
+                      <i
+                        className="fas fa-heart"
+                        style={{ marginRight: "8px", width: "15px" }}
+                      ></i>
+                      Wishlist
+                    </a>
+                  </>
+                )}
 
                 <button
                   onClick={handleLogout}

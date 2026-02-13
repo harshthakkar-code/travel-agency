@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardSidebar from "./dashboardSidebar";
 import DashboardHeader from "./dashboardHeader";
-import api from "../utils/api";
+import { supabase } from "../supabaseClient";
 
 const UserEdit = () => {
   const { id } = useParams();
@@ -26,25 +26,31 @@ const UserEdit = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const { data } = await api.get(`/users/${id}`);
-        
+        const { data, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (error) throw error;
+
         let day = "", month = "", year = "";
-        if (data.dateOfBirth) {
-          const dob = new Date(data.dateOfBirth);
+        // Assuming dateOfBirth might be stored as date string
+        // If not present in schema, ignore or add to schema
+        if (data.date_of_birth) { // Assuming date_of_birth in Supabase
+          const dob = new Date(data.date_of_birth);
           if (!isNaN(dob)) {
             day = dob.getDate().toString();
             month = (dob.getMonth() + 1).toString();
             year = dob.getFullYear().toString();
           }
         }
-        
+
         setForm({
-          firstname: data.firstName || "",
-          lastname: data.lastName || "",
+          firstname: data.first_name || "",
+          lastname: data.last_name || "",
           email: data.email || "",
-          day,
-          month,
-          year,
+          day, month, year,
           phone: data.mobile || "",
           country: data.country || "",
           city: data.city || "",
@@ -84,7 +90,7 @@ const UserEdit = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSuccess("");
-    
+
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -92,32 +98,39 @@ const UserEdit = () => {
     }
 
     try {
-      const payload = {
-        firstName: form.firstname,
-        lastName: form.lastname,
+      const updates = {
+        first_name: form.firstname,
+        last_name: form.lastname,
         email: form.email,
         mobile: form.phone,
         country: form.country,
         city: form.city,
-        role: form.role
+        role: form.role,
+        updated_at: new Date()
       };
 
       // Add date of birth if provided
       if (form.day && form.month && form.year) {
-        payload.dateOfBirth = `${form.year}-${form.month.padStart(2, "0")}-${form.day.padStart(2, "0")}`;
+        updates.date_of_birth = `${form.year}-${form.month.padStart(2, "0")}-${form.day.padStart(2, "0")}`;
       }
 
-      await api.put(`/users/${id}`, payload);
+      const { error } = await supabase
+        .from('users')
+        .update(updates)
+        .eq('id', id);
+
+      if (error) throw error;
+
       setSuccess("User updated successfully!");
       setErrors({});
-      
+
       // Redirect back to users list after 2 seconds
       setTimeout(() => {
         navigate('/admin/user');
       }, 2000);
     } catch (error) {
       console.error('Update error:', error);
-      setErrors({ api: error.response?.data?.message || "Failed to update user" });
+      setErrors({ api: "Failed to update user" });
     }
   };
 
@@ -142,7 +155,7 @@ const UserEdit = () => {
       <div id="dashboard" className="dashboard-container">
         <DashboardHeader />
         <DashboardSidebar />
-        
+
         <div className="db-info-wrap">
           <div className="row">
             <div className="col-lg-12">
@@ -164,7 +177,7 @@ const UserEdit = () => {
                         {errors.firstname && <div style={{ color: "red", fontSize: 12 }}>{errors.firstname}</div>}
                       </div>
                     </div>
-                    
+
                     {/* Last Name */}
                     <div className="col-sm-6">
                       <div className="form-group">
@@ -179,7 +192,7 @@ const UserEdit = () => {
                         {errors.lastname && <div style={{ color: "red", fontSize: 12 }}>{errors.lastname}</div>}
                       </div>
                     </div>
-                    
+
                     {/* Email */}
                     <div className="col-sm-6">
                       <div className="form-group">
@@ -226,7 +239,7 @@ const UserEdit = () => {
                         <div className="col-sm-4">
                           <select name="month" value={form.month} onChange={handleChange}>
                             <option value="">Month</option>
-                            {["January","February","March","April","May","June","July","August","September","October","November","December"]
+                            {["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
                               .map((m, idx) => (
                                 <option key={idx + 1} value={idx + 1}>{m}</option>
                               ))}
@@ -290,8 +303,8 @@ const UserEdit = () => {
                   <button type="submit" className="button-primary">
                     Save Changes
                   </button>
-                  <button type="button" className="button-primary"  onClick={() => navigate('/admin/user')}
-                      style={{ background: '#ccc' , paddingInlineStart: '20px', paddingInlineEnd: '20px', marginLeft: '10px'}}>
+                  <button type="button" className="button-primary" onClick={() => navigate('/admin/user')}
+                    style={{ background: '#ccc', paddingInlineStart: '20px', paddingInlineEnd: '20px', marginLeft: '10px' }}>
                     Cancel
                   </button>
                   {errors.api && <div style={{ color: "red", marginTop: 12 }}>{errors.api}</div>}
@@ -301,7 +314,7 @@ const UserEdit = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="copyrights">
           Copyright © 2025 Travele. All rights reserved.
         </div>

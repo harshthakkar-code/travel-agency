@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import api from "../utils/api"; // your axios instance with baseURL & token setup
+import { supabase } from "../supabaseClient";
 import DashboardSidebar from "./dashboardSidebar";
 import DashboardHeader from "./dashboardHeader";
 import { useNavigate } from "react-router-dom";
 
-const PACKAGES_PER_PAGE = 5; 
+const PACKAGES_PER_PAGE = 5;
 
 const DbPackagePending = () => {
   const [packages, setPackages] = useState([]);
@@ -18,20 +18,29 @@ const DbPackagePending = () => {
   // Fetch only Pending packages from backend (paginated)
   useEffect(() => {
     const fetchPackages = async () => {
-          setLoading(true);
+      setLoading(true);
       try {
-        const res = await api.get("/packages", {
-          params: { status: "Pending", page: currentPage, limit: PACKAGES_PER_PAGE },
-        });
-        setPackages(res.data.packages || res.data); // fallback if backend returns an array
-        setTotalPages(res.data.totalPages || 1);
+        const from = (currentPage - 1) * PACKAGES_PER_PAGE;
+        const to = from + PACKAGES_PER_PAGE - 1;
+
+        const { data, error, count } = await supabase
+          .from('packages')
+          .select('*', { count: 'exact' })
+          .eq('status', 'Pending')
+          .range(from, to);
+
+        if (error) throw error;
+
+        setPackages(data || []);
+        setTotalPages(Math.ceil((count || 0) / PACKAGES_PER_PAGE) || 1);
         setError("");
       } catch (err) {
+        console.error(err);
         setError("Failed to fetch packages");
         setPackages([]);
+      } finally {
+        setLoading(false);
       }
-          setLoading(false);
-
     };
     fetchPackages();
   }, [currentPage]);
@@ -77,7 +86,7 @@ const DbPackagePending = () => {
                         <td>
                           <span className="package-name">{pkg.title}</span>
                         </td>
-                        <td>{pkg.tripDuration}</td>
+                        <td>{pkg.trip_duration}</td>
                         <td>{pkg.destination || "-"}</td>
                         <td>
                           <span className="badge badge-primary">{pkg.status}</span>
@@ -86,7 +95,7 @@ const DbPackagePending = () => {
                           <span
                             className="badge badge-success"
                             style={{ cursor: "pointer" }}
-                            onClick={() => navigate(`/admin/edit-package/${pkg._id}`)}
+                            onClick={() => navigate(`/admin/edit-package/${pkg.id}`)}
                             title="Edit Package"
                           >
                             <i className="far fa-edit"></i>
@@ -113,7 +122,7 @@ const DbPackagePending = () => {
               <ul className="pagination">
                 <li
                   className={`page-item${currentPage === 1 ? " disabled" : ""}`}
-                      data-testid="prev-page"      // ADD THIS LINE
+                  data-testid="prev-page"      // ADD THIS LINE
                   onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
                 >
                   <span className="page-link">

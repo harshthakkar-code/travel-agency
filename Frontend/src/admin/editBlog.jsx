@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import api from "../utils/api";
+import { supabase } from "../supabaseClient";
 import DashboardSidebar from "./dashboardSidebar";
 import DashboardHeader from "./dashboardHeader";
 import uploadImage from "../utils/uploadImage";
@@ -8,7 +8,7 @@ import uploadImage from "../utils/uploadImage";
 const DbEditBlog = () => {
   const { id } = useParams(); // Get blog ID from URL
   const navigate = useNavigate();
-  
+
   const [form, setForm] = useState({
     title: "",
     author: "",
@@ -30,9 +30,14 @@ const DbEditBlog = () => {
     const fetchBlog = async () => {
       try {
         setLoading(true);
-        const response = await api.get(`/blogs/${id}`);
-        const blog = response.data;
-        
+        const { data: blog, error } = await supabase
+          .from('blogs')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (error) throw error;
+
         // Pre-fill form with existing data
         setForm({
           title: blog.title || "",
@@ -42,12 +47,12 @@ const DbEditBlog = () => {
           tags: blog.tags ? blog.tags.join(", ") : "", // Convert array to comma-separated string
           status: blog.status || "Draft"
         });
-        
+
         // Set existing image if available
         if (blog.image) {
           setImageUrl(blog.image);
         }
-        
+
         setErrors({});
       } catch (err) {
         console.error('Error fetching blog:', err);
@@ -123,28 +128,39 @@ const DbEditBlog = () => {
       return;
     }
 
-    // Convert tags string to array
     const tagsArray = form.tags
       ? form.tags.split(",").map(tag => tag.trim()).filter(tag => tag !== "")
       : [];
 
     const data = {
-      ...form,
+      title: form.title,
+      author: form.author,
+      content: form.content,
+      category: form.category,
       tags: tagsArray,
-      image: imageUrl || ""
+      image: imageUrl || "",
+      status: form.status,
+      updated_at: new Date()
     };
 
     try {
-      await api.put(`/blogs/${id}`, data); // Use PUT for update
+      const { error } = await supabase
+        .from('blogs')
+        .update(data)
+        .eq('id', id);
+
+      if (error) throw error;
+
       setSuccess("Blog updated successfully!");
-      
+
       // Optional: Navigate back to blog list after successful update
       setTimeout(() => {
         navigate('/admin/blogs');
       }, 2000);
-      
+
     } catch (err) {
-      setErrors({ api: err.response?.data?.message || "Error updating blog" });
+      console.error("Error updating blog:", err);
+      setErrors({ api: "Error updating blog" });
     }
   };
 
@@ -182,23 +198,23 @@ const DbEditBlog = () => {
                     <h4>Edit Blog</h4>
                     <div className="form-group">
                       <label>Blog Title</label>
-                      <input 
-                        type="text" 
-                        name="title" 
-                        value={form.title} 
-                        onChange={handleChange} 
+                      <input
+                        type="text"
+                        name="title"
+                        value={form.title}
+                        onChange={handleChange}
                         placeholder="Enter blog title"
                       />
                       {errors.title && <div style={{ color: "red", fontSize: "12px" }}>{errors.title}</div>}
                     </div>
-                    
+
                     <div className="form-group">
                       <label>Author</label>
-                      <input 
-                        type="text" 
-                        name="author" 
-                        value={form.author} 
-                        onChange={handleChange} 
+                      <input
+                        type="text"
+                        name="author"
+                        value={form.author}
+                        onChange={handleChange}
                         placeholder="Enter author name"
                       />
                       {errors.author && <div style={{ color: "red", fontSize: "12px" }}>{errors.author}</div>}
@@ -206,9 +222,9 @@ const DbEditBlog = () => {
 
                     <div className="form-group">
                       <label>Content</label>
-                      <textarea 
-                        name="content" 
-                        value={form.content} 
+                      <textarea
+                        name="content"
+                        value={form.content}
                         onChange={handleChange}
                         rows="15"
                         placeholder="Write your blog content here..."
@@ -243,11 +259,11 @@ const DbEditBlog = () => {
                       <div className="col-sm-6">
                         <div className="form-group">
                           <label>Tags</label>
-                          <input 
-                            type="text" 
-                            name="tags" 
-                            value={form.tags} 
-                            onChange={handleChange} 
+                          <input
+                            type="text"
+                            name="tags"
+                            value={form.tags}
+                            onChange={handleChange}
                             placeholder="Enter tags separated by commas"
                           />
                           <small style={{ color: "#666", fontSize: "11px" }}>
@@ -331,10 +347,10 @@ const DbEditBlog = () => {
                 <div className="dashboard-box">
                   <div className="custom-field-wrap">
                     <div className="publish-action" style={{ textAlign: 'center', padding: '20px 0' }}>
-                      <input 
-                        type="submit" 
-                        name="update" 
-                        value="Save Changes" 
+                      <input
+                        type="submit"
+                        name="update"
+                        value="Save Changes"
                         style={{
                           backgroundColor: '#28a745',
                           color: 'white',
@@ -349,7 +365,7 @@ const DbEditBlog = () => {
                         onMouseOver={(e) => e.target.style.backgroundColor = '#218838'}
                         onMouseOut={(e) => e.target.style.backgroundColor = '#28a745'}
                       />
-                      <button 
+                      <button
                         type="button"
                         onClick={() => navigate('/admin/blogs')}
                         style={{

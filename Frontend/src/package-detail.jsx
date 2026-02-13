@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Header from "./Header";
-import api from "./utils/api";
+import { supabase } from "./supabaseClient";
 
 const Package_detail = () => {
   const { id } = useParams();
@@ -38,9 +38,14 @@ const Package_detail = () => {
   useEffect(() => {
     const fetchPackage = async () => {
       try {
-        const res = await api.get(`/packages/${id}`);
-        setPkg(res.data);
-        // eslint-disable-next-line no-unused-vars
+        const { data, error } = await supabase
+          .from('packages')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (error) throw error;
+        setPkg(data);
       } catch (error) {
         setPkg(null);
       }
@@ -52,15 +57,34 @@ const Package_detail = () => {
   useEffect(() => {
     if (activeTab === "review") {
       setLoadingReviews(true);
-      api.get("/reviews", { params: { packageId: id } })
-        .then(res => {
-          // setReviews(res.data);
-          setReviews(res.data.slice(0, 6));
-          const userId = localStorage.getItem("userId");
-          setHasReviewed(userId ? res.data.some(r => r.user._id === userId) : false);
-        })
-        .catch(() => setReviews([]))
-        .finally(() => setLoadingReviews(false));
+
+      const fetchReviews = async () => {
+        try {
+          const { data: reviewsData, error } = await supabase
+            .from('reviews')
+            .select(`
+              *,
+              user:users(first_name, last_name)
+            `)
+            .eq('package_id', id)
+            .order('created_at', { ascending: false })
+            .limit(6);
+
+          if (error) throw error;
+
+          const { data: { user } } = await supabase.auth.getUser();
+
+          setReviews(reviewsData || []);
+          setHasReviewed(user ? reviewsData.some(r => r.user_id === user.id) : false);
+        } catch (err) {
+          console.error("Error fetching reviews:", err);
+          setReviews([]);
+        } finally {
+          setLoadingReviews(false);
+        }
+      };
+
+      fetchReviews();
     }
   }, [activeTab, id]);
 
@@ -124,46 +148,57 @@ const Package_detail = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-const handleReviewSubmit = async (e) => {
-  e.preventDefault();
-  setReviewError("");
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    setReviewError("");
 
-  if (userRating === 0) {
-    setReviewError("Please select a rating.");
-    return;
-  }
-  
-  if (!userComment.trim()) {
-    setReviewError("Please enter a comment.");
-    return;
-  }
-
-  try {
-    // Check authentication - Firebase token and role
-    const role = localStorage.getItem("userRole");
-    if (!role) {
-      alert("Please login to submit a review.");
+    if (userRating === 0) {
+      setReviewError("Please select a rating.");
       return;
     }
 
-    // Make API request (token automatically included by axios interceptor)
-    const response = await api.post("/reviews", {
-      package: id,
-      rating: userRating,
-      comment: userComment
-    });
+    if (!userComment.trim()) {
+      setReviewError("Please enter a comment.");
+      return;
+    }
 
-    // Update local state
-    setReviews(prev => [...prev, response.data]);
-    setHasReviewed(true);
-    setUserRating(0);
-    setUserComment("");
-    
-  } catch (error) {
-    console.error("Review submission error:", error);
-    setReviewError(error.response?.data?.message || "Failed to submit review.");
-  }
-};
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        alert("Please login to submit a review.");
+        return;
+      }
+
+      const newReview = {
+        package_id: id,
+        user_id: user.id,
+        rating: userRating,
+        comment: userComment,
+        created_at: new Date()
+      };
+
+      const { data, error } = await supabase
+        .from('reviews')
+        .insert([newReview])
+        .select(`
+        *,
+        user:users(first_name, last_name)
+      `)
+        .single();
+
+      if (error) throw error;
+
+      // Update local state
+      setReviews(prev => [data, ...prev]);
+      setHasReviewed(true);
+      setUserRating(0);
+      setUserComment("");
+
+    } catch (error) {
+      console.error("Review submission error:", error);
+      setReviewError("Failed to submit review.");
+    }
+  };
 
   const averageRating = reviews.length
     ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
@@ -173,7 +208,7 @@ const handleReviewSubmit = async (e) => {
   // Handle booking form submission
   const handleBookingSubmit = (e) => {
     e.preventDefault();
-    
+
     // Validate the form
     if (!validateForm()) {
       return;
@@ -182,15 +217,15 @@ const handleReviewSubmit = async (e) => {
     // Prepare data to pass to booking page
     const bookingInfo = {
       // Package details
-      packageId: pkg._id || pkg.id,
+      packageId: pkg.id,
       packageTitle: pkg.title,
-      packagePrice: pkg.salePrice || pkg.regularPrice,
+      packagePrice: pkg.sale_price || pkg.regular_price,
       packageImage: (pkg.gallery && pkg.gallery[0]) || "/assets/images/img27.jpg",
       destination: pkg.destination,
-      tripDuration: pkg.tripDuration,
-      groupSize: pkg.groupSize,
+      tripDuration: pkg.trip_duration,
+      groupSize: pkg.group_size,
       rating: pkg.rating,
-      
+
       // User booking data
       fullName: bookingData.name_booking,
       email: bookingData.email_booking,
@@ -206,7 +241,7 @@ const handleReviewSubmit = async (e) => {
 
     // Store booking data in localStorage
     localStorage.setItem('bookingData', JSON.stringify(bookingInfo));
-    
+
     // Navigate to booking page
     navigate('/booking');
   };
@@ -291,7 +326,7 @@ const handleReviewSubmit = async (e) => {
           </div>
           <div className="inner-shape"></div>
         </section>
-        
+
         {/* Main Content */}
         <div className="single-tour-section">
           <div className="container">
@@ -306,11 +341,11 @@ const handleReviewSubmit = async (e) => {
                       <ul>
                         <li>
                           <i className="far fa-clock"></i>
-                          {pkg.tripDuration || "-"}
+                          {pkg.trip_duration || "-"}
                         </li>
                         <li>
                           <i className="fas fa-user-friends"></i>
-                          People: {pkg.groupSize || "-"}
+                          People: {pkg.group_size || "-"}
                         </li>
                         <li>
                           <i className="fas fa-map-marked-alt"></i>
@@ -319,7 +354,7 @@ const handleReviewSubmit = async (e) => {
                       </ul>
                     </div>
                   </figure>
-                  
+
                   {/* Tabs */}
                   <div className="tab-container">
                     <ul className="nav nav-tabs" id="myTab" role="tablist">
@@ -372,7 +407,7 @@ const handleReviewSubmit = async (e) => {
                           {/* Program */}
                           <div className="tab-pane" id="program" role="tabpanel" aria-labelledby="program-tab">
                             <div className="itinerary-content">
-                              <h3>Program <span>({pkg.tripDuration || "N/A"})</span></h3>
+                              <h3>Program <span>({pkg.trip_duration || "N/A"})</span></h3>
                               {pkg.program && pkg.program.length > 0 ? (
                                 <div className="tour-program-list">
                                   {pkg.program.map((cityData, index) => (
@@ -430,7 +465,7 @@ const handleReviewSubmit = async (e) => {
                           {reviews.map(review => (
                             <div key={review._id} style={{ borderBottom: '1px solid #ddd', padding: '10px 0' }}>
                               <p>
-                                <strong>{review?.userName || 'Anonymous'}</strong> on {new Date(review.createdAt).toLocaleDateString()}
+                                <strong>{review.user?.first_name || 'Anonymous'}</strong> on {new Date(review.created_at).toLocaleDateString()}
                               </p>
                               <p>
                                 {[...Array(5)].map((_, i) => (
@@ -484,7 +519,7 @@ const handleReviewSubmit = async (e) => {
                       {activeTab === "map" && (
                         <div className="tab-pane fade show active" id="map">
                           <iframe
-                            src={pkg.mapUrl || "https://www.google.com/maps/embed?pb=..."}
+                            src={pkg.map_url || "https://www.google.com/maps/embed?pb=..."}
                             height="450"
                             allowFullScreen
                             title="map"
@@ -513,17 +548,17 @@ const handleReviewSubmit = async (e) => {
                   </div> */}
                 </div>
               </div>
-              
+
               {/* Right: Sidebar */}
               <div className="col-lg-4">
                 <div className="sidebar">
                   <div className="package-price">
                     <h5 className="price">
                       <span>
-                        {pkg.salePrice
-                          ? `$${pkg.salePrice}`
-                          : pkg.regularPrice
-                            ? `$${pkg.regularPrice}`
+                        {pkg.sale_price
+                          ? `$${pkg.sale_price}`
+                          : pkg.regular_price
+                            ? `$${pkg.regular_price}`
                             : "$649"}
                       </span>
                       {" "} / per person
@@ -704,7 +739,7 @@ const handleReviewSubmit = async (e) => {
                     <p>Mollit voluptatem perspiciatis convallis elementum corporis quo veritatis aliquid blandit, blandit torquent, odit placeat.</p>
                     <a href="#" className="button-primary">GET A QUOTE</a>
                   </div>
-                  
+
                   <div className="travel-package-content text-center" style={{ backgroundImage: "url(/assets/images/img11.jpg)" }}>
                     <h5>MORE PACKAGES</h5>
                     <h3>OTHER TRAVEL PACKAGES</h3>
@@ -729,7 +764,7 @@ const handleReviewSubmit = async (e) => {
             </div>
           </div>
         </div>
-        
+
         {/* Subscribe Section */}
         <section className="subscribe-section" style={{ backgroundImage: "url(/assets/images/img16.jpg)" }}>
           <div className="container">

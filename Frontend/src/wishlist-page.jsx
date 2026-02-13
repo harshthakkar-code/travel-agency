@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Header from "./Header";
-import api from "./utils/api";
+import { supabase } from "./supabaseClient";
 import { useNavigate } from "react-router-dom";
 
 const Wishlist_page = () => {
@@ -9,14 +9,28 @@ const Wishlist_page = () => {
 
   useEffect(() => {
     const fetchWishlist = async () => {
-      // const token = localStorage.getItem("token");
-      // if (!token) {
-      //   navigate("/admin/login");
-      //   return;
-      // }
       try {
-        const res = await api.get("/wishlist");
-        setWishlistPackages(res.data.packages || []);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return; // Or redirect
+
+        const { data, error } = await supabase
+          .from('wishlist')
+          .select(`
+            id,
+            package_id,
+            packages:package_id (*)
+          `)
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+        // Transform data to flat package objects as expected by UI
+        const packages = data.map(item => ({
+          ...item.packages,
+          _id: item.packages.id, // Keep _id for compatibility if needed, but use id generally
+          wishlist_id: item.id
+        }));
+
+        setWishlistPackages(packages);
       } catch (error) {
         console.error("Failed to fetch wishlist", error);
         setWishlistPackages([]);
@@ -26,22 +40,19 @@ const Wishlist_page = () => {
   }, [navigate]);
 
   const toggleWishlist = async (packageId) => {
-    // const token = localStorage.getItem("token");
-    // if (!token) {
-    //   navigate("/admin/login");
-    //   return;
-    // }
-    // const role = localStorage.getItem("userRole");
-
-    // if (!role) {
-    //   // Not logged in
-    //   return <Navigate to="/admin/login" replace />;
-    // }
-
     try {
-      // Since it's wishlist page, toggle means remove
-      await api.delete(`/wishlist/${packageId}`);
-      setWishlistPackages(prev => prev.filter(pkg => pkg._id !== packageId));
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('wishlist')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('package_id', packageId);
+
+      if (error) throw error;
+
+      setWishlistPackages(prev => prev.filter(pkg => pkg.id !== packageId && pkg._id !== packageId));
     } catch (error) {
       console.error("Failed to update wishlist", error);
     }
@@ -237,7 +248,7 @@ const Wishlist_page = () => {
                       <figure className="feature-image">
                         <a href={`/package-detail/${pkg._id}`}>
                           <img
-                            src={pkg.imageUrl || "/assets/images/img5.jpg"}
+                            src={pkg.gallery?.[0] || "/assets/images/img5.jpg"}
                             alt={pkg.title}
                           />
                         </a>
@@ -245,9 +256,11 @@ const Wishlist_page = () => {
                       <div className="package-price">
                         <h6>
                           <span>
-                            {pkg.price
-                              ? `$${(pkg.price / 100).toFixed(2)}`
-                              : "$1,900"}{" "}
+                            {pkg.sale_price
+                              ? `$${pkg.sale_price}`
+                              : pkg.regular_price
+                                ? `$${pkg.regular_price}`
+                                : "$1,900"}{" "}
                           </span>
                           / per person
                         </h6>
@@ -257,11 +270,11 @@ const Wishlist_page = () => {
                           <ul>
                             <li>
                               <i className="far fa-clock"></i>{" "}
-                              {pkg.tripDuration || "7D/6N"}
+                              {pkg.trip_duration || "7D/6N"}
                             </li>
                             <li>
                               <i className="fas fa-user-friends"></i>{" "}
-                              People: {pkg.people || "5"}
+                              People: {pkg.group_size || "5"}
                             </li>
                             <li>
                               <i className="fas fa-map-marker-alt"></i>{" "}
@@ -322,12 +335,12 @@ const Wishlist_page = () => {
                           </div> */}
                           <div className="btn-wrap">
                             <a
-                              href={`/package-detail/${pkg._id}`}
+                              href={`/package-detail/${pkg.id}`}
                               className="button-text"
                             >
                               Book Now <i className="fas fa-arrow-right"></i>
                             </a>
-                            <a style={{ cursor: "pointer" }} onClick={() => toggleWishlist(pkg._id)}
+                            <a style={{ cursor: "pointer" }} onClick={() => toggleWishlist(pkg.id)}
                               className="button-text">
                               Wish List <i className="fa fa-solid fa-heart"></i>
                             </a>

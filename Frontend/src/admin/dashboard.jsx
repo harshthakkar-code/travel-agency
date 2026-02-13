@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import DashboardSidebar from "./dashboardSidebar";
 import DashboardHeader from "./dashboardHeader";
-import api from "../utils/api";
+import { supabase } from "../supabaseClient";
 
 const Dashboard = () => {
   const [bookings, setBookings] = useState([]);
@@ -18,53 +18,65 @@ const Dashboard = () => {
   const [errorUsers, setErrorUsers] = useState(null);
   const [errorTransactions, setErrorTransactions] = useState(null);
 
-    useEffect(() => {
+  useEffect(() => {
     const fetchBookings = async () => {
       try {
-        // Adjust the API URL and query params as per your backend implementation
-        const res = await api.get("/bookings?limit=5&sort=desc");
-        // setBookings(res.data || []);
-        setBookings((res.data || []).slice(0, 5));
+        const { data, error } = await supabase
+          .from('bookings')
+          .select('*, user:users(first_name, last_name), package:packages(title, destination)')
+          .order('booking_date', { ascending: false })
+          .limit(5);
+
+        if (error) throw error;
+        setBookings(data || []);
       } catch (err) {
+        console.error(err);
         setErrorBookings("Failed to load bookings");
-        setBookings([]);
       } finally {
         setLoadingBookings(false);
       }
     };
 
-const fetchUsers = async () => {
-  try {
-    // Fetch all users from backend
-    const res = await api.get("/admin/firebase-users");
-    
-    // Filter to get only users with role 'user' (exclude admins)
-    const userRoleOnly = (res.data.users || []).filter(user => user.role === 'user');
-    
-    // Set users to display (limit to first 7 users)
-    setUsers(userRoleOnly.slice(0, 7));
-    
-    // Set total count to total number of users with role 'user'
-    setTotalUsers(userRoleOnly.length);
-  } catch (err) {
-    setErrorUsers("Failed to load users");
-    setUsers([]);
-  } finally {
-    setLoadingUsers(false);
-  }
-};
+    const fetchUsers = async () => {
+      try {
+        // Fetch users
+        const { data, error, count } = await supabase
+          .from('users')
+          .select('*', { count: 'exact' })
+          .eq('role', 'user')
+          .limit(7);
 
+        if (error) throw error;
 
+        setUsers(data || []);
+        setTotalUsers(count || 0);
+      } catch (err) {
+        console.error(err);
+        setErrorUsers("Failed to load users");
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
 
     const fetchTransactions = async () => {
       try {
-        const res = await api.get("/transactions");
-        setTransactions((res.data.transactions || []).slice(0, 6));
-        setTotalEarnings(res.data.totalAmount);
+        const { data, error } = await supabase
+          .from('transactions')
+          .select('*, user:users(first_name)')
+          .order('created_at', { ascending: false })
+          .limit(6);
 
+        if (error) throw error;
+        setTransactions(data || []);
+
+        // Calculate total earnings (simplified)
+        // For real app, use a subtle RPC or separate query for sum
+        const { data: allTxns } = await supabase.from('transactions').select('amount');
+        const total = allTxns?.reduce((acc, curr) => acc + (curr.amount || 0), 0) || 0;
+        setTotalEarnings(total / 100); // Assuming amount is in cents
       } catch (err) {
+        console.error(err);
         setErrorTransactions("Failed to load transactions");
-        setTransactions([]);
       } finally {
         setLoadingTransactions(false);
       }
@@ -137,7 +149,7 @@ const fetchUsers = async () => {
             </div>
             <div className="row">
               <div className="col-lg-6">
-                 <div className="dashboard-box">
+                <div className="dashboard-box">
                   <h4>Recent Bookings</h4>
                   <p>Airtport Hotels The Right Way To Start a Short Break Holiday</p>
                   {loadingBookings && <p>Loading bookings...</p>}
@@ -167,9 +179,9 @@ const fetchUsers = async () => {
                                   <span className="custom-input-field"></span>
                                 </label>
                               </td> */}
-                              <td>{booking.user?.firstName} {booking.user?.lastName}</td>
-                              <td>{booking.package?.packageTitle}</td>
-                              <td>{new Date(booking.bookingDate || booking.createdAt).toLocaleDateString()}</td>
+                              <td>{booking.user?.first_name} {booking.user?.last_name}</td>
+                              <td>{booking.package?.title}</td>
+                              <td>{new Date(booking.booking_date || booking.created_at).toLocaleDateString()}</td>
                               <td>{booking.package?.destination}</td>
                               {/* <td><span className="badge badge-primary">{booking.enquiry_count || booking.enquiry || 0}</span></td> */}
                             </tr>
@@ -312,7 +324,7 @@ const fetchUsers = async () => {
             </div>
             <div className="row">
               <div className="col-lg-12">
-                 <div className="dashboard-box">
+                <div className="dashboard-box">
                   <h4>User List</h4>
                   <p>List of registered users.</p>
                   {loadingUsers && <p>Loading users...</p>}
@@ -335,7 +347,7 @@ const fetchUsers = async () => {
                         <tbody>
                           {users.map((user) => (
                             <tr key={user._id}>
-                              <td>{user.firstName} {user.lastName}</td>
+                              <td>{user.first_name} {user.last_name}</td>
                               <td>{user.email}</td>
                               <td>{user.mobile || user.phone || "-"}</td>
                               <td>{user.country || "-"}</td>
@@ -431,9 +443,9 @@ const fetchUsers = async () => {
                           {transactions.slice(0, 10).map((txn) => (
                             <tr key={txn._id}>
                               {/* <td>{txn._id}</td> */}
-                              <td>{txn.user.firstName}</td>
+                              <td>{txn.user?.first_name}</td>
                               <td>${(txn.amount / 100).toFixed(2)}</td>
-                              <td>{new Date(txn.createdAt).toLocaleDateString()}</td>
+                              <td>{new Date(txn.created_at).toLocaleDateString()}</td>
                               <td>{txn.status}</td>
                             </tr>
                           ))}

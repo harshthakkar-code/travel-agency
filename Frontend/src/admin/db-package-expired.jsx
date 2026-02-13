@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import api from "../utils/api";
+import { supabase } from "../supabaseClient";
 import DashboardSidebar from "./dashboardSidebar";
 import DashboardHeader from "./dashboardHeader";
 
@@ -14,13 +14,22 @@ const DbPackageExpired = () => {
   useEffect(() => {
     const fetchPackages = async () => {
       try {
-        const res = await api.get("/packages", {
-          params: { status: "Expired", page: currentPage, limit: PACKAGES_PER_PAGE },
-        });
-        setPackages(res.data.packages || []);
-        setTotalPages(res.data.totalPages || 1);
+        const from = (currentPage - 1) * PACKAGES_PER_PAGE;
+        const to = from + PACKAGES_PER_PAGE - 1;
+
+        const { data, error, count } = await supabase
+          .from('packages')
+          .select('*', { count: 'exact' })
+          .eq('status', 'Expired')
+          .range(from, to);
+
+        if (error) throw error;
+
+        setPackages(data || []);
+        setTotalPages(Math.ceil((count || 0) / PACKAGES_PER_PAGE) || 1);
         setError("");
       } catch (err) {
+        console.error(err);
         setError("Failed to fetch expired packages");
         setPackages([]);
       }
@@ -66,11 +75,11 @@ const DbPackageExpired = () => {
                     </tr>
                   ) : (
                     packages.map((pkg) => (
-                      <tr key={pkg._id}>
+                      <tr key={pkg.id}>
                         <td>
                           <span className="package-name">{pkg.title}</span>
                         </td>
-                        <td>{pkg.tripDuration}</td>
+                        <td>{pkg.trip_duration}</td>
                         <td>{pkg.destination || "-"}</td>
                         <td>
                           <span className="badge badge-danger">{pkg.status}</span>
@@ -138,7 +147,7 @@ const DbPackageExpired = () => {
         </div>
 
         {/* Inline CSS for pagination styling - ONLY for this component */}
-      <style>{`
+        <style>{`
     .pagination-wrap {
       display: flex;
       justify-content: center;

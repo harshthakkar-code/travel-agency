@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth } from '../../firebase-config';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-import api from '../utils/api';
+import { supabase } from '../supabaseClient';
 
 const AuthContext = createContext(null);
 
@@ -17,142 +15,95 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Helper function to generate session ID
-  const getSessionId = () => {
-    let sessionId = sessionStorage.getItem('userSessionId');
-    if (!sessionId) {
-      sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      sessionStorage.setItem('userSessionId', sessionId);
-    }
-    return sessionId;
-  };
-
-  // Helper function to track activity
-  const trackActivity = async (activityType, activityDetails = {}, token = null) => {
-    try {
-      const authToken = token || localStorage.getItem('token');
-      if (!authToken) return;
-
-      await fetch(`${import.meta.env.VITE_REACT_APP_API_BASE_URL}/activities/track`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
-        },
-        body: JSON.stringify({
-          activityType,
-          activityDetails,
-          sessionId: getSessionId()
-        })
-      });
-    } catch (error) {
-      console.error('Failed to track activity:', error);
-    }
-  };
-
-  // Backend signup - no direct Firebase calls
   const signup = async (email, password, additionalInfo = {}) => {
     try {
-      const response = await api.post('/auth/register', {
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        firstName: additionalInfo.firstName,
-        lastName: additionalInfo.lastName,
-        mobile: additionalInfo.mobile,
-        country: additionalInfo.country,
-        city: additionalInfo.city
+        options: {
+          data: {
+            firstName: additionalInfo.firstName,
+            lastName: additionalInfo.lastName,
+            mobile: additionalInfo.mobile,
+            country: additionalInfo.country,
+            city: additionalInfo.city,
+            role: 'user' // Default role
+          }
+        }
       });
-      
-      // Store token and user info
-      const { token, role, uid } = response.data;
-      localStorage.setItem('token', token);
-      localStorage.setItem('userRole', role || 'user');
-      localStorage.setItem('userId', uid);
-      localStorage.setItem('userEmail', email);
-      
-      // Track registration activity
-      await trackActivity('user_registration', {
-        email,
-        registrationTime: new Date().toISOString(),
-        userRole: role || 'user'
-      }, token);
-      
-      return response.data;
+
+      if (error) throw error;
+      return data;
     } catch (error) {
       throw error;
     }
   };
 
-  // Backend signin - no direct Firebase calls, with activity tracking
   const signin = async (email, password) => {
     try {
-      const response = await api.post('/auth/login', {
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
-      
-      // Store token and user info
-      const { token, role, uid, name } = response.data;
-      localStorage.setItem('token', token);
-      localStorage.setItem('userRole', role || 'user');
-      localStorage.setItem('userId', uid);
-      localStorage.setItem('userEmail', email);
-      localStorage.setItem('user', name);
 
-      // Track login activity after successful signin
-      await trackActivity('login', {
-        email,
-        loginTime: new Date().toISOString(),
-        userRole: role || 'user'
-      }, token);
-
-      return response.data;
+      if (error) throw error;
+      return data;
     } catch (error) {
       throw error;
     }
   };
 
   const logout = async () => {
-    // Track logout activity before clearing tokens
-    await trackActivity('logout', {
-      logoutTime: new Date().toISOString()
-    });
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
 
-    // Clear storage and sign out
-    localStorage.removeItem('token');
+    // Clear local state
+    setCurrentUser(null);
     localStorage.removeItem('userRole');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('user');
-    sessionStorage.removeItem('userSessionId');
-
-    return signOut(auth);
   };
 
-  // Keep the auth state listener for token refresh
+  const fetchUserRole = async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', userId)
+        .single();
+
+      if (data) {
+        localStorage.setItem('userRole', data.role);
+      }
+    } catch (err) {
+      console.error('Error fetching user role:', err);
+    }
+  };
+
+  // Helper to track activity (Optional: reimplement with Supabase if needed)
+  const trackActivity = async () => {
+    // activity tracking logic to be migrated to Supabase Edge Functions or plain Insert if needed
+    // For now, leaving empty or implementing simple insert
+  };
+
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        // Only refresh token if user is already logged in
-        const token = localStorage.getItem('token');
-        if (token) {
-          console.log('User exists and has backend token');
-          setCurrentUser(user);
-        } else {
-          console.log('User exists but no backend token');
-          setCurrentUser(null);
-        }
-      } else {
-        console.log('No Firebase user');
-        setCurrentUser(null);
+    // Check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setCurrentUser(session?.user ?? null);
+      if (session?.user) {
+        fetchUserRole(session.user.id);
       }
       setLoading(false);
     });
 
-    return () => {
-      console.log('Cleaning up auth state listener');
-      unsubscribe();
-    };
+    // Listen for changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCurrentUser(session?.user ?? null);
+      if (session?.user) {
+        fetchUserRole(session.user.id);
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const value = {
@@ -166,7 +117,8 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 };
+

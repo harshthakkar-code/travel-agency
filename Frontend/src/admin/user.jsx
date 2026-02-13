@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import DashboardHeader from "./dashboardHeader";
 import DashboardSidebar from "./dashboardSidebar";
-import api from "../utils/api";
+import { supabase } from "../supabaseClient";
 import { useNavigate } from "react-router-dom";
 
 const User = () => {
@@ -14,10 +14,13 @@ const User = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      // Fetch Firebase users with role filtering
-      const res = await api.get("/admin/firebase-users", { params: { role: "user" } });
-      const userRoleOnly = (res.data.users || []).filter(user => user.role === 'user');
-      setUsers(userRoleOnly || []);
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('role', 'user');
+
+      if (error) throw error;
+      setUsers(data || []);
       setError("");
     } catch (err) {
       console.error('Error fetching users:', err);
@@ -39,12 +42,19 @@ const User = () => {
 
   const confirmDelete = async () => {
     if (!userToDelete) return;
-    
+
     try {
-      await api.delete(`/users/${userToDelete._id}`);
+      // Delete from public.users table
+      const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', userToDelete.id); // Note: using 'id' not '_id'
+
+      if (error) throw error;
+
       setShowConfirm(false);
       setUserToDelete(null);
-      await fetchUsers(); // Refresh the list
+      await fetchUsers();
     } catch (err) {
       console.error("Failed to delete user", err);
       setError("Failed to delete user");
@@ -79,7 +89,7 @@ const User = () => {
               <div className="dashboard-box table-opp-color-box">
                 <h4>User Details</h4>
                 {error && <div style={{ color: "red", marginBottom: "20px" }}>{error}</div>}
-                
+
                 <div className="table-responsive">
                   <table className="table">
                     <thead>
@@ -105,8 +115,8 @@ const User = () => {
                       ) : (
                         users.map((user) => (
                           <tr key={user._id}>
-                            <td>{user._id ? user._id.slice(-4) : "----"}</td>
-                            <td>{user.firstName} {user.lastName}</td>
+                            <td>{user.id ? user.id.slice(-4) : "----"}</td>
+                            <td>{user.first_name} {user.last_name}</td>
                             <td>
                               <a href={`mailto:${user.email}`}>{user.email}</a>
                             </td>
@@ -123,7 +133,7 @@ const User = () => {
                                 className="badge badge-success"
                                 style={{ cursor: "pointer" }}
                                 title="Edit User"
-                                onClick={() => navigate(`/admin/user-edit/${user._id}`)}
+                                onClick={() => navigate(`/admin/user-edit/${user.id}`)}
                               >
                                 <i className="far fa-edit"></i>
                               </span>
@@ -172,10 +182,10 @@ const User = () => {
               <h4>Confirm Delete</h4>
               <p>
                 Are you sure you want to delete{" "}
-                <strong>{userToDelete.firstName} {userToDelete.lastName}</strong>?
+                <strong>{userToDelete.first_name} {userToDelete.last_name}</strong>?
               </p>
               <p style={{ fontSize: '12px', color: '#666' }}>
-                This will permanently delete the user from Firebase Authentication and Firestore.
+                This will remove the user from the public records. Note: The login account may still persist in Auth.
               </p>
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
                 <button

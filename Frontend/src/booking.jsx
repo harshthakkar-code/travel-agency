@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Header from "./Header";
-import api from "./utils/api";
+import { supabase } from "./supabaseClient";
 
 const Booking = () => {
   // State for form data
@@ -85,71 +85,73 @@ const Booking = () => {
     // Validate form as usual
     if (!validateForm()) return;
 
-    const completeBookingDetails = {
-      userDetails: {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        fullName: `${formData.firstName} ${formData.lastName}`,
-        email: formData.email,
-        confirmEmail: formData.confirmEmail,
-        phone: formData.phone,
-      },
-      billingAddress: {
-        country: formData.country,
-        street1: formData.street1,
-        street2: formData.street2,
-        city: formData.city,
-        state: formData.state,
-        postalCode: formData.postalCode,
-        additionalInfo: formData.additionalInfo,
-      },
-      packageDetails: {
-        packageId: packageData.packageId,
-        packageTitle: packageData.packageTitle,
-        destination: packageData.destination,
-        tripDuration: packageData.tripDuration,
-        groupSize: packageData.groupSize,
-        travelDate: packageData.travelDate,
-        packagePrice: packageData.packagePrice,
-        packageImage: packageData.packageImage.startsWith("http")
-          ? packageData.packageImage
-          : window.location.origin + packageData.packageImage,
-        rating: packageData.rating,
-      },
-      addOns: packageData.addOns || {},
-      pricing: {
-        packageCost: packageData.packagePrice,
-        tourGuide: packageData.addOns?.tourGuide ? 34 : 0,
-        mealsIncluded: packageData.addOns?.mealsIncluded ? 25 : 0,
-        extraBaggage: packageData.addOns?.extraBaggage ? 15 : 0,
-        transfers: packageData.addOns?.transfers ? 20 : 0,
-        taxRate: "13%",
-        totalCost: calculateTotal(),
-      },
-      termsAccepted: formData.acceptTerms,
-      bookingDate: new Date().toISOString(),
-      bookingStatus: "pending",
-    };
-
-    // Prepare data to send to backend with URLs
-    const payload = {
-      ...completeBookingDetails,
-      userId: localStorage.getItem("userId"),
-      successUrl:
-        "http://localhost:5173/confirmation?session_id={CHECKOUT_SESSION_ID}",
-      cancelUrl: window.location.href, // Redirect back to current page on cancel
-    };
-
     try {
-      const res = await api.post("transactions/stripe/checkout", payload);
-      if (res.data?.url) {
-        window.location.href = res.data.url; // Redirect user to Stripe Checkout
-      } else {
-        alert("Failed to start payment.");
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        alert("Please login to book a package.");
+        return;
       }
+
+      // Prepare booking data compatible with Supabase schema
+      // Note: We are currently only storing core fields. 
+      // Billing/Guest details would need schema expansion (jsonb column or separate table).
+      const bookingPayload = {
+        user_id: user.id,
+        package_id: packageData.packageId,
+        package_title: packageData.packageTitle,
+        package_destination: packageData.destination,
+        booking_date: new Date().toISOString(),
+        status: 'Pending',
+        pricing: {
+          packageCost: parseFloat(packageData?.packagePrice || 0),
+          tourGuide: packageData?.addOns?.tourGuide ? 34 : 0,
+          mealsIncluded: packageData?.addOns?.mealsIncluded ? 25 : 0,
+          extraBaggage: packageData?.addOns?.extraBaggage ? 15 : 0,
+          transfers: packageData?.addOns?.transfers ? 20 : 0,
+          taxRate: "13%",
+          totalCost: parseFloat(calculateTotal()),
+        },
+        billing_address: {
+          country: formData.country,
+          street1: formData.street1,
+          street2: formData.street2,
+          city: formData.city,
+          state: formData.state,
+          postalCode: formData.postalCode,
+          additionalInfo: formData.additionalInfo,
+        },
+        add_ons: packageData?.addOns || {},
+      };
+
+      const { data, error } = await supabase
+        .from('bookings')
+        .insert([bookingPayload])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Clear local storage
+      localStorage.removeItem("bookingData");
+      localStorage.removeItem("completeBooking");
+
+      // Call Supabase Edge Function to create Stripe Checkout Session
+      const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout', {
+        body: { booking_id: data.id },
+      });
+
+      if (checkoutError) throw checkoutError;
+
+      if (checkoutData?.url) {
+        window.location.href = checkoutData.url;
+      } else {
+        throw new Error("No checkout URL returned");
+      }
+
     } catch (err) {
-      console.error("Stripe checkout error:", err);
-      alert("Payment initiation failed.");
+      console.error("Booking failed:", err);
+      alert("Booking creation failed: " + (err.message || "Unknown error"));
     }
   };
 
@@ -263,16 +265,16 @@ const Booking = () => {
       // Package Details
       packageDetails: packageData
         ? {
-            packageId: packageData.packageId,
-            packageTitle: packageData.packageTitle,
-            destination: packageData.destination,
-            tripDuration: packageData.tripDuration,
-            groupSize: packageData.groupSize,
-            travelDate: packageData.travelDate,
-            packagePrice: packageData.packagePrice,
-            packageImage: packageData.packageImage,
-            rating: packageData.rating,
-          }
+          packageId: packageData.packageId,
+          packageTitle: packageData.packageTitle,
+          destination: packageData.destination,
+          tripDuration: packageData.tripDuration,
+          groupSize: packageData.groupSize,
+          travelDate: packageData.travelDate,
+          packagePrice: packageData.packagePrice,
+          packageImage: packageData.packageImage,
+          rating: packageData.rating,
+        }
         : null,
 
       // Add-ons
@@ -378,9 +380,8 @@ const Booking = () => {
                             <label>First name*</label>
                             <input
                               type="text"
-                              className={`form-control ${
-                                errors.firstName ? "is-invalid" : ""
-                              }`}
+                              className={`form-control ${errors.firstName ? "is-invalid" : ""
+                                }`}
                               name="firstName"
                               value={formData.firstName}
                               onChange={handleInputChange}
@@ -406,9 +407,8 @@ const Booking = () => {
                             <label>Last name*</label>
                             <input
                               type="text"
-                              className={`form-control ${
-                                errors.lastName ? "is-invalid" : ""
-                              }`}
+                              className={`form-control ${errors.lastName ? "is-invalid" : ""
+                                }`}
                               name="lastName"
                               value={formData.lastName}
                               onChange={handleInputChange}
@@ -434,9 +434,8 @@ const Booking = () => {
                             <label>Email*</label>
                             <input
                               type="email"
-                              className={`form-control ${
-                                errors.email ? "is-invalid" : ""
-                              }`}
+                              className={`form-control ${errors.email ? "is-invalid" : ""
+                                }`}
                               name="email"
                               value={formData.email}
                               onChange={handleInputChange}
@@ -462,9 +461,8 @@ const Booking = () => {
                             <label>Confirm Email*</label>
                             <input
                               type="email"
-                              className={`form-control ${
-                                errors.confirmEmail ? "is-invalid" : ""
-                              }`}
+                              className={`form-control ${errors.confirmEmail ? "is-invalid" : ""
+                                }`}
                               name="confirmEmail"
                               value={formData.confirmEmail}
                               onChange={handleInputChange}
@@ -490,9 +488,8 @@ const Booking = () => {
                             <label>Phone*</label>
                             <input
                               type="tel"
-                              className={`form-control ${
-                                errors.phone ? "is-invalid" : ""
-                              }`}
+                              className={`form-control ${errors.phone ? "is-invalid" : ""
+                                }`}
                               name="phone"
                               value={formData.phone}
                               onChange={handleInputChange}
@@ -528,9 +525,8 @@ const Booking = () => {
                             <label>Country*</label>
                             <input
                               type="text"
-                              className={`form-control ${
-                                errors.country ? "is-invalid" : ""
-                              }`}
+                              className={`form-control ${errors.country ? "is-invalid" : ""
+                                }`}
                               name="country"
                               value={formData.country}
                               onChange={handleInputChange}
@@ -559,9 +555,8 @@ const Booking = () => {
                             <label>Street line 1*</label>
                             <input
                               type="text"
-                              className={`form-control ${
-                                errors.street1 ? "is-invalid" : ""
-                              }`}
+                              className={`form-control ${errors.street1 ? "is-invalid" : ""
+                                }`}
                               name="street1"
                               value={formData.street1}
                               onChange={handleInputChange}
@@ -601,9 +596,8 @@ const Booking = () => {
                             <label>City*</label>
                             <input
                               type="text"
-                              className={`form-control ${
-                                errors.city ? "is-invalid" : ""
-                              }`}
+                              className={`form-control ${errors.city ? "is-invalid" : ""
+                                }`}
                               name="city"
                               value={formData.city}
                               onChange={handleInputChange}
@@ -628,9 +622,8 @@ const Booking = () => {
                             <label>State*</label>
                             <input
                               type="text"
-                              className={`form-control ${
-                                errors.state ? "is-invalid" : ""
-                              }`}
+                              className={`form-control ${errors.state ? "is-invalid" : ""
+                                }`}
                               name="state"
                               value={formData.state}
                               onChange={handleInputChange}
@@ -655,9 +648,8 @@ const Booking = () => {
                             <label>Postal code*</label>
                             <input
                               type="text"
-                              className={`form-control ${
-                                errors.postalCode ? "is-invalid" : ""
-                              }`}
+                              className={`form-control ${errors.postalCode ? "is-invalid" : ""
+                                }`}
                               name="postalCode"
                               value={formData.postalCode}
                               onChange={handleInputChange}

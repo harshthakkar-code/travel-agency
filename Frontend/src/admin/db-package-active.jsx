@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../utils/api";
+import { supabase } from "../supabaseClient";
 import DashboardSidebar from "./dashboardSidebar";
 import DashboardHeader from "./dashboardHeader";
 
@@ -14,24 +14,32 @@ const DbPackageActive = () => {
 
   const navigate = useNavigate();
 
-const fetchPackages = async (page) => {
+  const fetchPackages = async (page) => {
     setLoading(true);
-  try {
-    const res = await api.get("/packages", { 
-      params: { status: "Active", page: page, limit: 5 } 
-    });
-    
-    // Add safety checks here - this is the critical fix
-    setPackages(res.data?.packages || []);
-    setTotalPages(res.data?.totalPages || 1);
-    setError("");
-  } catch (err) {
-    setError("Failed to fetch packages");
-    setPackages([]); // Ensure packages is always an array
-  }
-    setLoading(false);
+    try {
+      // Pagination logic
+      const from = (page - 1) * 5;
+      const to = from + 4;
 
-};
+      const { data, error, count } = await supabase
+        .from('packages')
+        .select('*', { count: 'exact' })
+        .eq('status', 'Active')
+        .range(from, to);
+
+      if (error) throw error;
+
+      setPackages(data || []);
+      setTotalPages(Math.ceil((count || 0) / 5) || 1);
+      setError("");
+    } catch (err) {
+      console.error(err);
+      setError("Failed to fetch packages");
+      setPackages([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   useEffect(() => {
@@ -43,7 +51,7 @@ const fetchPackages = async (page) => {
       <div id="dashboard" className="dashboard-container">
         <DashboardHeader />
         <DashboardSidebar />
-{loading && <div>Loading...</div>}
+        {loading && <div>Loading...</div>}
 
         <div className="db-info-wrap db-package-wrap">
           <div className="dashboard-box table-opp-color-box">
@@ -72,7 +80,7 @@ const fetchPackages = async (page) => {
                     packages.map((pkg) => (
                       <tr key={pkg._id}>
                         <td><span className="package-name">{pkg.title}</span></td>
-                        <td>{pkg.tripDuration}</td>
+                        <td>{pkg.trip_duration}</td>
                         <td>{pkg.destination || "-"}</td>
                         <td>
                           <span className={`badge badge-${pkg.status === "Active" ? "success" : "secondary"}`}>
@@ -84,7 +92,7 @@ const fetchPackages = async (page) => {
                             className="badge badge-success"
                             style={{ cursor: "pointer" }}
                             title="Edit Package"
-                            onClick={() => navigate(`/admin/edit-package/${pkg._id}`)}
+                            onClick={() => navigate(`/admin/edit-package/${pkg.id}`)}
                           >
                             <i className="far fa-edit"></i>
                           </span>
@@ -144,7 +152,7 @@ const fetchPackages = async (page) => {
           Copyright © 2025 Travele. All rights reserveds.
         </div>
       </div>
-       <style>{`
+      <style>{`
     .pagination-wrap {
       display: flex;
       justify-content: center;

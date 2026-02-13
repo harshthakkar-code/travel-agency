@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import api from "../utils/api";
+
 import bgImage from '../admin/assets/images/bg.jpg';
 import logoImg from '../admin/assets/images/logo.png';
 import { useNavigate } from 'react-router-dom';

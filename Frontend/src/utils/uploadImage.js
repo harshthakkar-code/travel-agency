@@ -1,13 +1,29 @@
-import api from "./api";
+import { supabase } from "../supabaseClient";
 
 const uploadImage = async (file) => {
-  const formData = new FormData();
-  formData.append("image", file); // the backend expects "image"
+  try {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+    const filePath = `public/${fileName}`;
 
-  const resp = await api.post(`/packages/upload-image`, formData, {
-    headers: { "Content-Type": "multipart/form-data" }
-  });
-  return resp.data.imageUrl; // the URL S3 returns
+    const { data, error } = await supabase.storage
+      .from('images') // Ensure this bucket exists in Supabase
+      .upload(filePath, file);
+
+    if (error) {
+      throw error;
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('images')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    throw error;
+  }
 };
 
 export default uploadImage;

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import api from "../utils/api";
+
 import bgImage from '../admin/assets/images/bg.jpg';
 import logoImg from '../admin/assets/images/logo.png';
 import { useNavigate } from "react-router-dom";
@@ -95,40 +95,40 @@ const Register = () => {
   };
 
 
-const handleRegister = async (e) => {
-  e.preventDefault();
-  const valErrors = validateStep2();
-  if (Object.keys(valErrors).length > 0) {
-    setErrors(valErrors);
-    return;
-  }
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    const valErrors = validateStep2();
+    if (Object.keys(valErrors).length > 0) {
+      setErrors(valErrors);
+      return;
+    }
 
-  try {
-    setLoading(true);
-    
-    // Use Firebase signup (backend will automatically set default role)
-    await signup(form.email, form.password, {
-      firstName: form.firstName,
-      lastName: form.lastName,
-      mobile: form.mobile,
-      city: form.city,
-      country: form.country
-    });
-    
-    setSuccess("Registration successful! Redirecting to login...");
-    setTimeout(() => navigate("/admin/login"), 800);
-    
-    setForm({
-      firstName: "", lastName: "", email: "", password: "", 
-      confirmPassword: "", mobile: "", city: "", country: ""
-    });
-    setStep(1);
-  } catch (err) {
-    setErrors({ api: err.message || "Registration failed" });
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      setLoading(true);
+
+      // Use Firebase signup (backend will automatically set default role)
+      await signup(form.email, form.password, {
+        firstName: form.firstName,
+        lastName: form.lastName,
+        mobile: form.mobile,
+        city: form.city,
+        country: form.country
+      });
+
+      setSuccess("Registration successful! Redirecting to login...");
+      setTimeout(() => navigate("/admin/login"), 800);
+
+      setForm({
+        firstName: "", lastName: "", email: "", password: "",
+        confirmPassword: "", mobile: "", city: "", country: ""
+      });
+      setStep(1);
+    } catch (err) {
+      setErrors({ api: err.message || "Registration failed" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   return (

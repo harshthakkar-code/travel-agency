@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import api from "../utils/api";
+import { supabase } from "../supabaseClient";
 import DashboardSidebar from "./dashboardSidebar";
 import DashboardHeader from "./dashboardHeader";
 import uploadImage from "../utils/uploadImage";
@@ -38,10 +38,10 @@ const DbAddPackage = () => {
       type === "checkbox"
         ? checked
         : type === "number"
-        ? value === ""
-          ? ""
-          : Number(value)
-        : value;
+          ? value === ""
+            ? ""
+            : Number(value)
+          : value;
 
     setForm((prev) => ({
       ...prev,
@@ -124,11 +124,11 @@ const DbAddPackage = () => {
       program: prev.program.map((city, index) =>
         index === cityIndex
           ? {
-              ...city,
-              activities: city.activities.filter(
-                (_, idx) => idx !== activityIndex
-              ),
-            }
+            ...city,
+            activities: city.activities.filter(
+              (_, idx) => idx !== activityIndex
+            ),
+          }
           : city
       ),
     }));
@@ -140,11 +140,11 @@ const DbAddPackage = () => {
       program: prev.program.map((city, index) =>
         index === cityIndex
           ? {
-              ...city,
-              activities: city.activities.map((activity, idx) =>
-                idx === activityIndex ? activityText : activity
-              ),
-            }
+            ...city,
+            activities: city.activities.map((activity, idx) =>
+              idx === activityIndex ? activityText : activity
+            ),
+          }
           : city
       ),
     }));
@@ -203,11 +203,38 @@ const DbAddPackage = () => {
     }
 
     const tripDuration = `${form.tripDay} day / ${form.tripNight} night`;
-    const data = { ...form, tripDuration, gallery: imageUrl ? [imageUrl] : [] };
-    console.log(data, "data");
+
+    // Prepare payload. gallery should be text[]
+    const payload = {
+      title: form.title,
+      description: form.description,
+      group_size: form.groupSize, // map to snake_case
+      trip_duration: tripDuration, // map to snake_case
+      category: form.category,
+      sale_price: form.salePrice ? Number(form.salePrice) : null, // map to snake_case
+      regular_price: form.regularPrice ? Number(form.regularPrice) : null,
+      discount: form.discount ? Number(form.discount) : null,
+      destination: form.destination,
+      location: form.location,
+      map_url: form.mapUrl, // map to snake_case
+      is_popular: form.isPopular, // map to snake_case
+      // keywords: form.keywords, // if in schema? Not in schema I defined earlier. add if needed or ignore. 
+      // Schema had: title, description, dates_and_prices, group_size, trip_duration, category, adult_price...
+      // Wait, let's match the schema I defined in supabase_schema.sql
+      // I defined: title, description, dates_and_prices, group_size, trip_duration, category, adult_price, child_price, couple_price, sale_price, regular_price, discount, gallery, location, map_url, destination, status, program, is_popular.
+
+      status: form.status || 'Pending',
+      gallery: imageUrl ? [imageUrl] : [],
+      program: form.program // jsonb
+    };
+
     try {
-      console.log(data, "Data");
-      await api.post("/packages", data);
+      const { data, error } = await supabase
+        .from('packages')
+        .insert([payload]);
+
+      if (error) throw error;
+
       setSuccess("Package added successfully!");
       setForm({
         title: "",
@@ -231,7 +258,8 @@ const DbAddPackage = () => {
       setImageUrl(null);
       setErrors({});
     } catch (err) {
-      setErrors({ api: err.response?.data?.message || "Error saving package" });
+      console.error(err);
+      setErrors({ api: err.message || "Error saving package" });
     }
   };
 

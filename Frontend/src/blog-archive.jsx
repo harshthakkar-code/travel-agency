@@ -147,7 +147,7 @@
 //                 </div>
 //               </div>
 //               {/* --- Sidebar (Right) --- */}
-           
+
 //             </div>
 //           </div>
 //         </div>
@@ -267,7 +267,7 @@
 
 
 import React, { useState, useEffect } from "react";
-import api from "./utils/api";
+import { supabase } from "./supabaseClient";
 import Header from "./Header";
 
 const BlogArchive = () => {
@@ -281,30 +281,34 @@ const BlogArchive = () => {
     const fetchBlogs = async () => {
       try {
         setLoading(true);
-        const response = await api.get(`/blogs?page=${currentPage}`);
-        
-        // Assuming your API response structure
-        setBlogs(response.data.blogs || response.data || []);
-        setTotalPages(response.data.totalPages || 1);
+        const { data, error } = await supabase
+          .from('blogs')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        setBlogs(data || []); // Assuming 'blogs' is the state variable for posts
         setError(null);
+        // Pagination logic for supabase would need to be implemented here
+        // For now, assuming all data is fetched and setting totalPages to 1
+        setTotalPages(1);
       } catch (err) {
-        console.error('Error fetching blogs:', err);
+        console.error("Error fetching blogs:", err);
         setError('Failed to fetch blogs');
         setBlogs([]);
       } finally {
         setLoading(false);
       }
     };
-
     fetchBlogs();
   }, [currentPage]);
 
   // Format date to readable format
   const formatDate = (dateString) => {
-    const options = { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    const options = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     };
     return new Date(dateString).toLocaleDateString('en-US', options);
   };
@@ -376,16 +380,16 @@ const BlogArchive = () => {
                       <div key={blog._id} className="grid-item col-md-6">
                         <article className="post">
                           <figure className="feature-image">
-                            <a href={`/blog-single/${blog._id}`}>
-                              <img 
-                                src={blog.image || "assets/images/img17.jpg"} 
-                                alt={blog.title} 
+                            <a href={`/blog-single/${blog.id}`}>
+                              <img
+                                src={blog.image || "assets/images/img22.jpg"}
+                                alt={blog.title}
                               />
                             </a>
                           </figure>
                           <div className="entry-content">
                             <h3>
-                              <a href={`/blog-single/${blog._id}`}>
+                              <a href={`/blog-single/${blog.id}`}>
                                 {blog.title}
                               </a>
                             </h3>
@@ -394,14 +398,14 @@ const BlogArchive = () => {
                                 <a href="#">{blog.author || "Admin"}</a>
                               </span>
                               <span className="posted-on">
-                                <a href="#">{formatDate(blog.createdAt)}</a>
+                                <a href="#">{formatDate(blog.created_at)}</a>
                               </span>
                               <span className="comments-link">
                                 <a href="#">No Comments</a>
                               </span>
                             </div>
                             <p>{getExcerpt(blog.content)}</p>
-                            <a href={`/blog-single/${blog._id}`} className="button-text">
+                            <a href={`/blog-single/${blog.id}`} className="button-text">
                               CONTINUE READING..
                             </a>
                           </div>
@@ -416,12 +420,12 @@ const BlogArchive = () => {
                       <nav>
                         <ul className="pagination">
                           {/* Previous Page */}
-                          <li 
+                          <li
                             className={currentPage === 1 ? "disabled" : ""}
                             style={{ cursor: currentPage === 1 ? "not-allowed" : "pointer" }}
                           >
-                            <a 
-                              href="#" 
+                            <a
+                              href="#"
                               onClick={(e) => {
                                 e.preventDefault();
                                 if (currentPage > 1) handlePageClick(currentPage - 1);
@@ -433,13 +437,13 @@ const BlogArchive = () => {
 
                           {/* Page Numbers */}
                           {[...Array(totalPages)].map((_, i) => (
-                            <li 
-                              key={i + 1} 
+                            <li
+                              key={i + 1}
                               className={currentPage === i + 1 ? "active" : ""}
                               style={{ cursor: "pointer" }}
                             >
-                              <a 
-                                href="#" 
+                              <a
+                                href="#"
                                 onClick={(e) => {
                                   e.preventDefault();
                                   handlePageClick(i + 1);
@@ -451,12 +455,12 @@ const BlogArchive = () => {
                           ))}
 
                           {/* Next Page */}
-                          <li 
+                          <li
                             className={currentPage === totalPages ? "disabled" : ""}
                             style={{ cursor: currentPage === totalPages ? "not-allowed" : "pointer" }}
                           >
-                            <a 
-                              href="#" 
+                            <a
+                              href="#"
                               onClick={(e) => {
                                 e.preventDefault();
                                 if (currentPage < totalPages) handlePageClick(currentPage + 1);

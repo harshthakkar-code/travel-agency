@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Header from "./Header";
-import api from "./utils/api"; // Your axios instance for API requests
+import { supabase } from "./supabaseClient"; // Your axios instance for API requests
 // You can use any modal library, or simple custom modal
 import Modal from "react-modal";
 import "./bookings.css";
@@ -18,15 +18,48 @@ const Bookings = () => {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const res = await api.get(`/bookings/${localStorage.getItem("userId")}`);
-        setBookings(res.data || []); // Adjust path if response wraps data differently
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+          setError("User not logged in");
+          setLoading(false);
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from('bookings')
+          .select(`
+            *,
+            packages:package_id (
+              title,
+              destination,
+              tripDuration:trip_duration,
+              sale_price,
+              regular_price,
+              gallery,
+              groupSize:group_size,
+              travelDate:created_at
+            ),
+            user:user_id (
+              firstName:first_name,
+              lastName:last_name,
+              email,
+              phone:mobile
+            )
+          `)
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        setBookings(data || []);
       } catch (err) {
-        setError("Failed to load bookings");
-        setBookings([]);
+        console.error("Error fetching bookings:", err);
+        setError("Failed to load your bookings");
       } finally {
         setLoading(false);
       }
     };
+
     fetchBookings();
   }, []);
 
@@ -82,35 +115,53 @@ const Bookings = () => {
                 </thead>
                 <tbody>
                   {bookings.map((booking) => (
-                    <tr key={booking._id}>
+                    <tr key={booking.id}>
                       <td>
                         <span className="list-enq-name">
-                          {booking.user?.fullName || "Unknown User"}
+                          {booking.user ? `${booking.user.firstName} ${booking.user.lastName} ` : "Unknown User"}
                         </span>
                       </td>
 
                       <td>
                         {new Date(
-                          booking.bookingDate || booking.createdAt
-                        ).toLocaleDateString()}
+                          booking.booking_date || booking.created_at || new Date()
+                        ).toLocaleDateString("en-US", {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
                       </td>
-                      <td>{booking.package?.destination || "-"}</td>
+                      <td>{booking.packages?.destination || "-"}</td>
                       <td>
-                        {/* Enquiry count if available */}
-                        <span className="">
-                          {booking.package?.packageTitle || "-"}
-                        </span>
+                        <img
+                          src={booking.packages?.gallery?.[0] || "assets/images/img6.jpg"}
+                          alt=""
+                          style={{ width: "50px", height: "50px", objectFit: "cover", marginRight: "10px", borderRadius: "5px" }}
+                        />
+                        <h3>
+                          <a href="#">
+                            {booking.packages?.title} ({booking.packages?.destination})
+                          </a>
+                        </h3>
+                        <div className="package-price">
+                          <h6>
+                            <span>
+                              ${booking.packages?.sale_price || booking.packages?.regular_price}
+                            </span>
+                            / per person
+                          </h6>
+                        </div>
                       </td>
-                      <td>{booking._id}</td>
+                      <td>{booking.id}</td>
                       {/* <td>
                         <span
                           className={`badge ${
-                            booking.status === "Approved"
-                              ? "badge-success"
-                              : booking.status === "Pending"
-                              ? "badge-primary"
-                              : "badge-danger"
-                          }`}
+    booking.status === "Approved"
+      ? "badge-success"
+      : booking.status === "Pending"
+        ? "badge-primary"
+        : "badge-danger"
+  } `}
                         >
                           {booking.status}
                         </span>
@@ -118,7 +169,7 @@ const Bookings = () => {
 
                       <td>
                         <span className="badge badge-success">
-                          {booking.package?.groupSize ?? 1}
+                          {booking.packages?.groupSize ?? 1}
                         </span>
                       </td>
                       <td style={{ display: "flex", gap: "10px" }}>
@@ -283,7 +334,7 @@ const Bookings = () => {
             <div style={{ display: "flex", gap: "40px", flexWrap: "wrap" }}>
               <div style={{ flex: "1 1 45%" }}>
                 <p>
-                  <strong>User:</strong> {selectedBooking.user.fullName}
+                  <strong>User:</strong> {selectedBooking.user ? `${selectedBooking.user.firstName} ${selectedBooking.user.lastName} ` : "N/A"}
                 </p>
                 <p>
                   <strong>Email:</strong> {selectedBooking.user.email}
@@ -297,33 +348,37 @@ const Bookings = () => {
                 <p>
                   <strong>Booking Date:</strong>{" "}
                   {new Date(
-                    selectedBooking.bookingDate || selectedBooking.createdAt
-                  ).toLocaleDateString()}
+                    selectedBooking.booking_date || selectedBooking.created_at || new Date()
+                  ).toLocaleDateString("en-US", {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
                 </p>
               </div>
 
               <div style={{ flex: "1 1 45%" }}>
                 <p>
                   <strong>Destination:</strong>{" "}
-                  {selectedBooking.package.destination}
+                  {selectedBooking.packages?.destination}
                 </p>
                 <p>
                   <strong>Package Title:</strong>{" "}
-                  {selectedBooking.package.packageTitle}
+                  {selectedBooking.packages?.title}
                 </p>
                 <p>
                   <strong>Travel Date:</strong>{" "}
                   {new Date(
-                    selectedBooking.package.travelDate
+                    selectedBooking.packages?.travelDate
                   ).toLocaleDateString()}
                 </p>
                 <p>
                   <strong>Group Size:</strong>{" "}
-                  {selectedBooking.package.groupSize}
+                  {selectedBooking.packages?.groupSize}
                 </p>
                 <p>
                   <strong>Trip Duration:</strong>{" "}
-                  {selectedBooking.package.tripDuration}
+                  {selectedBooking.packages?.tripDuration}
                 </p>
               </div>
             </div>
@@ -349,21 +404,21 @@ const Bookings = () => {
               >
                 <li>
                   Package Cost: $
-                  {selectedBooking.pricing.packageCost.toFixed(2)}
+                  {Number(selectedBooking.pricing?.packageCost || 0).toFixed(2)}
                 </li>
                 <li>
-                  Tour Guide: ${selectedBooking.pricing.tourGuide.toFixed(2)}
+                  Tour Guide: ${Number(selectedBooking.pricing?.tourGuide || 0).toFixed(2)}
                 </li>
                 <li>
                   Meals Included: $
-                  {selectedBooking.pricing.mealsIncluded.toFixed(2)}
+                  {Number(selectedBooking.pricing?.mealsIncluded || 0).toFixed(2)}
                 </li>
                 <li>
                   Extra Baggage: $
-                  {selectedBooking.pricing.extraBaggage.toFixed(2)}
+                  {Number(selectedBooking.pricing?.extraBaggage || 0).toFixed(2)}
                 </li>
                 <li>
-                  Transfers: ${selectedBooking.pricing.transfers.toFixed(2)}
+                  Transfers: ${Number(selectedBooking.pricing?.transfers || 0).toFixed(2)}
                 </li>
                 <li
                   style={{
@@ -373,7 +428,7 @@ const Bookings = () => {
                     color: "#111",
                   }}
                 >
-                  Total Cost: ${selectedBooking.pricing.totalCost.toFixed(2)}
+                  Total Cost: ${Number(selectedBooking.pricing?.totalCost || 0).toFixed(2)}
                 </li>
               </ul>
             </div>

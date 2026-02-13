@@ -13,6 +13,8 @@ import Confirmation from './confirmation.jsx';
 import Single_page from './single-page.jsx';
 import Wishlist_page from './wishlist-page.jsx';
 import PackageOffer from './package-offer.jsx';
+import Success from './Success.jsx';
+import Cancel from './Cancel.jsx';
 
 // Admin imports
 import DbPackagePending from './admin/db-package-pending.jsx';
@@ -31,6 +33,8 @@ import Bookings from './bookings.jsx';
 import BlogList from './admin/blogList.jsx';
 import DbAddBlog from './admin/addBlog.jsx';
 import DbEditBlog from './admin/editBlog.jsx';
+import DbBooking from './admin/db-booking.jsx';
+import DbComment from './admin/db-comment.jsx';
 
 import RequireAuth from "./RequireAuth";
 
@@ -59,7 +63,7 @@ class ActivityTracker extends Component {
   trackPageVisit = () => {
     const token = localStorage.getItem('token');
     const userId = localStorage.getItem('userId');
-    
+
     if (!token || !userId) {
       console.log('No token or userId found, skipping activity tracking');
       return;
@@ -67,9 +71,9 @@ class ActivityTracker extends Component {
 
     const currentPath = window.location.pathname;
     const pageName = this.getPageName(currentPath);
-    
+
     console.log(`Tracking page visit: ${pageName} - ${currentPath}`);
-    
+
     this.sendActivity('page_visit', {
       pageName,
       pageUrl: currentPath,
@@ -84,17 +88,17 @@ class ActivityTracker extends Component {
       if (!token) return;
 
       const target = event.target;
-      
+
       // Track wishlist actions
-      if (target.classList.contains('wishlist-btn') || 
-          target.closest('.wishlist-btn') || 
-          target.classList.contains('add-to-wishlist') ||
-          target.closest('[data-action="wishlist"]')) {
-        
+      if (target.classList.contains('wishlist-btn') ||
+        target.closest('.wishlist-btn') ||
+        target.classList.contains('add-to-wishlist') ||
+        target.closest('[data-action="wishlist"]')) {
+
         const btn = target.classList.contains('wishlist-btn') ? target : target.closest('.wishlist-btn');
         const packageId = btn?.dataset.packageId || btn?.getAttribute('data-package-id') || 'unknown';
         const packageTitle = btn?.dataset.packageTitle || btn?.getAttribute('data-package-title') || 'unknown_package';
-        
+
         this.sendActivity('package_wishlist_add', {
           packageId,
           packageTitle,
@@ -103,15 +107,15 @@ class ActivityTracker extends Component {
       }
 
       // Track booking actions
-      if (target.classList.contains('booking-btn') || 
-          target.closest('.booking-btn') ||
-          target.classList.contains('book-now') ||
-          target.closest('[data-action="booking"]')) {
-        
+      if (target.classList.contains('booking-btn') ||
+        target.closest('.booking-btn') ||
+        target.classList.contains('book-now') ||
+        target.closest('[data-action="booking"]')) {
+
         const btn = target.classList.contains('booking-btn') ? target : target.closest('.booking-btn');
         const packageId = btn?.dataset.packageId || btn?.getAttribute('data-package-id') || 'unknown';
         const packageTitle = btn?.dataset.packageTitle || btn?.getAttribute('data-package-title') || 'unknown_package';
-        
+
         this.sendActivity('package_booking_intent', {
           packageId,
           packageTitle,
@@ -130,6 +134,11 @@ class ActivityTracker extends Component {
   };
 
   sendActivity = async (activityType, activityDetails) => {
+    // Legacy activity tracking disabled for Supabase migration
+    // TODO: Implement Supabase-based tracking if needed
+    console.log(`[Activity Tracker] ${activityType}`, activityDetails);
+
+    /* 
     const token = localStorage.getItem('token');
     if (!token) return;
 
@@ -155,6 +164,7 @@ class ActivityTracker extends Component {
     } catch (error) {
       console.error('Activity tracking error:', error);
     }
+    */
   };
 
   getPageName = (pathname) => {
@@ -206,7 +216,7 @@ function App() {
     <>
       {/* Activity Tracker Component */}
       <ActivityTracker />
-      
+
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<TourPackages />} />
@@ -221,6 +231,8 @@ function App() {
         <Route path="/package-offer" element={<PackageOffer />} />
         <Route path="/package-detail/:id" element={<PackageDetail />} />
         <Route path="/single-page" element={<Single_page />} />
+        <Route path="/success" element={<Success />} />
+        <Route path="/cancel" element={<Cancel />} />
 
         {/* -------- User & Admin Accessible Routes -------- */}
         <Route path="/wishlist-page" element={
@@ -298,6 +310,16 @@ function App() {
         <Route path="/admin/edit-blog/:id" element={
           <RequireAuth allowedRoles={["admin"]}>
             <DbEditBlog />
+          </RequireAuth>
+        } />
+        <Route path="/admin/db-booking" element={
+          <RequireAuth allowedRoles={["admin"]}>
+            <DbBooking />
+          </RequireAuth>
+        } />
+        <Route path="/admin/db-comment" element={
+          <RequireAuth allowedRoles={["admin"]}>
+            <DbComment />
           </RequireAuth>
         } />
 

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import DashboardSidebar from "./dashboardSidebar";
 import DashboardHeader from "./dashboardHeader";
 import { useNavigate } from "react-router-dom";
-import api from "../utils/api";
+import { supabase } from "../supabaseClient";
 const initialForm = {
   firstname: "",
   lastname: "",
@@ -78,7 +78,7 @@ const NewUser = () => {
     });
   };
 
-  // Updated handle submit for Firebase flow
+  // Updated handle submit for Supabase flow
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSuccess("");
@@ -91,29 +91,42 @@ const NewUser = () => {
       return;
     }
 
+    // Warning about logout
+    if (!window.confirm("Creating a new user will currently log you out of the Admin session due to client-side limitations. You will need to log in again. Continue?")) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      // Use direct API call instead of AuthContext signup
-      // This won't log in the created user or affect admin session
-      await api.post('/auth/admin/create-user', {
+      // Use Supabase signup
+      const { data, error } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
-        firstName: form.firstname,
-        lastName: form.lastname,
-        mobile: form.mobile,
-        country: form.country,
-        city: form.city,
+        options: {
+          data: {
+            first_name: form.firstname,
+            last_name: form.lastname,
+            mobile: form.mobile,
+            country: form.country,
+            city: form.city,
+            role: 'user'
+          }
+        }
       });
 
-      setSuccess("User created successfully!");
+      if (error) throw error;
+
+      setSuccess("User created successfully! Redirecting...");
       setForm(initialForm);
       setErrors({});
 
-      // Redirect to user list after success (admin stays logged in)
-      setTimeout(() => navigate("/admin/user"), 500);
+      // The AuthContext will likely pick up the session change and redirect
+      // But we can force navigation just in case
+      setTimeout(() => navigate("/admin/login"), 1000);
 
     } catch (err) {
       console.error('User creation error:', err);
-      setErrors({ api: err.response?.data?.message || err.message || "User creation failed." });
+      setErrors({ api: err.message || "User creation failed." });
     } finally {
       setLoading(false);
     }

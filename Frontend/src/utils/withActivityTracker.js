@@ -8,13 +8,15 @@ const withActivityTracker = (WrappedComponent, activityType = 'page_visit') => {
 
     componentDidUpdate(prevProps) {
       // Track when route changes
-      if (this.props.location && prevProps.location && 
-          this.props.location.pathname !== prevProps.location.pathname) {
+      if (this.props.location && prevProps.location &&
+        this.props.location.pathname !== prevProps.location.pathname) {
         this.trackActivity();
       }
     }
 
     trackActivity = () => {
+      // Legacy tracking disabled
+      /*
       // Only track if user is logged in
       const token = localStorage.getItem('token');
       const userId = localStorage.getItem('userId');
@@ -46,6 +48,7 @@ const withActivityTracker = (WrappedComponent, activityType = 'page_visit') => {
       }).catch(err => {
         console.error('Activity tracking error:', err);
       });
+      */
     };
 
     getPageName = (pathname) => {

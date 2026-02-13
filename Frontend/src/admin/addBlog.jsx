@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import api from "../utils/api";
+import { supabase } from "../supabaseClient";
 import DashboardSidebar from "./dashboardSidebar";
 import DashboardHeader from "./dashboardHeader";
 import uploadImage from "../utils/uploadImage";
@@ -87,13 +87,23 @@ const DbAddBlog = () => {
       : [];
 
     const data = {
-      ...form,
+      title: form.title,
+      author: form.author,
+      content: form.content,
+      category: form.category,
       tags: tagsArray,
-      image: imageUrl || ""
+      image: imageUrl || "",
+      status: form.status
+      // created_at will be auto-generated
     };
 
     try {
-      await api.post("/blogs", data);
+      const { error } = await supabase
+        .from('blogs')
+        .insert([data]);
+
+      if (error) throw error;
+
       setSuccess("Blog added successfully!");
       setForm({
         title: "",
@@ -107,7 +117,8 @@ const DbAddBlog = () => {
       setImageUrl(null);
       setErrors({});
     } catch (err) {
-      setErrors({ api: err.response?.data?.message || "Error saving blog" });
+      console.error("Error saving blog:", err);
+      setErrors({ api: "Error saving blog" });
     }
   };
 
@@ -127,23 +138,23 @@ const DbAddBlog = () => {
                   <div className="custom-field-wrap">
                     <div className="form-group">
                       <label>Blog Title</label>
-                      <input 
-                        type="text" 
-                        name="title" 
-                        value={form.title} 
-                        onChange={handleChange} 
+                      <input
+                        type="text"
+                        name="title"
+                        value={form.title}
+                        onChange={handleChange}
                         placeholder="Enter blog title"
                       />
                       {errors.title && <div style={{ color: "red", fontSize: "12px" }}>{errors.title}</div>}
                     </div>
-                    
+
                     <div className="form-group">
                       <label>Author</label>
-                      <input 
-                        type="text" 
-                        name="author" 
-                        value={form.author} 
-                        onChange={handleChange} 
+                      <input
+                        type="text"
+                        name="author"
+                        value={form.author}
+                        onChange={handleChange}
                         placeholder="Enter author name"
                       />
                       {errors.author && <div style={{ color: "red", fontSize: "12px" }}>{errors.author}</div>}
@@ -151,9 +162,9 @@ const DbAddBlog = () => {
 
                     <div className="form-group">
                       <label>Content</label>
-                      <textarea 
-                        name="content" 
-                        value={form.content} 
+                      <textarea
+                        name="content"
+                        value={form.content}
                         onChange={handleChange}
                         rows="15"
                         placeholder="Write your blog content here..."
@@ -188,11 +199,11 @@ const DbAddBlog = () => {
                       <div className="col-sm-6">
                         <div className="form-group">
                           <label>Tags</label>
-                          <input 
-                            type="text" 
-                            name="tags" 
-                            value={form.tags} 
-                            onChange={handleChange} 
+                          <input
+                            type="text"
+                            name="tags"
+                            value={form.tags}
+                            onChange={handleChange}
                             placeholder="Enter tags separated by commas"
                           />
                           <small style={{ color: "#666", fontSize: "11px" }}>
@@ -276,10 +287,10 @@ const DbAddBlog = () => {
                 <div className="dashboard-box">
                   <div className="custom-field-wrap">
                     <div className="publish-action" style={{ textAlign: 'center', padding: '20px 0' }}>
-                      <input 
-                        type="submit" 
-                        name="publish" 
-                        value="Publish Blog" 
+                      <input
+                        type="submit"
+                        name="publish"
+                        value="Publish Blog"
                         style={{
                           backgroundColor: '#007bff',
                           color: 'white',

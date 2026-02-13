@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../utils/api';
+import { supabase } from '../supabaseClient';
 import DashboardSidebar from './dashboardSidebar';
 import DashboardHeader from './dashboardHeader';
 
@@ -9,21 +9,30 @@ const BlogList = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  
+
   // For custom delete confirmation popup
   const [blogToDelete, setBlogToDelete] = useState(null);
 
   useEffect(() => {
-    fetchBlogs(currentPage);
+    fetchBlogs();
   }, [currentPage]);
 
-  const fetchBlogs = async (page = 1) => {
+  const fetchBlogs = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/blogs?page=${page}`);
-      
-      setBlogs(response.data.blogs || response.data || []);
-      setTotalPages(response.data.totalPages || 1);
+      const from = (currentPage - 1) * 5; // Assuming 5 items per page based on other files, or make it dynamic
+      const to = from + 4;
+
+      const { data, error, count } = await supabase
+        .from('blogs')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (error) throw error;
+
+      setBlogs(data || []);
+      setTotalPages(Math.ceil((count || 0) / 5) || 1);
       setError(null);
     } catch (err) {
       console.error('Error fetching blogs:', err);
@@ -53,11 +62,16 @@ const BlogList = () => {
     if (!blogToDelete) return;
 
     try {
-      await api.delete(`/blogs/${blogToDelete._id}`);
+      const { error } = await supabase
+        .from('blogs')
+        .delete()
+        .eq('id', blogToDelete.id);
+
+      if (error) throw error;
+
       // Remove the deleted blog from the state
-      setBlogs(prevBlogs => prevBlogs.filter(blog => blog._id !== blogToDelete._id));
+      setBlogs(prevBlogs => prevBlogs.filter(blog => blog.id !== blogToDelete.id));
       setBlogToDelete(null); // Close the popup
-      // You can add a success message here if needed
     } catch (err) {
       console.error('Error deleting blog:', err);
       alert('Failed to delete blog');
@@ -66,10 +80,10 @@ const BlogList = () => {
   };
 
   const formatDate = (dateString) => {
-    const options = { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
+    const options = {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     };
     return new Date(dateString).toLocaleDateString('en-US', options);
   };
@@ -112,30 +126,30 @@ const BlogList = () => {
                     </tr>
                   ) : (
                     blogs.map((blog) => (
-                      <tr key={blog._id}>
+                      <tr key={blog.id}>
                         <td>
                           <span className="package-name">{blog.title}</span>
                         </td>
                         <td>{blog.author || '-'}</td>
                         <td>{blog.category || '-'}</td>
-                        <td>{formatDate(blog.createdAt || blog.publishDate)}</td>
+                        <td>{formatDate(blog.created_at || blog.publishDate)}</td>
                         <td>
                           <span
                             className="badge badge-success"
-                            style={{ 
-                              cursor: "pointer", 
+                            style={{
+                              cursor: "pointer",
                               marginRight: "5px",
                               padding: "5px 8px",
                               fontSize: "12px"
                             }}
                             title="Edit"
-                            onClick={() => handleEdit(blog._id)}
+                            onClick={() => handleEdit(blog.id)}
                           >
                             <i className="far fa-edit"></i>
                           </span>
                           <span
                             className="badge badge-danger"
-                            style={{ 
+                            style={{
                               cursor: "pointer",
                               padding: "5px 8px",
                               fontSize: "12px"
@@ -168,8 +182,8 @@ const BlogList = () => {
                   </p> */}
                 </div>
                 <div className="popup-footer">
-                  <button 
-                    className="btn btn-danger" 
+                  <button
+                    className="btn btn-danger"
                     onClick={handleDelete}
                     style={{
                       backgroundColor: '#dc3545',
@@ -184,8 +198,8 @@ const BlogList = () => {
                   >
                     Yes, Delete
                   </button>
-                  <button 
-                    className="btn btn-secondary" 
+                  <button
+                    className="btn btn-secondary"
                     onClick={cancelDelete}
                     style={{
                       backgroundColor: '#6c757d',
