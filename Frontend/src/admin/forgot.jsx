@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import 'popper.js';
 import bgImage from '../admin/assets/images/bg.jpg';
 import logoImg from '../admin/assets/images/logo.png';
@@ -20,9 +21,9 @@ const Forgot = () => {
       <div className="auth-card">
         <form className="login-from">
           <div className="auth-header">
-            <a href="/">
+            <Link to="/">
               <img src={logoImg} alt="Logo" />
-            </a>
+            </Link>
             <h3>Reset Password</h3>
             <p>Enter your username/email to reset</p>
           </div>
@@ -44,9 +45,9 @@ const Forgot = () => {
           </div>
 
           <div className="auth-footer" style={{ justifyContent: 'center' }}>
-            <a href="/admin/login" className="for-pass" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+            <Link to="/admin/login" className="for-pass" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
               <i className="fas fa-arrow-left"></i> Back to Login
-            </a>
+            </Link>
           </div>
         </form>
       </div>

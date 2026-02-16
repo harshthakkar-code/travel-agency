@@ -423,6 +423,10 @@ const Tour_packages = () => {
       {/* FOOTER */}
       <Footer />
 
+      <a id="backTotop" href="#" className="to-top-icon">
+        <i className="fas fa-chevron-up"></i>
+      </a>
+
       <div className="header-search-form">
         <div className="container">
           <div className="header-search-container">

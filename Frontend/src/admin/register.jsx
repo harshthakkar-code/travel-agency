@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 import bgImage from '../admin/assets/images/bg.jpg';
 import logoImg from '../admin/assets/images/logo.png';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { FaCheckCircle, FaTimesCircle, FaEye, FaEyeSlash } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -150,9 +150,9 @@ const Register = () => {
           onSubmit={step === 1 ? (e) => e.preventDefault() : handleRegister}
         >
           <div className="auth-header">
-            <a href="/">
+            <Link to="/">
               <img src={logoImg} alt="Logo" />
-            </a>
+            </Link>
             <h3>Create Account</h3>
             <p>Step {step} of 2</p>
           </div>
@@ -340,7 +340,7 @@ const Register = () => {
           )}
 
           <div className="auth-footer">
-            <span>Already have an account? <a href="/admin/login">Login here</a></span>
+            <span>Already have an account? <Link to="/admin/login">Login here</Link></span>
           </div>
         </form>
       </div>

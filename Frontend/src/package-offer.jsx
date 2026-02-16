@@ -667,6 +667,11 @@ const Package_offer = () => {
       {/* ===== FOOTER ===== */}
       <Footer />
 
+      {/* Back to top button */}
+      <a id="backTotop" href="#" className="to-top-icon">
+        <i className="fas fa-chevron-up"></i>
+      </a>
+
       {/* Custom search field */}
       <div className="header-search-form">
         <div className="container">

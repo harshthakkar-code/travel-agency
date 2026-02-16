@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import DashboardSidebar from './dashboardSidebar';
 import DashboardHeader from './dashboardHeader';
+import { useNavigate, Link } from 'react-router-dom';
 
 const BlogList = () => {
   const [blogs, setBlogs] = useState([]);
@@ -9,6 +10,7 @@ const BlogList = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const navigate = useNavigate();
 
   // For custom delete confirmation popup
   const [blogToDelete, setBlogToDelete] = useState(null);
@@ -44,7 +46,7 @@ const BlogList = () => {
   };
 
   const handleEdit = (blogId) => {
-    window.location.href = `/admin/edit-blog/${blogId}`;
+    navigate(`/admin/edit-blog/${blogId}`);
   };
 
   // Show custom confirmation popup
@@ -237,16 +239,16 @@ const BlogList = () => {
                       className={`page-item${currentPage === i + 1 ? " active" : ""}`}
                       onClick={() => setCurrentPage(i + 1)}
                     >
-                      <a href="#" className="page-link">{i + 1}</a>
+                      <button className="page-link" style={{ background: 'none', border: 'none', padding: 0, width: '100%', height: '100%' }}>{i + 1}</button>
                     </li>
                   ))}
                   <li
                     className={`page-item${currentPage === totalPages ? " disabled" : ""}`}
                     onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
                   >
-                    <a className="page-link" href="#">
+                    <button className="page-link" style={{ background: 'none', border: 'none', padding: 0, width: '100%', height: '100%' }}>
                       <i className="fas fa-chevron-right"></i>
-                    </a>
+                    </button>
                   </li>
                 </ul>
               </nav>
