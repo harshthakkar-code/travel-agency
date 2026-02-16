@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import bgImage from '../admin/assets/images/bg.jpg';
 import logoImg from '../admin/assets/images/logo.png';
 import { useNavigate } from "react-router-dom";
-import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
+import { FaCheckCircle, FaTimesCircle, FaEye, FaEyeSlash } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
 
 const Register = () => {
@@ -116,7 +116,7 @@ const Register = () => {
       });
 
       setSuccess("Registration successful! Redirecting to login...");
-      setTimeout(() => navigate("/admin/login"), 800);
+      setTimeout(() => navigate("/admin/login"), 1500);
 
       setForm({
         firstName: "", lastName: "", email: "", password: "",
@@ -132,140 +132,151 @@ const Register = () => {
 
 
   return (
-    <div className="login-page" style={{ backgroundImage: `url(${bgImage})` }}>
-      <div className="login-from-wrap" style={{ maxWidth: "500px" }}>
+    <div className="login-page" style={{
+      backgroundImage: `url(${bgImage})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'relative'
+    }}>
+      <div className="auth-overlay"></div>
+
+      <div className="auth-card register-card">
         <form
           className="login-from"
           onSubmit={step === 1 ? (e) => e.preventDefault() : handleRegister}
         >
-          <h1 className="site-title">
-            <a href="#">
+          <div className="auth-header">
+            <a href="/">
               <img src={logoImg} alt="Logo" />
             </a>
-          </h1>
+            <h3>Create Account</h3>
+            <p>Step {step} of 2</p>
+          </div>
+
+          <div className="step-indicator">
+            <div className={`step-dot ${step >= 1 ? 'active' : ''}`}></div>
+            <div className={`step-dot ${step >= 2 ? 'active' : ''}`}></div>
+          </div>
 
           {step === 1 && (
             <>
-              <p className="form-subtitle" style={{ fontWeight: "bold" }}>
-                Please enter your details to register.
-              </p>
-
               {/* Row 1: First + Last */}
-              <div style={{ display: "flex", gap: "10px" }}>
-                <div className="form-group" style={{ flex: 1 }}>
-                  <label>First Name</label>
-                  <input
-                    name="firstName"
-                    type="text"
-                    value={form.firstName}
-                    onChange={handleChange}
-                  />
-                  {errors.firstName && (
-                    <div style={{ color: "red", fontSize: "10px" }}>{errors.firstName}</div>
-                  )}
+              <div className="auth-row">
+                <div className="auth-col">
+                  <div className="form-group">
+                    <label>First Name</label>
+                    <input
+                      name="firstName"
+                      type="text"
+                      className={`form-control-custom ${errors.firstName ? 'is-invalid' : ''}`}
+                      value={form.firstName}
+                      onChange={handleChange}
+                    />
+                    {errors.firstName && <div className="input-error">{errors.firstName}</div>}
+                  </div>
                 </div>
-                <div className="form-group" style={{ flex: 1 }}>
-                  <label>Last Name</label>
-                  <input
-                    name="lastName"
-                    type="text"
-                    value={form.lastName}
-                    onChange={handleChange}
-                  />
-                  {errors.lastName && (
-                    <div style={{ color: "red", fontSize: "10px" }}>{errors.lastName}</div>
-                  )}
+                <div className="auth-col">
+                  <div className="form-group">
+                    <label>Last Name</label>
+                    <input
+                      name="lastName"
+                      type="text"
+                      className={`form-control-custom ${errors.lastName ? 'is-invalid' : ''}`}
+                      value={form.lastName}
+                      onChange={handleChange}
+                    />
+                    {errors.lastName && <div className="input-error">{errors.lastName}</div>}
+                  </div>
                 </div>
               </div>
 
               {/* Row 2: Email */}
               <div className="form-group">
-                <label>Email</label>
+                <label>Email Address</label>
                 <input
                   name="email"
                   type="email"
+                  className={`form-control-custom ${errors.email ? 'is-invalid' : ''}`}
                   value={form.email}
                   onChange={handleChange}
                 />
-                {errors.email && (
-                  <div style={{ color: "red", fontSize: "10px" }}>{errors.email}</div>
-                )}
+                {errors.email && <div className="input-error">{errors.email}</div>}
               </div>
 
               {/* Row 3: Password + Confirm */}
-              <div style={{ display: "flex", gap: "10px" }}>
+              <div className="auth-row">
                 {/* Password */}
-                <div className="form-group" style={{ flex: 1, position: "relative" }}>
-                  <label>Password</label>
-                  <input
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    value={form.password}
-                    onChange={handleChange}
-                  />
-                  <span
-                    style={{
-                      position: "absolute",
-                      right: "10px",
-                      top: "45px",
-                      cursor: "pointer",
-                      color: "#888"
-                    }}
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    <i className={`far fa-eye${showPassword ? "" : "-slash"}`}></i>
-                  </span>
+                <div className="auth-col relative">
+                  <div className="form-group">
+                    <label>Password</label>
+                    <input
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      className={`form-control-custom ${errors.password ? 'is-invalid' : ''}`}
+                      value={form.password}
+                      onChange={handleChange}
+                    />
+                    <span
+                      className="password-toggle"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <FaEyeSlash /> : <FaEye />}
+                    </span>
+                  </div>
+
                   {/* Dynamic requirement checklist */}
-                  <div style={{ fontSize: "10px", marginTop: "5px" }}>
-                    <div style={{ color: passwordChecks.length ? "green" : "red" }}>
-                      {passwordChecks.length ? <FaCheckCircle /> : <FaTimesCircle />} Min 8 characters
+                  <div className="password-checklist">
+                    <div className={`checklist-item ${passwordChecks.length ? "valid" : "invalid"}`}>
+                      {passwordChecks.length ? <FaCheckCircle /> : <FaTimesCircle />} Min 8 chars
                     </div>
-                    <div style={{ color: passwordChecks.uppercase ? "green" : "red" }}>
-                      {passwordChecks.uppercase ? <FaCheckCircle /> : <FaTimesCircle />} At least 1 uppercase letter
+                    <div className={`checklist-item ${passwordChecks.uppercase ? "valid" : "invalid"}`}>
+                      {passwordChecks.uppercase ? <FaCheckCircle /> : <FaTimesCircle />} 1 Uppercase
                     </div>
-                    <div style={{ color: passwordChecks.number ? "green" : "red" }}>
-                      {passwordChecks.number ? <FaCheckCircle /> : <FaTimesCircle />} At least 1 number
+                    <div className={`checklist-item ${passwordChecks.number ? "valid" : "invalid"}`}>
+                      {passwordChecks.number ? <FaCheckCircle /> : <FaTimesCircle />} 1 Number
                     </div>
-                    <div style={{ color: passwordChecks.specialChar ? "green" : "red" }}>
-                      {passwordChecks.specialChar ? <FaCheckCircle /> : <FaTimesCircle />} At least 1 special character
+                    <div className={`checklist-item ${passwordChecks.specialChar ? "valid" : "invalid"}`}>
+                      {passwordChecks.specialChar ? <FaCheckCircle /> : <FaTimesCircle />} 1 Special Char
                     </div>
                   </div>
+                  {errors.password && <div className="input-error">{errors.password}</div>}
                 </div>
 
                 {/* Confirm Password */}
-                <div className="form-group" style={{ flex: 1, position: "relative" }}>
-                  <label>Confirm Password</label>
-                  <input
-                    name="confirmPassword"
-                    type={showConfirm ? "text" : "password"}
-                    value={form.confirmPassword}
-                    onChange={handleChange}
-                  />
-                  <span
-                    style={{
-                      position: "absolute",
-                      right: "10px",
-                      top: "45px",
-                      cursor: "pointer",
-                      color: "#888"
-                    }}
-                    onClick={() => setShowConfirm(!showConfirm)}
-                  >
-                    <i className={`far fa-eye${showConfirm ? "" : "-slash"}`}></i>
-                  </span>
-                  {errors.confirmPassword && (
-                    <div style={{ color: "red", fontSize: "10px" }}>{errors.confirmPassword}</div>
-                  )}
+                <div className="auth-col relative">
+                  <div className="form-group">
+                    <label>Confirm Password</label>
+                    <input
+                      name="confirmPassword"
+                      type={showConfirm ? "text" : "password"}
+                      className={`form-control-custom ${errors.confirmPassword ? 'is-invalid' : ''}`}
+                      value={form.confirmPassword}
+                      onChange={handleChange}
+                    />
+                    <span
+                      className="password-toggle"
+                      onClick={() => setShowConfirm(!showConfirm)}
+                    >
+                      {showConfirm ? <FaEyeSlash /> : <FaEye />}
+                    </span>
+                  </div>
+                  {errors.confirmPassword && <div className="input-error">{errors.confirmPassword}</div>}
                 </div>
               </div>
 
               {errors.api && (
-                <div style={{ color: "red", marginBottom: "10px" }}>{errors.api}</div>
+                <div className="auth-alert error">
+                  {errors.api}
+                </div>
               )}
 
-              <div className="form-group">
-                <button type="button" className="button-primary" onClick={handleNext}>
-                  Next
+              <div className="form-group section-mt">
+                <button type="button" className="auth-btn" onClick={handleNext}>
+                  Next Step
                 </button>
               </div>
             </>
@@ -274,49 +285,63 @@ const Register = () => {
           {step === 2 && (
             <>
               <div className="form-group">
-                <label>Mobile</label>
+                <label>Mobile Number</label>
                 <input
                   name="mobile"
                   type="text"
+                  className={`form-control-custom ${errors.mobile ? 'is-invalid' : ''}`}
                   value={form.mobile}
                   onChange={handleChange}
                 />
-                {errors.mobile && <div style={{ color: "red", fontSize: "10px" }}>{errors.mobile}</div>}
-              </div>
-              <div className="form-group">
-                <label>City</label>
-                <input
-                  name="city"
-                  type="text"
-                  value={form.city}
-                  onChange={handleChange}
-                />
-                {errors.city && <div style={{ color: "red", fontSize: "10px" }}>{errors.city}</div>}
-              </div>
-              <div className="form-group">
-                <label>Country</label>
-                <input
-                  name="country"
-                  type="text"
-                  value={form.country}
-                  onChange={handleChange}
-                />
-                {errors.country && <div style={{ color: "red", fontSize: "10px" }}>{errors.country}</div>}
+                {errors.mobile && <div className="input-error">{errors.mobile}</div>}
               </div>
 
-              {errors.api && <div style={{ color: "red", marginBottom: "10px" }}>{errors.api}</div>}
-              {success && <div style={{ color: "green", marginBottom: "10px" }}>{success}</div>}
+              <div className="auth-row">
+                <div className="auth-col">
+                  <div className="form-group">
+                    <label>City</label>
+                    <input
+                      name="city"
+                      type="text"
+                      className={`form-control-custom ${errors.city ? 'is-invalid' : ''}`}
+                      value={form.city}
+                      onChange={handleChange}
+                    />
+                    {errors.city && <div className="input-error">{errors.city}</div>}
+                  </div>
+                </div>
+                <div className="auth-col">
+                  <div className="form-group">
+                    <label>Country</label>
+                    <input
+                      name="country"
+                      type="text"
+                      className={`form-control-custom ${errors.country ? 'is-invalid' : ''}`}
+                      value={form.country}
+                      onChange={handleChange}
+                    />
+                    {errors.country && <div className="input-error">{errors.country}</div>}
+                  </div>
+                </div>
+              </div>
 
-              <div className="form-group" style={{ display: "flex", gap: "10px" }}>
-                <button type="button" className="button-primary" onClick={handleBack}>
+              {errors.api && <div className="auth-alert error">{errors.api}</div>}
+              {success && <div className="auth-alert success">{success}</div>}
+
+              <div className="auth-actions">
+                <button type="button" className="auth-btn" style={{ background: '#787878', marginTop: 0 }} onClick={handleBack}>
                   Back
                 </button>
-                <button type="submit" className="button-primary">
-                  Register
+                <button type="submit" className="auth-btn" style={{ marginTop: 0 }} disabled={loading}>
+                  {loading ? 'Creating Account...' : 'Complete Registration'}
                 </button>
               </div>
             </>
           )}
+
+          <div className="auth-footer">
+            <span>Already have an account? <a href="/admin/login">Login here</a></span>
+          </div>
         </form>
       </div>
     </div>

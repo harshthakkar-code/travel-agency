@@ -46,7 +46,8 @@ const Home = () => {
                     height: '100vh',
                     display: 'flex',
                     alignItems: 'center',
-                    position: 'relative'
+                    position: 'relative',
+                    paddingTop: '80px'
                 }}>
                     <div className="overlay" style={{ background: 'rgba(0,0,0,0.4)', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}></div>
                     <div className="container" style={{ position: 'relative', zIndex: 2, color: '#fff', textAlign: 'center' }}>
@@ -64,20 +65,20 @@ const Home = () => {
                             <i className="fas fa-plane-departure" style={{ marginRight: '10px' }}></i>
                             Discover the World
                         </span>
-                        <h1 style={{ fontSize: '64px', fontWeight: '800', marginBottom: '20px', textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
-                            Travel Beyond Your <br /> <span style={{ color: '#F56960' }}>Imagination</span>
+                        <h1 style={{ fontSize: '64px', fontWeight: '800', marginBottom: '20px', textShadow: '0 2px 10px rgba(0,0,0,0.3)', color: '#fff' }}>
+                            Travel Beyond Your <br /> <span className="hero-highlight">Imagination</span>
                         </h1>
                         <p style={{ fontSize: '18px', maxWidth: '700px', margin: '0 auto 40px', opacity: 0.9 }}>
                             Experience the best destinations with our curated travel packages.
                             Adventure, luxury, and unforgettable memories await.
                         </p>
-                        <div className="hero-actions">
-                            <a href="/tour-packages" className="btn-primary-custom" style={{ padding: '15px 40px', fontSize: '16px', marginRight: '20px' }}>
+                        <div className="hero-actions" style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                            <Link to="/tour-packages" className="btn-primary-custom" style={{ padding: '15px 40px', fontSize: '16px' }}>
                                 Explore Packages
-                            </a>
-                            <a href="/contact" className="btn-outline-custom" style={{ padding: '15px 40px', fontSize: '16px', background: 'transparent', border: '2px solid #fff', color: '#fff' }}>
+                            </Link>
+                            <Link to="/contact" className="btn-outline-custom" style={{ padding: '15px 40px', fontSize: '16px', background: 'transparent', border: '2px solid #fff', color: '#fff' }}>
                                 Contact Us
-                            </a>
+                            </Link>
                         </div>
                     </div>
                 </section>
@@ -147,7 +148,7 @@ const Home = () => {
                             ))}
                         </div>
                         <div className="text-center mt-4">
-                            <a href="/tour-packages" className="btn-primary-custom">View All Packages</a>
+                            <Link to="/tour-packages" className="btn-primary-custom">View All Packages</Link>
                         </div>
                     </div>
                 </section>
@@ -177,6 +178,45 @@ const Home = () => {
 
             </main>
             <Footer />
+
+            {/* Responsive Styles */}
+            <style>{`
+                @media (max-width: 768px) {
+                    .home-hero-section h1 {
+                        font-size: 36px !important;
+                    }
+                    .home-hero-section p {
+                        font-size: 16px !important;
+                        padding: 0 20px;
+                    }
+                    .hero-actions {
+                        padding: 0 20px;
+                        width: 100%;
+                    }
+                    .hero-actions .btn-primary-custom,
+                    .hero-actions .btn-outline-custom {
+                        width: 100%;
+                        max-width: 300px;
+                        padding: 12px 30px !important;
+                        font-size: 15px !important;
+                        text-align: center;
+                    }
+                }
+                
+                @media (max-width: 480px) {
+                    .home-hero-section h1 {
+                        font-size: 28px !important;
+                    }
+                    .home-hero-section p {
+                        font-size: 14px !important;
+                    }
+                    .hero-actions .btn-primary-custom,
+                    .hero-actions .btn-outline-custom {
+                        padding: 10px 25px !important;
+                        font-size: 14px !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 };
