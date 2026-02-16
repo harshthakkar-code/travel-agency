@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Header from "./Header";
+import Footer from "./Footer";
 import { supabase } from "./supabaseClient";
 
 const Booking = () => {
@@ -105,12 +106,19 @@ const Booking = () => {
         status: 'Pending',
         pricing: {
           packageCost: parseFloat(packageData?.packagePrice || 0),
-          tourGuide: packageData?.addOns?.tourGuide ? 34 : 0,
-          mealsIncluded: packageData?.addOns?.mealsIncluded ? 25 : 0,
-          extraBaggage: packageData?.addOns?.extraBaggage ? 15 : 0,
-          transfers: packageData?.addOns?.transfers ? 20 : 0,
           taxRate: "13%",
           totalCost: parseFloat(calculateTotal()),
+          breakdown: (packageData.optionsConfig || [
+            { name: 'tourGuide', label: 'Tour Guide', price: 34 },
+            { name: 'mealsIncluded', label: 'Meals Included', price: 25 },
+            { name: 'extraBaggage', label: 'Extra Baggage', price: 15 },
+            { name: 'transfers', label: 'Transfers', price: 20 }
+          ]).reduce((acc, opt) => {
+            if (packageData.addOns?.[opt.name]) {
+              acc[opt.name] = opt.price;
+            }
+            return acc;
+          }, {})
         },
         billing_address: {
           country: formData.country,
@@ -161,11 +169,20 @@ const Booking = () => {
 
     let total = parseFloat(packageData.packagePrice || 0);
 
-    // Add-on prices (you can adjust these based on your requirements)
-    if (packageData.addOns?.tourGuide) total += 34;
-    if (packageData.addOns?.mealsIncluded) total += 25;
-    if (packageData.addOns?.extraBaggage) total += 15;
-    if (packageData.addOns?.transfers) total += 20;
+    // Dynamic Add-ons
+    const options = packageData.optionsConfig || [
+      { name: 'tourGuide', price: 34 },
+      { name: 'mealsIncluded', price: 25 },
+      { name: 'extraBaggage', price: 15 },
+      { name: 'transfers', price: 20 }
+    ];
+
+    options.forEach(opt => {
+      // Check if the option is selected in addOns
+      if (packageData.addOns?.[opt.name]) {
+        total += (parseFloat(opt.price) || 0);
+      }
+    });
 
     // Add tax (13%)
     const tax = total * 0.13;
@@ -775,38 +792,21 @@ const Booking = () => {
                                   ${packageData.packagePrice}
                                 </td>
                               </tr>
-                              {packageData.addOns?.tourGuide && (
-                                <tr>
-                                  <td>
-                                    <strong>Tour guide</strong>
-                                  </td>
-                                  <td className="text-right">$34</td>
-                                </tr>
-                              )}
-                              {packageData.addOns?.mealsIncluded && (
-                                <tr>
-                                  <td>
-                                    <strong>Meals included</strong>
-                                  </td>
-                                  <td className="text-right">$25</td>
-                                </tr>
-                              )}
-                              {packageData.addOns?.extraBaggage && (
-                                <tr>
-                                  <td>
-                                    <strong>Extra baggage</strong>
-                                  </td>
-                                  <td className="text-right">$15</td>
-                                </tr>
-                              )}
-                              {packageData.addOns?.transfers && (
-                                <tr>
-                                  <td>
-                                    <strong>Transfers</strong>
-                                  </td>
-                                  <td className="text-right">$20</td>
-                                </tr>
-                              )}
+                              {(packageData.optionsConfig || [
+                                { name: 'tourGuide', label: 'Tour Guide', price: 34 },
+                                { name: 'mealsIncluded', label: 'Meals Included', price: 25 },
+                                { name: 'extraBaggage', label: 'Extra Baggage', price: 15 },
+                                { name: 'transfers', label: 'Transfers', price: 20 }
+                              ]).map((opt) => (
+                                packageData.addOns?.[opt.name] && (
+                                  <tr key={opt.name}>
+                                    <td>
+                                      <strong>{opt.label || opt.name}</strong>
+                                    </td>
+                                    <td className="text-right">${opt.price}</td>
+                                  </tr>
+                                )
+                              ))}
                               <tr>
                                 <td>
                                   <strong>Tax</strong>
@@ -868,145 +868,7 @@ const Booking = () => {
           </div>
         </main>
 
-        <footer id="colophon" className="site-footer footer-primary">
-          <div className="top-footer">
-            <div className="container">
-              <div className="row">
-                <div className="col-lg-3 col-md-6">
-                  <aside className="widget widget_text">
-                    <h3 className="widget-title">About Travel</h3>
-                    <div className="textwidget widget-text">
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                      Ut elit tellus, luctus nec ullamcorper mattis, pulvinar
-                      dapibus leo.
-                    </div>
-                    <div className="award-img">
-                      <a href="#">
-                        <img src="/assets/images/logo6.png" alt="" />
-                      </a>
-                      <a href="#">
-                        <img src="/assets/images/logo2.png" alt="" />
-                      </a>
-                    </div>
-                  </aside>
-                </div>
-                <div className="col-lg-3 col-md-6">
-                  <aside className="widget widget_text">
-                    <h3 className="widget-title">CONTACT INFORMATION</h3>
-                    <div className="textwidget widget-text">
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                      <ul>
-                        <li>
-                          <a href="#">
-                            <i className="fas fa-phone-alt"></i> +01 (977) 2599
-                            12
-                          </a>
-                        </li>
-                        <li>
-                          <a href="#">
-                            <i className="fas fa-envelope"></i>{" "}
-                            <span
-                              className="__cf_email__"
-                              data-cfemail="bcdfd3d1ccddd2c5fcd8d3d1ddd5d292dfd3d1"
-                            >
-                              [email&#160;protected]
-                            </span>
-                          </a>
-                        </li>
-                        <li>
-                          <i className="fas fa-map-marker-alt"></i> 3146 Koontz,
-                          California
-                        </li>
-                      </ul>
-                    </div>
-                  </aside>
-                </div>
-                <div className="col-lg-3 col-md-6">
-                  <aside className="widget widget_recent_post">
-                    <h3 className="widget-title">Latest Post</h3>
-                    <ul>
-                      <li>
-                        <h5>
-                          <a href="#">
-                            Life is a beautiful journey not a destination
-                          </a>
-                        </h5>
-                        <div className="entry-meta">
-                          <span className="post-on">
-                            <a href="#">August 17, 2021</a>
-                          </span>
-                          <span className="comments-link">
-                            <a href="#">No Comments</a>
-                          </span>
-                        </div>
-                      </li>
-                      <li>
-                        <h5>
-                          <a href="#">
-                            Take only memories, leave only footprints
-                          </a>
-                        </h5>
-                        <div className="entry-meta">
-                          <span className="post-on">
-                            <a href="#">August 17, 2021</a>
-                          </span>
-                          <span className="comments-link">
-                            <a href="#">No Comments</a>
-                          </span>
-                        </div>
-                      </li>
-                    </ul>
-                  </aside>
-                </div>
-                <div className="col-lg-3 col-md-6">
-                  <aside className="widget widget_newslatter">
-                    <h3 className="widget-title">SUBSCRIBE US</h3>
-                    <div className="widget-text">
-                      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                    </div>
-                    <form className="newslatter-form">
-                      <input type="email" name="s" placeholder="Your Email.." />
-                      <input type="submit" name="s" value="SUBSCRIBE NOW" />
-                    </form>
-                  </aside>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="buttom-footer">
-            <div className="container">
-              <div className="row align-items-center">
-                <div className="col-md-5">
-                  <div className="footer-menu">
-                    <ul>
-                      <li>
-                        <a href="#">Privacy Policy</a>
-                      </li>
-                      <li>
-                        <a href="#">Term & Condition</a>
-                      </li>
-                      <li>
-                        <a href="#">FAQ</a>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-                <div className="col-md-2 text-center">
-                  <div className="footer-logo">
-                    <a href="#">
-                      <img src="/assets/images/travele-logo.png" alt="" />
-                    </a>
-                  </div>
-                </div>
-                <div className="col-md-5">
-                  <div className="copy-right text-right">
-                    Copyright © 2021 Travele. All rights reserveds
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </footer>
+        <Footer />
 
         <a id="backTotop" href="#" className="to-top-icon">
           <i className="fas fa-chevron-up"></i>
@@ -1024,7 +886,7 @@ const Booking = () => {
             </div>
           </div>
         </div>
-      </div>
+      </div >
     </>
   );
 };
