@@ -38,6 +38,7 @@ import DbBooking from './admin/db-booking.jsx';
 import DbComment from './admin/db-comment.jsx';
 
 import RequireAuth from "./RequireAuth";
+import ScrollToTop from "./components/ScrollToTop";
 
 // Fixed Activity Tracker Component - Prevents Duplicates
 class ActivityTracker extends Component {
@@ -218,24 +219,90 @@ function App() {
       {/* Activity Tracker Component */}
       <ActivityTracker />
 
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path='/blog-archive' element={<Blogarchive />} />
-        <Route path='/blog-single/:id' element={<Blog_single />} />
-        <Route path="/booking" element={<Booking />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/confirmation" element={<Confirmation />} />
-        <Route path="/gallery" element={<Gallery />} />
-        <Route path="/tour-packages" element={<TourPackages />} />
-        <Route path="/package-offer" element={<PackageOffer />} />
-        <Route path="/package-detail/:id" element={<PackageDetail />} />
-        <Route path="/single-page" element={<Single_page />} />
-        <Route path="/success" element={<Success />} />
-        <Route path="/cancel" element={<Cancel />} />
+      {/* Reusable Scroll To Top Component */}
+      <ScrollToTop />
 
-        {/* -------- User & Admin Accessible Routes -------- */}
+      <Routes>
+        {/* ========== PUBLIC ROUTES (No Login Required) ========== */}
+        <Route path="/" element={<Home />} />
+        <Route path="/tour-packages" element={<TourPackages />} />
+
+        {/* Auth Pages */}
+        <Route path="/admin/login" element={<Login />} />
+        <Route path="/user/register" element={<Register />} />
+        <Route path="/admin/forgot" element={<Forgot />} />
+
+        {/* ========== PROTECTED ROUTES (Login Required - User & Admin) ========== */}
+
+        {/* General Pages */}
+        <Route path="/about" element={
+          <RequireAuth allowedRoles={["user", "admin"]}>
+            <About />
+          </RequireAuth>
+        } />
+        <Route path="/contact" element={
+          <RequireAuth allowedRoles={["user", "admin"]}>
+            <Contact />
+          </RequireAuth>
+        } />
+        <Route path="/gallery" element={
+          <RequireAuth allowedRoles={["user", "admin"]}>
+            <Gallery />
+          </RequireAuth>
+        } />
+        <Route path="/single-page" element={
+          <RequireAuth allowedRoles={["user", "admin"]}>
+            <Single_page />
+          </RequireAuth>
+        } />
+
+        {/* Blog Pages */}
+        <Route path='/blog-archive' element={
+          <RequireAuth allowedRoles={["user", "admin"]}>
+            <Blogarchive />
+          </RequireAuth>
+        } />
+        <Route path='/blog-single/:id' element={
+          <RequireAuth allowedRoles={["user", "admin"]}>
+            <Blog_single />
+          </RequireAuth>
+        } />
+
+        {/* Package Pages */}
+        <Route path="/package-offer" element={
+          <RequireAuth allowedRoles={["user", "admin"]}>
+            <PackageOffer />
+          </RequireAuth>
+        } />
+        <Route path="/package-detail/:id" element={
+          <RequireAuth allowedRoles={["user", "admin"]}>
+            <PackageDetail />
+          </RequireAuth>
+        } />
+
+        {/* Booking & Payment Pages */}
+        <Route path="/booking" element={
+          <RequireAuth allowedRoles={["user", "admin"]}>
+            <Booking />
+          </RequireAuth>
+        } />
+        <Route path="/confirmation" element={
+          <RequireAuth allowedRoles={["user", "admin"]}>
+            <Confirmation />
+          </RequireAuth>
+        } />
+        <Route path="/success" element={
+          <RequireAuth allowedRoles={["user", "admin"]}>
+            <Success />
+          </RequireAuth>
+        } />
+        <Route path="/cancel" element={
+          <RequireAuth allowedRoles={["user", "admin"]}>
+            <Cancel />
+          </RequireAuth>
+        } />
+
+        {/* User Features */}
         <Route path="/wishlist-page" element={
           <RequireAuth allowedRoles={["user", "admin"]}>
             <Wishlist_page />
@@ -252,7 +319,7 @@ function App() {
           </RequireAuth>
         } />
 
-        {/* -------- Admin ONLY Routes -------- */}
+        {/* ========== ADMIN ONLY ROUTES ========== */}
         <Route path="/admin/dashboard" element={
           <RequireAuth allowedRoles={["admin"]}>
             <Dashboard />
@@ -323,11 +390,6 @@ function App() {
             <DbComment />
           </RequireAuth>
         } />
-
-        {/* ------ Open/auth pages ------ */}
-        <Route path="/admin/login" element={<Login />} />
-        <Route path="/user/register" element={<Register />} />
-        <Route path="/admin/forgot" element={<Forgot />} />
 
         {/* 404 fallback */}
         <Route path="*" element={<Page404 />} />

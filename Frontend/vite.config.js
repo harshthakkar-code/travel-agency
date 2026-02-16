@@ -4,6 +4,12 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  build: {
+    sourcemap: false, // Disable source map generation
+  },
+  css: {
+    devSourcemap: false, // Disable CSS source maps in dev
+  },
   test: {
     globals: true,
     environment: 'jsdom',

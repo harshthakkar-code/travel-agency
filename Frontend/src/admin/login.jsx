@@ -53,74 +53,93 @@ const Login = () => {
   return (
     <div
       className="login-page"
-      style={{ backgroundImage: `url(${bgImage})` }}
+      style={{
+        backgroundImage: `url(${bgImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative'
+      }}
     >
-      <div className="login-from-wrap">
+      <div className="auth-overlay"></div>
+
+      <div className="auth-card">
         <form className="login-from" onSubmit={handleLogin} noValidate>
-          <h1 className="site-title">
-            <a href="#">
+          <div className="auth-header">
+            <a href="/">
               <img src={logoImg} alt="Logo" />
             </a>
-          </h1>
+            <h3>Welcome Back</h3>
+            <p>Please login to your account</p>
+          </div>
 
-          <p className="form-subtitle" style={{ fontWeight: "bold" }}>Welcome! Please login to your account.</p>
           <div className="form-group">
-            <label htmlFor="username">Email</label>
+            <label htmlFor="username">Email Address</label>
             <input
               type="email"
               id="username"
-              className={`validate${touched.email && !isEmailValid(username) ? ' is-invalid' : ''}`}
+              className={`form-control-custom${touched.email && !isEmailValid(username) ? ' is-invalid' : ''}`}
               value={username}
               onBlur={() => setTouched(t => ({ ...t, email: true }))}
               onChange={e => setUsername(e.target.value)}
+              placeholder="Enter your email"
               required
             />
             {touched.email && !isEmailValid(username) && (
-              <div style={{ color: "red", fontSize: "13px" }}>
+              <div className="input-error">
                 Please enter a valid email address.
               </div>
             )}
           </div>
+
           <div className="form-group" style={{ position: "relative" }}>
             <label htmlFor="password">Password</label>
             <input
               id="password"
               type={showPassword ? "text" : "password"}
-              className={`validate${touched.password && password.length === 0 ? ' is-invalid' : ''}`}
+              className={`form-control-custom${touched.password && password.length === 0 ? ' is-invalid' : ''}`}
               value={password}
               onBlur={() => setTouched(t => ({ ...t, password: true }))}
               onChange={e => setPassword(e.target.value)}
+              placeholder="Enter your password"
               required
               autoComplete="current-password"
             />
             <span
+              className="password-toggle"
               onClick={() => setShowPassword(s => !s)}
-              style={{
-                position: "absolute", right: "12px", top: "38px",
-                cursor: "pointer", fontSize: "18px", color: "#333"
-              }}
               title={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </span>
             {touched.password && password.length === 0 && (
-              <div style={{ color: "red", fontSize: "13px" }}>
+              <div className="input-error">
                 Please enter your password.
               </div>
             )}
           </div>
-          {error && <div style={{ color: "red", marginBottom: "10px" }}>{error}</div>}
-          <div className="form-group">
-            <button type="submit" className="button-primary" disabled={!isFormValid()}>
-              Login
+
+          {error && (
+            <div className="auth-alert error">
+              <i className="fas fa-exclamation-circle"></i> {error}
+            </div>
+          )}
+
+          <div className="form-group section-mt">
+            <button type="submit" className="auth-btn" disabled={!isFormValid() || loading}>
+              {loading ? 'Logging in...' : 'Login'}
             </button>
           </div>
-          <div className="d-flex justify-content-between">
+
+          <div className="auth-footer" style={{ justifyContent: 'space-between', display: 'flex' }}>
             <a href="/user/register" className="for-pass">
-              Don't have an account?
+              Create Account
             </a>
             <a href="/admin/forgot" className="for-pass">
-              Reset Password
+              Forgot Password?
             </a>
           </div>
         </form>

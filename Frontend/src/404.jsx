@@ -35,9 +35,6 @@ const Page404 = () => (
 
     {/* --- Footer (can also be a separate component) --- */}
     <Footer />
-    <a id="backTotop" href="#" className="to-top-icon">
-      <i className="fas fa-chevron-up"></i>
-    </a>
 
     {/* Custom search field overlay */}
     <div className="header-search-form">

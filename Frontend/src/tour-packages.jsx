@@ -171,7 +171,7 @@ const Tour_packages = () => {
           <div className="landing-hero-bg" style={{ backgroundImage: "url(/assets/images/slider-banner-1.jpg)" }}></div>
           <div className="landing-hero-overlay"></div>
           <div className="container">
-            <div className="landing-hero-content" style={{ opacity: heroLoaded ? 1 : 0, transform: heroLoaded ? 'translateY(0)' : 'translateY(30px)', transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+            <div className="landing-hero-content" style={{ opacity: heroLoaded ? 1 : 0, transform: heroLoaded ? 'translateY(0)' : 'translateY(30px)', transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)', textAlign: 'center', margin: '0 auto' }}>
               <span className="landing-hero-badge">
                 <i className="fas fa-globe-americas"></i> Explore The World With Us
               </span>
@@ -183,13 +183,13 @@ const Tour_packages = () => {
                 Curated travel experiences to the world's most breathtaking destinations.
                 Let us craft your perfect journey with expert guides and exclusive packages.
               </p>
-              <div className="landing-hero-actions">
+              <div className="landing-hero-actions" style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
                 <a href="#packages-section" className="btn-primary-custom">
                   <i className="fas fa-compass"></i> Explore Packages
                 </a>
-                <a href="/contact" className="btn-outline-custom">
+                <Link to="/contact" className="btn-outline-custom">
                   <i className="fas fa-headset"></i> Talk to Expert
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -365,13 +365,13 @@ const Tour_packages = () => {
                 Start planning your dream vacation today. Our travel experts are ready to craft
                 the perfect itinerary just for you.
               </p>
-              <div className="landing-hero-actions" style={{ justifyContent: 'center' }}>
-                <a href="/contact" className="btn-primary-custom">
+              <div className="landing-hero-actions" style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <Link to="/contact" className="btn-primary-custom">
                   <i className="fas fa-paper-plane"></i> Plan My Trip
-                </a>
-                <a href="/about" className="btn-outline-custom" style={{ borderColor: '#fff', color: '#fff' }}>
+                </Link>
+                <Link to="/about" className="btn-outline-custom" style={{ borderColor: '#fff', color: '#fff' }}>
                   <i className="fas fa-info-circle"></i> Learn More
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -422,10 +422,6 @@ const Tour_packages = () => {
 
       {/* FOOTER */}
       <Footer />
-
-      <a id="backTotop" href="#" className="to-top-icon">
-        <i className="fas fa-chevron-up"></i>
-      </a>
 
       <div className="header-search-form">
         <div className="container">

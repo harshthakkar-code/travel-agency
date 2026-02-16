@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Header from "./Header";
+import Footer from "./Footer";
 import { supabase } from "./supabaseClient";
 
 const Package_detail = () => {
@@ -26,14 +27,22 @@ const Package_detail = () => {
     email_booking: '',
     phone_booking: '',
     date: '',
-    tourGuide: false,
-    mealsIncluded: false,
-    extraBaggage: false,
-    transfers: false
+    addOns: {}
   });
 
   // Errors state for form validation
   const [errors, setErrors] = useState({});
+
+  // State for accordion
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+
+  // Define available options (fallback to hardcoded if not in pkg or is empty array)
+  const availableOptions = (pkg?.options && pkg.options.length > 0) ? pkg.options : [
+    { name: 'tourGuide', label: 'Tour Guide', price: 34 },
+    { name: 'mealsIncluded', label: 'Meals Included', price: 25 },
+    { name: 'extraBaggage', label: 'Extra Baggage', price: 15 },
+    { name: 'transfers', label: 'Transfers', price: 20 }
+  ];
 
   useEffect(() => {
     const fetchPackage = async () => {
@@ -51,46 +60,28 @@ const Package_detail = () => {
       }
       setLoading(false);
     };
+
+    const fetchReviews = async () => {
+      setLoadingReviews(true);
+      try {
+        const { data, error } = await supabase
+          .from('reviews')
+          .select('*, user:users(first_name, last_name)')
+          .eq('package_id', id)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        setReviews(data || []);
+      } catch (error) {
+        console.error("Error fetching reviews:", error);
+      }
+      setLoadingReviews(false);
+    };
+
     fetchPackage();
+    fetchReviews();
   }, [id]);
 
-  useEffect(() => {
-    if (activeTab === "review") {
-      setLoadingReviews(true);
-
-      const fetchReviews = async () => {
-        try {
-          const { data: reviewsData, error } = await supabase
-            .from('reviews')
-            .select(`
-              *,
-              user:users(first_name, last_name)
-            `)
-            .eq('package_id', id)
-            .order('created_at', { ascending: false })
-            .limit(6);
-
-          if (error) throw error;
-
-          const { data: { user } } = await supabase.auth.getUser();
-
-          setReviews(reviewsData || []);
-          setHasReviewed(user ? reviewsData.some(r => r.user_id === user.id) : false);
-        } catch (err) {
-          console.error("Error fetching reviews:", err);
-          setReviews([]);
-        } finally {
-          setLoadingReviews(false);
-        }
-      };
-
-      fetchReviews();
-    }
-  }, [activeTab, id]);
-
-
-
-  // Add this useEffect after your existing useEffect for fetching package data
   useEffect(() => {
     // Initialize form with localStorage data if available and state is empty
     const storedUser = localStorage.getItem('user');
@@ -107,10 +98,21 @@ const Package_detail = () => {
   // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setBookingData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+
+    if (type === 'checkbox') {
+      setBookingData(prev => ({
+        ...prev,
+        addOns: {
+          ...prev.addOns,
+          [name]: checked
+        }
+      }));
+    } else {
+      setBookingData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
 
     // Clear error for this field when user starts typing
     if (errors[name]) {
@@ -153,57 +155,57 @@ const Package_detail = () => {
     setReviewError("");
 
     if (userRating === 0) {
-      setReviewError("Please select a rating.");
-      return;
-    }
-
-    if (!userComment.trim()) {
-      setReviewError("Please enter a comment.");
+      alert("Please select a rating");
       return;
     }
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
+
       if (!user) {
-        alert("Please login to submit a review.");
+        alert("Please login to submit a review");
         return;
       }
 
-      const newReview = {
-        package_id: id,
-        user_id: user.id,
-        rating: userRating,
-        comment: userComment,
-        created_at: new Date()
-      };
-
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('reviews')
-        .insert([newReview])
-        .select(`
-        *,
-        user:users(first_name, last_name)
-      `)
-        .single();
+        .insert([
+          {
+            package_id: id,
+            user_id: user.id,
+            rating: userRating,
+            comment: userComment
+          }
+        ]);
 
       if (error) throw error;
 
-      // Update local state
-      setReviews(prev => [data, ...prev]);
+      alert("Review submitted successfully!");
       setHasReviewed(true);
-      setUserRating(0);
       setUserComment("");
+      setUserRating(0);
 
+      // Refresh reviews list to show the new review immediately
+      setLoadingReviews(true);
+      try {
+        const { data, error: fetchError } = await supabase
+          .from('reviews')
+          .select('*, user:users(first_name, last_name)')
+          .eq('package_id', id)
+          .order('created_at', { ascending: false });
+
+        if (fetchError) throw fetchError;
+        setReviews(data || []);
+      } catch (fetchError) {
+        console.error("Error refreshing reviews:", fetchError);
+      }
+      setLoadingReviews(false);
     } catch (error) {
-      console.error("Review submission error:", error);
-      setReviewError("Failed to submit review.");
+      console.error("Error submitting review:", error);
+      setReviewError(error.message);
+      alert("Error submitting review: " + error.message);
     }
   };
-
-  const averageRating = reviews.length
-    ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
-    : "0.0";
-
 
   // Handle booking form submission
   const handleBookingSubmit = (e) => {
@@ -226,17 +228,15 @@ const Package_detail = () => {
       groupSize: pkg.group_size,
       rating: pkg.rating,
 
+      // Configuration for dynamic pricing in booking page
+      optionsConfig: availableOptions,
+
       // User booking data
       fullName: bookingData.name_booking,
       email: bookingData.email_booking,
       phone: bookingData.phone_booking,
       travelDate: bookingData.date,
-      addOns: {
-        tourGuide: bookingData.tourGuide,
-        mealsIncluded: bookingData.mealsIncluded,
-        extraBaggage: bookingData.extraBaggage,
-        transfers: bookingData.transfers
-      }
+      addOns: bookingData.addOns
     };
 
     // Store booking data in localStorage
@@ -250,29 +250,9 @@ const Package_detail = () => {
     return (
       <div id="page" className="full-page">
         <Header />
-        <main id="content" className="site-main">
-          <section className="inner-banner-wrap">
-            <div className="inner-baner-container" style={{ backgroundImage: "url(/assets/images/inner-banner.jpg)" }}>
-              <div className="container">
-                <div className="inner-banner-content">
-                  <h1 className="inner-title">Package Detail</h1>
-                </div>
-              </div>
-            </div>
-            <div className="inner-shape"></div>
-          </section>
-          <div className="single-tour-section">
-            <div className="container">
-              <div className="row">
-                <div className="col-lg-8">
-                  <div className="single-tour-inner">
-                    <h2>Loading...</h2>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </main>
+        <div style={{ height: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <h3>Loading Package Details...</h3>
+        </div>
       </div>
     );
   }
@@ -281,29 +261,12 @@ const Package_detail = () => {
     return (
       <div id="page" className="full-page">
         <Header />
-        <main id="content" className="site-main">
-          <section className="inner-banner-wrap">
-            <div className="inner-baner-container" style={{ backgroundImage: "url(/assets/images/inner-banner.jpg)" }}>
-              <div className="container">
-                <div className="inner-banner-content">
-                  <h1 className="inner-title">Package Detail</h1>
-                </div>
-              </div>
-            </div>
-            <div className="inner-shape"></div>
-          </section>
-          <div className="single-tour-section">
-            <div className="container">
-              <div className="row">
-                <div className="col-lg-8">
-                  <div className="single-tour-inner">
-                    <h2 style={{ color: "red" }}>Package not found.</h2>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </main>
+        <div style={{ padding: '100px 0', textAlign: 'center' }}>
+          <h2>Package Not Found</h2>
+          <btn className="btn-primary-custom" onClick={() => navigate('/tour-packages')}>
+            Browse Packages
+          </btn>
+        </div>
       </div>
     );
   }
@@ -313,733 +276,309 @@ const Package_detail = () => {
       {/* ===== HEADER ===== */}
       <Header />
 
-      {/* ===== MAIN CONTENT ===== */}
       <main id="content" className="site-main">
-        {/* Inner Banner */}
-        <section className="inner-banner-wrap">
-          <div className="inner-baner-container" style={{ backgroundImage: "url(/assets/images/inner-banner.jpg)" }}>
-            <div className="container">
-              <div className="inner-banner-content">
-                <h1 className="inner-title">{pkg.title || "Package Detail"}</h1>
+        {/* =================== NEW HERO SECTION =================== */}
+        <section className="package-hero" style={{ backgroundImage: `url(${(pkg.gallery && pkg.gallery[0]) || "/assets/images/img27.jpg"})` }}>
+          <div className="package-hero-overlay"></div>
+          <div className="container">
+            <div className="package-hero-content">
+              <span className="landing-hero-badge">
+                <i className="fas fa-map-marker-alt"></i> {pkg.destination || "United States"}
+              </span>
+              <h1 className="landing-hero-title" style={{ fontSize: '48px', marginBottom: '10px' }}>
+                {pkg.title || "Package Title"}
+              </h1>
+              <div className="package-card-meta" style={{ marginTop: '20px' }}>
+                <span style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}>
+                  <i className="far fa-clock" style={{ color: '#fff' }}></i> {pkg.trip_duration || "7 Days"}
+                </span>
+                <span style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}>
+                  <i className="fas fa-user-friends" style={{ color: '#fff' }}></i> Max: {pkg.group_size || "10"}
+                </span>
+                <span style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}>
+                  <i className="fas fa-star" style={{ color: '#f5a623' }}></i> {pkg.rating || "4.5"} Rating
+                </span>
               </div>
             </div>
           </div>
-          <div className="inner-shape"></div>
         </section>
 
-        {/* Main Content */}
-        <div className="single-tour-section">
+        {/* =================== MAIN CONTENT =================== */}
+        <div className="single-tour-section" style={{ paddingBottom: '80px' }}>
           <div className="container">
             <div className="row">
-              {/* Left: Tour Info & Tabs */}
+              {/* Left Column: Content */}
               <div className="col-lg-8">
-                <div className="single-tour-inner">
-                  <h2>{pkg.title}</h2>
-                  <figure className="feature-image">
-                    <img src={(pkg.gallery && pkg.gallery[0]) || "/assets/images/img27.jpg"} alt="" />
-                    <div className="package-meta text-center">
-                      <ul>
-                        <li>
-                          <i className="far fa-clock"></i>
-                          {pkg.trip_duration || "-"}
-                        </li>
-                        <li>
-                          <i className="fas fa-user-friends"></i>
-                          People: {pkg.group_size || "-"}
-                        </li>
-                        <li>
-                          <i className="fas fa-map-marked-alt"></i>
-                          {pkg.destination || "-"}
-                        </li>
-                      </ul>
-                    </div>
-                  </figure>
+                {/* Modern Tabs */}
+                <div className="modern-tabs">
+                  <ul className="nav nav-tabs" role="tablist">
+                    {['overview', 'program', 'review', 'map'].map((tab) => (
+                      <li className="nav-item" key={tab} style={{ border: 'none' }}>
+                        <button
+                          className={`nav-link ${activeTab === tab ? "active" : ""}`}
+                          onClick={() => setActiveTab(tab)}
+                          style={{ textTransform: 'uppercase', letterSpacing: '1px', border: 'none' }}
+                        >
+                          {tab}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
 
-                  {/* Tabs */}
-                  <div className="tab-container">
-                    <ul className="nav nav-tabs" id="myTab" role="tablist">
-                      <li className="nav-item">
-                        <a
-                          href="#overview"
-                          className={`nav-link ${activeTab === "overview" ? "active" : ""}`}
-                          onClick={(e) => { e.preventDefault(); handleTabClick("overview"); }}
-                        >
-                          DESCRIPTION
-                        </a>
-                      </li>
-                      <li className="nav-item">
-                        <a
-                          href="#program"
-                          className={`nav-link ${activeTab === "program" ? "active" : ""}`}
-                          onClick={(e) => { e.preventDefault(); handleTabClick("program"); }}
-                        >
-                          PROGRAM
-                        </a>
-                      </li>
-                      <li className="nav-item">
-                        <a
-                          href="#review"
-                          className={`nav-link ${activeTab === "review" ? "active" : ""}`}
-                          onClick={(e) => { e.preventDefault(); handleTabClick("review"); }}
-                        >
-                          REVIEW
-                        </a>
-                      </li>
-                      <li className="nav-item">
-                        <a
-                          href="#map"
-                          className={`nav-link ${activeTab === "map" ? "active" : ""}`}
-                          onClick={(e) => { e.preventDefault(); handleTabClick("map"); }}
-                        >
-                          Map
-                        </a>
-                      </li>
-                    </ul>
-                    <div className="tab-content" id="myTabContent">
-                      {/* Overview */}
-                      {activeTab === "overview" && (
-                        <div className="tab-pane fade show active" id="overview">
-                          <p>{pkg.description || "No description provided."}</p>
+                  <div className="tab-content" style={{ padding: '20px 20px', border: '1px solid #ddd' }}>
+                    {/* Tab 1: Overview */}
+                    {activeTab === "overview" && (
+                      <div className="tab-pane fade show active">
+                        <h3 style={{ marginBottom: '20px', fontSize: '24px', fontWeight: '700' }}>Overview</h3>
+                        <p style={{ lineHeight: '1.8', color: '#555' }}>
+                          {pkg.description || "Experience the journey of a lifetime with our carefully curated package. From breathtaking views to cultural immersion, we handle every detail so you can focus on making memories."}
+                        </p>
+
+                        {/* Highlights (Mock) */}
+                        <div style={{ marginTop: '30px', background: '#f9f9f9', padding: '25px', borderRadius: '12px' }}>
+                          <h4 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '15px' }}>Highlights</h4>
+                          <div className="row">
+                            <div className="col-md-6">
+                              <ul style={{ listStyle: 'none', padding: 0 }}>
+                                <li style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}><i className="fas fa-check-circle" style={{ color: '#0791BE' }}></i> 5-Star Accommodations</li>
+                                <li style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}><i className="fas fa-check-circle" style={{ color: '#0791BE' }}></i> Daily Breakfast Included</li>
+                              </ul>
+                            </div>
+                            <div className="col-md-6">
+                              <ul style={{ listStyle: 'none', padding: 0 }}>
+                                <li style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}><i className="fas fa-check-circle" style={{ color: '#0791BE' }}></i> Expert Local Guide</li>
+                                <li style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}><i className="fas fa-check-circle" style={{ color: '#0791BE' }}></i> All Entrance Fees Covered</li>
+                              </ul>
+                            </div>
+                          </div>
                         </div>
-                      )}
-                      {activeTab === "program" && (
-                        <div className="tab-pane fade show active" id="program">
-                          {/* Program */}
-                          <div className="tab-pane" id="program" role="tabpanel" aria-labelledby="program-tab">
-                            <div className="itinerary-content">
-                              <h3>Program <span>({pkg.trip_duration || "N/A"})</span></h3>
-                              {pkg.program && pkg.program.length > 0 ? (
-                                <div className="tour-program-list">
-                                  {pkg.program.map((cityData, index) => (
-                                    <div key={cityData._id || index} className="program-city-item">
-                                      <div className="city-header">
-                                        <h4 className="city-name">
-                                          <i className="fas fa-map-marker-alt"></i>
-                                          {cityData.city}
-                                        </h4>
-                                      </div>
-                                      <div className="city-activities">
-                                        <ul className="activities-list">
-                                          {cityData.activities.map((activity, actIndex) => (
-                                            <li key={actIndex} className="activity-item">
-                                              <i className="far fa-clock"></i>
-                                              {activity}
-                                            </li>
-                                          ))}
-                                        </ul>
-                                      </div>
-                                    </div>
+                      </div>
+                    )}
+
+                    {/* Tab 2: Program */}
+                    {activeTab === "program" && (
+                      <div className="tab-pane fade show active">
+                        <h3 style={{ marginBottom: '20px', fontSize: '24px', fontWeight: '700' }}>Itinerary</h3>
+                        {pkg.program && pkg.program.length > 0 ? (
+                          <div className="tour-program-list">
+                            {pkg.program.map((cityData, index) => (
+                              <div key={cityData._id || index} className="program-city-item" style={{ marginBottom: '20px', paddingLeft: '20px', borderLeft: '3px solid #f0f0f0' }}>
+                                <div className="city-header">
+                                  <h4 className="city-name" style={{ fontSize: '18px', fontWeight: '700', color: '#101F46' }}>
+                                    <span style={{ color: '#0791BE', marginRight: '10px' }}>Day {index + 1}:</span>
+                                    {cityData.city}
+                                  </h4>
+                                </div>
+                                <div className="city-activities" style={{ marginTop: '10px' }}>
+                                  <ul className="activities-list" style={{ listStyle: 'none', padding: 0 }}>
+                                    {cityData.activities.map((activity, actIndex) => (
+                                      <li key={actIndex} className="activity-item" style={{ marginBottom: '5px', color: '#666' }}>
+                                        <i className="far fa-dot-circle" style={{ fontSize: '10px', marginRight: '8px', color: '#ccc' }}></i>
+                                        {activity}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p>Detailed itinerary will be provided upon booking.</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Tab 3: Reviews */}
+                    {activeTab === "review" && (
+                      <div className="tab-pane fade show active">
+                        <h3 style={{ marginBottom: '20px', fontSize: '24px', fontWeight: '700' }}>Reviews</h3>
+                        {loadingReviews ? <p>Loading reviews...</p> : (
+                          <div>
+                            {reviews.length === 0 ? <p>No reviews yet.</p> : (
+                              reviews.map(review => (
+                                <div key={review.id} style={{ borderBottom: '1px solid #f0f0f0', padding: '20px 0' }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                    <strong style={{ fontSize: '16px' }}>{review.user?.first_name || 'Anonymous'}</strong>
+                                    <span style={{ color: '#999', fontSize: '13px' }}>{new Date(review.created_at).toLocaleDateString()}</span>
+                                  </div>
+                                  <div style={{ color: '#f5a623', marginBottom: '8px' }}>
+                                    {[...Array(5)].map((_, i) => (
+                                      <i key={i} className={i < review.rating ? "fas fa-star" : "far fa-star"}></i>
+                                    ))}
+                                  </div>
+                                  <p style={{ color: '#555', fontStyle: 'italic' }}>"{review.comment}"</p>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        )}
+
+                        {!hasReviewed && (
+                          <div style={{ marginTop: '40px', background: '#f8f9fa', padding: '30px', borderRadius: '12px' }}>
+                            <h4 style={{ marginBottom: '20px' }}>Write a Review</h4>
+                            <form onSubmit={handleReviewSubmit}>
+                              <div style={{ marginBottom: '15px' }}>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Your Rating</label>
+                                <div style={{ fontSize: '24px', cursor: 'pointer' }}>
+                                  {[1, 2, 3, 4, 5].map(num => (
+                                    <span key={num} onClick={() => setUserRating(num)} style={{ color: num <= userRating ? '#f5a623' : '#ddd', marginRight: '5px' }}>★</span>
                                   ))}
                                 </div>
-                              ) : (
-                                <p>No program details available for this package.</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      {activeTab === "review" && (
-                        <div className="tab-pane fade show active" id="review">
-                          <div className="summary-review">
-                            <div className="review-score">
-                              <span>{averageRating}</span>
-                            </div>
-                            <div className="rating-start" title={`Rated ${averageRating} out of 5`}>
-                              <span style={{ width: `${(averageRating || 0) * 20}%` }}></span>
-                            </div>
-
-                            <div className="review-score-content">
-                              <h3>
-                                Excellent
-                                <span>({pkg.reviewsCount || reviews.length} reviews)</span>
-                              </h3>
-                              <p>Tincidunt iaculis pede mus lobortis hendrerit ...</p>
-                            </div>
-                          </div>
-
-                          {loadingReviews && <p>Loading reviews...</p>}
-                          {!loadingReviews && reviews.length === 0 && (
-                            <p>No reviews yet. Be the first to review!</p>
-                          )}
-
-                          {reviews.map(review => (
-                            <div key={review._id} style={{ borderBottom: '1px solid #ddd', padding: '10px 0' }}>
-                              <p>
-                                <strong>{review.user?.first_name || 'Anonymous'}</strong> on {new Date(review.created_at).toLocaleDateString()}
-                              </p>
-                              <p>
-                                {[...Array(5)].map((_, i) => (
-                                  <span key={i} style={{ color: i < review.rating ? '#ffc107' : '#e4e5e9' }}>★</span>
-                                ))}
-                              </p>
-                              <p>{review.comment}</p>
-                            </div>
-                          ))}
-
-                          {!hasReviewed ? (
-                            <form onSubmit={handleReviewSubmit} style={{ marginTop: '20px' }}>
-                              <h4>Add Your Review</h4>
-                              {reviewError && <p style={{ color: 'red' }}>{reviewError}</p>}
-
-                              <div className="rating-input" style={{ fontSize: '1.5rem', userSelect: 'none' }}>
-                                {[1, 2, 3, 4, 5].map(num => (
-                                  <span
-                                    key={num}
-                                    style={{ cursor: 'pointer', color: num <= userRating ? '#ffc107' : '#e4e5e9' }}
-                                    onClick={() => setUserRating(num)}
-                                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') setUserRating(num); }}
-                                    role="radio"
-                                    tabIndex={0}
-                                    aria-checked={userRating === num}
-                                    aria-label={`${num} Star${num > 1 ? 's' : ''}`}
-                                  >
-                                    ★
-                                  </span>
-                                ))}
                               </div>
-
-                              <textarea
-                                rows={4}
-                                placeholder="Write your review here"
-                                value={userComment}
-                                onChange={e => setUserComment(e.target.value)}
-                                style={{ width: '100%', marginTop: '10px', padding: '8px' }}
-                              />
-                              <div className="publish-action" style={{ marginTop: '10px', padding: '8px 16px' }}>
-                                <input type="submit" name="Submit" value="Submit" />
+                              <div style={{ marginBottom: '15px' }}>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600' }}>Your Comment</label>
+                                <textarea
+                                  value={userComment}
+                                  onChange={e => setUserComment(e.target.value)}
+                                  rows="4"
+                                  className="form-control"
+                                  style={{ width: '100%', padding: '10px', border: '1px solid #ddd', borderRadius: '8px' }}
+                                  placeholder="Tell us about your experience..."
+                                ></textarea>
                               </div>
+                              <button type="submit" className="btn-book-now">Submit Review</button>
                             </form>
-                          ) : (
-                            <p style={{ marginTop: '20px', fontStyle: 'italic', color: 'green' }}>
-                              You have already submitted a review for this package.
-                            </p>
-                          )}
-                        </div>
-                      )}
-                      {activeTab === "map" && (
-                        <div className="tab-pane fade show active" id="map">
-                          <iframe
-                            src={pkg.map_url || "https://www.google.com/maps/embed?pb=..."}
-                            height="450"
-                            allowFullScreen
-                            title="map"
-                          ></iframe>
-                        </div>
-                      )}
-                    </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Tab 4: Map */}
+                    {activeTab === "map" && (
+                      <div className="tab-pane fade show active">
+                        <iframe
+                          src={pkg.map_url || "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3151.835434509374!2d144.9537353153169!3d-37.81720997975171!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad642af0f11fd81%3A0xf577d6a32f7f1f84!2sFederation%20Square!5e0!3m2!1sen!2sau!4v1614316040854!5m2!1sen!2sau"}
+                          width="100%"
+                          height="450"
+                          allowFullScreen
+                          style={{ border: 0, borderRadius: '12px' }}
+                          title="map"
+                        ></iframe>
+                      </div>
+                    )}
                   </div>
-                  {/* Gallery */}
-                  {/* <div className="single-tour-gallery">
-                    <h3>GALLERY / PHOTOS</h3>
-                    <div className="single-tour-slider">
-                      {(pkg.gallery && pkg.gallery.length > 0 ? pkg.gallery : [
-                        "assets/images/img28.jpg",
-                        "assets/images/img29.jpg",
-                        "assets/images/img32.jpg",
-                        "assets/images/img33.jpg"
-                      ]).map((imgUrl, idx) => (
-                        <div className="single-tour-item" key={idx}>
-                          <figure className="feature-image">
-                            <img src={imgUrl} alt="" />
-                          </figure>
-                        </div>
-                      ))}
-                    </div>
-                  </div> */}
                 </div>
               </div>
 
-              {/* Right: Sidebar */}
+              {/* Right Column: Sticky Sidebar */}
               <div className="col-lg-4">
-                <div className="sidebar">
-                  <div className="package-price">
-                    <h5 className="price">
-                      <span>
-                        {pkg.sale_price
-                          ? `$${pkg.sale_price}`
-                          : pkg.regular_price
-                            ? `$${pkg.regular_price}`
-                            : "$649"}
-                      </span>
-                      {" "} / per person
-                    </h5>
-                    <div className="start-wrap">
-                      <div className="rating-start" title="Rated 5 out of 5">
-                        <span style={{ width: `${(pkg.rating || 5) * 20}%` }}></span>
+                <div className="booking-card">
+                  <div className="booking-price-header">
+                    <div>
+                      <span className="booking-per-person">Starting from</span>
+                      <div className="booking-price">
+                        ${Number(pkg.sale_price || pkg.regular_price || 0).toLocaleString()} <span style={{ fontSize: '14px', color: '#787878', fontWeight: '400' }}>/ person</span>
                       </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ color: '#f5a623', fontSize: '14px' }}>
+                        <i className="fas fa-star"></i> <strong>{pkg.rating || "4.8"}</strong>
+                      </div>
+                      <span style={{ fontSize: '12px', color: '#999' }}>({reviews.length || 120} reviews)</span>
                     </div>
                   </div>
 
-                  {/* Updated Booking Form */}
-                  <div className="widget-bg booking-form-wrap">
-                    <h4 className="bg-title">Booking</h4>
-                    <form className="booking-form" onSubmit={handleBookingSubmit}>
-                      <div className="row">
-                        <div className="col-sm-12">
-                          <div className="form-group">
-                            <input
-                              name="name_booking"
-                              type="text"
-                              placeholder="Full Name *"
-                              value={bookingData.name_booking}
-                              onChange={handleInputChange}
-                              className={errors.name_booking ? 'is-invalid' : ''}
-                            />
-                            {errors.name_booking && (
-                              <div className="invalid-feedback" style={{
-                                display: 'block',
-                                color: '#dc3545',
-                                fontSize: '0.875em',
-                                marginTop: '0.25rem'
-                              }}>
-                                {errors.name_booking}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="col-sm-12">
-                          <div className="form-group">
-                            <input
-                              name="email_booking"
-                              type="email"
-                              placeholder="Email *"
-                              value={bookingData.email_booking}
-                              onChange={handleInputChange}
-                              className={errors.email_booking ? 'is-invalid' : ''}
-                            />
-                            {errors.email_booking && (
-                              <div className="invalid-feedback" style={{
-                                display: 'block',
-                                color: '#dc3545',
-                                fontSize: '0.875em',
-                                marginTop: '0.25rem'
-                              }}>
-                                {errors.email_booking}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="col-sm-12">
-                          <div className="form-group">
-                            <input
-                              name="phone_booking"
-                              type="tel"
-                              placeholder="Phone Number *"
-                              value={bookingData.phone_booking}
-                              onChange={handleInputChange}
-                              className={errors.phone_booking ? 'is-invalid' : ''}
-                            />
-                            {errors.phone_booking && (
-                              <div className="invalid-feedback" style={{
-                                display: 'block',
-                                color: '#dc3545',
-                                fontSize: '0.875em',
-                                marginTop: '0.25rem'
-                              }}>
-                                {errors.phone_booking}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="col-sm-12">
-                          <div className="form-group">
-                            <input
-                              className={`input-date-picker ${errors.date ? 'is-invalid' : ''}`}
-                              type="date"
-                              name="date"
-                              value={bookingData.date}
-                              onChange={handleInputChange}
-                              placeholder="Date *"
-                              min={new Date().toISOString().split('T')[0]}
-                            />
-                            {errors.date && (
-                              <div className="invalid-feedback" style={{
-                                display: 'block',
-                                color: '#dc3545',
-                                fontSize: '0.875em',
-                                marginTop: '0.25rem'
-                              }}>
-                                {errors.date}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="col-sm-12">
-                          <h4 className="">Add Options</h4>
-                        </div>
-                        <div className="col-sm-6" style={{ paddingLeft: '14px' }}>
-                          <div className="form-group">
-                            <label className="checkbox-list">
-                              <input
-                                type="checkbox"
-                                name="tourGuide"
-                                checked={bookingData.tourGuide}
-                                onChange={handleInputChange}
-                              />
-                              <span className="custom-checkbox"></span>
-                              Tour guide
-                            </label>
-                          </div>
-                        </div>
-                        <div className="col-sm-6" style={{ paddingLeft: '14px' }}>
-                          <div className="form-group">
-                            <label className="checkbox-list">
-                              <input
-                                type="checkbox"
-                                name="mealsIncluded"
-                                checked={bookingData.mealsIncluded}
-                                onChange={handleInputChange}
-                              />
-                              <span className="custom-checkbox"></span>
-                              Meals included
-                            </label>
-                          </div>
-                        </div>
-                        <div className="col-sm-6" style={{ paddingLeft: '14px' }}>
-                          <div className="form-group">
-                            <label className="checkbox-list">
-                              <input
-                                type="checkbox"
-                                name="extraBaggage"
-                                checked={bookingData.extraBaggage}
-                                onChange={handleInputChange}
-                              />
-                              <span className="custom-checkbox"></span>
-                              Extra baggage
-                            </label>
-                          </div>
-                        </div>
-                        <div className="col-sm-6" style={{ paddingLeft: '14px' }}>
-                          <div className="form-group">
-                            <label className="checkbox-list">
-                              <input
-                                type="checkbox"
-                                name="transfers"
-                                checked={bookingData.transfers}
-                                onChange={handleInputChange}
-                              />
-                              <span className="custom-checkbox"></span>
-                              Transfers
-                            </label>
-                          </div>
-                        </div>
-                        <div className="col-sm-12">
-                          <div className="form-group submit-btn">
-                            <input type="submit" name="submit" value="Book Now" />
-                          </div>
-                        </div>
+                  <form onSubmit={handleBookingSubmit}>
+                    <div className="form-group" style={{ marginBottom: '15px' }}>
+                      <label style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: '#888', marginBottom: '5px', display: 'block' }}>Travel Date</label>
+                      <input
+                        type="date"
+                        name="date"
+                        value={bookingData.date}
+                        onChange={handleInputChange}
+                        className="form-control"
+                        style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd' }}
+                        min={new Date().toISOString().split('T')[0]}
+                      />
+                      {errors.date && <small style={{ color: 'red' }}>{errors.date}</small>}
+                    </div>
+
+                    <div className="row" style={{ marginBottom: '15px' }}>
+                      <div className="col-12" style={{ marginBottom: '10px' }}>
+                        <label style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: '#888', marginBottom: '5px', display: 'block' }}>Your Details</label>
+                        <input type="text" name="name_booking" placeholder="Full Name" value={bookingData.name_booking} onChange={handleInputChange} style={{ width: '100%', padding: '12px', marginBottom: '10px', borderRadius: '8px', border: '1px solid #ddd' }} />
+                        {errors.name_booking && <small style={{ color: 'red', display: 'block' }}>{errors.name_booking}</small>}
+
+                        <input type="email" name="email_booking" placeholder="Email" value={bookingData.email_booking} onChange={handleInputChange} style={{ width: '100%', padding: '12px', marginBottom: '10px', borderRadius: '8px', border: '1px solid #ddd' }} />
+                        {errors.email_booking && <small style={{ color: 'red', display: 'block' }}>{errors.email_booking}</small>}
+
+                        <input type="tel" name="phone_booking" placeholder="Phone" value={bookingData.phone_booking} onChange={handleInputChange} style={{ width: '100%', padding: '12px', marginBottom: '10px', borderRadius: '8px', border: '1px solid #ddd' }} />
+                        {errors.phone_booking && <small style={{ color: 'red', display: 'block' }}>{errors.phone_booking}</small>}
                       </div>
-                    </form>
-                  </div>
+                    </div>
 
-                  {/* Static widgets remain unchanged */}
-                  <div className="widget-bg information-content text-center">
-                    <h5>TRAVEL TIPS</h5>
-                    <h3>NEED TRAVEL RELATED TIPS & INFORMATION</h3>
-                    <p>Mollit voluptatem perspiciatis convallis elementum corporis quo veritatis aliquid blandit, blandit torquent, odit placeat.</p>
-                    <a href="#" className="button-primary">GET A QUOTE</a>
-                  </div>
+                    <div className="accordion" style={{ marginBottom: '20px', border: '1px solid #eee', borderRadius: '8px', overflow: 'hidden' }}>
+                      <div style={{ background: '#f8f9fa', padding: '10px 15px', cursor: 'pointer', fontSize: '14px', fontWeight: '600', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} onClick={() => setIsOptionsOpen(!isOptionsOpen)}>
+                        <span>Add Options (Optional)</span>
+                        <i className={`fas fa-chevron-${isOptionsOpen ? 'up' : 'down'}`}></i>
+                      </div>
+                      {isOptionsOpen && (
+                        <div style={{ padding: '15px' }}>
+                          {availableOptions.map((opt) => (
+                            <div key={opt.name} style={{ display: 'flex', alignItems: 'center', marginBottom: '10px', cursor: 'pointer' }} onClick={(e) => {
+                              // Prevent triggering when clicking the checkbox directly (it already handles it)
+                              if (e.target.type !== 'checkbox') {
+                                handleInputChange({
+                                  target: {
+                                    name: opt.name,
+                                    type: 'checkbox',
+                                    checked: !bookingData.addOns[opt.name]
+                                  }
+                                });
+                              }
+                            }}>
+                              <input
+                                type="checkbox"
+                                className="booking-addon-checkbox"
+                                name={opt.name}
+                                checked={!!bookingData.addOns[opt.name]}
+                                onChange={handleInputChange}
+                                style={{
+                                  appearance: 'auto',
+                                  WebkitAppearance: 'checkbox',
+                                  MozAppearance: 'checkbox',
+                                  marginRight: '10px',
+                                  width: '18px',
+                                  height: '18px',
+                                  cursor: 'pointer',
+                                  display: 'inline-block',
+                                  position: 'relative',
+                                  flexShrink: 0,
+                                  opacity: '1',
+                                  visibility: 'visible',
+                                  border: '2px solid #0791BE',
+                                  backgroundColor: 'white',
+                                  accentColor: '#0791BE'
+                                }}
+                              />
+                              <span style={{ fontSize: '14px', fontWeight: '500' }}>{opt.label}</span>
+                              {opt.price && (
+                                <span style={{ marginLeft: 'auto', fontSize: '13px', color: '#666' }}>
+                                  +${opt.price}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
 
-                  <div className="travel-package-content text-center" style={{ backgroundImage: "url(/assets/images/img11.jpg)" }}>
-                    <h5>MORE PACKAGES</h5>
-                    <h3>OTHER TRAVEL PACKAGES</h3>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus.</p>
-                    <ul>
-                      <li>
-                        <a href="#"><i className="far fa-arrow-alt-circle-right"></i>Vacation packages</a>
-                      </li>
-                      <li>
-                        <a href="#"><i className="far fa-arrow-alt-circle-right"></i>Vacation packages</a>
-                      </li>
-                      <li>
-                        <a href="#"><i className="far fa-arrow-alt-circle-right"></i>Vacation packages</a>
-                      </li>
-                      <li>
-                        <a href="#"><i className="far fa-arrow-alt-circle-right"></i>Vacation packages</a>
-                      </li>
-                    </ul>
-                  </div>
+                    <button type="submit" className="btn-book-now" style={{ width: '100%', padding: '15px', fontSize: '16px' }}>
+                      Proceed to Booking
+                    </button>
+                    <p style={{ textAlign: 'center', fontSize: '12px', color: '#999', marginTop: '10px' }}>
+                      You won't be charged yet
+                    </p>
+                  </form>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Subscribe Section */}
-        <section className="subscribe-section" style={{ backgroundImage: "url(/assets/images/img16.jpg)" }}>
-          <div className="container">
-            <div className="row">
-              <div className="col-lg-7">
-                <div className="section-heading section-heading-white">
-                  <h5 className="dash-style">HOLIDAY PACKAGE OFFER</h5>
-                  <h2>HOLIDAY SPECIAL 25% OFF !</h2>
-                  <h4>Sign up now to recieve hot special offers and information about the best tour packages, updates and discounts !!</h4>
-                  <div className="newsletter-form">
-                    <form>
-                      <input type="email" name="s" placeholder="Your Email Address" />
-                      <input type="submit" name="signup" value="SIGN UP NOW!" />
-                    </form>
-                  </div>
-                  <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis, pulvinar dapibus leo. Eaque adipiscing, luctus eleifend temporibus occaecat luctus eleifend tempo ribus.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
       </main>
 
       {/* ===== FOOTER ===== */}
-      <footer id="colophon" className="site-footer footer-primary">
-        <div className="top-footer">
-          <div className="container">
-            <div className="row">
-              <div className="col-lg-3 col-md-6">
-                <aside className="widget widget_text">
-                  <h3 className="widget-title">About Travel</h3>
-                  <div className="textwidget widget-text">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut
-                    elit tellus, luctus nec ullamcorper mattis, pulvinar dapibus
-                    leo.
-                  </div>
-                  <div className="award-img">
-                    <a href="#">
-                      <img src="/assets/images/logo6.png" alt="" />
-                    </a>
-                    <a href="#">
-                      <img src="/assets/images/logo2.png" alt="" />
-                    </a>
-                  </div>
-                </aside>
-              </div>
-              <div className="col-lg-3 col-md-6">
-                <aside className="widget widget_text">
-                  <h3 className="widget-title">CONTACT INFORMATION</h3>
-                  <div className="textwidget widget-text">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                    <ul>
-                      <li>
-                        <a href="#">
-                          <i className="fas fa-phone-alt"></i> +01 (977) 2599
-                          12
-                        </a>
-                      </li>
-                      <li>
-                        <a href="#">
-                          <i className="fas fa-envelope"></i>{" "}
-                          <span
-                            className="__cf_email__"
-                            data-cfemail="bcdfd3d1ccddd2c5fcd8d3d1ddd5d292dfd3d1"
-                          >
-                            [email&#160;protected]
-                          </span>
-                        </a>
-                      </li>
-                      <li>
-                        <i className="fas fa-map-marker-alt"></i> 3146 Koontz,
-                        California
-                      </li>
-                    </ul>
-                  </div>
-                </aside>
-              </div>
-              <div className="col-lg-3 col-md-6">
-                <aside className="widget widget_recent_post">
-                  <h3 className="widget-title">Latest Post</h3>
-                  <ul>
-                    <li>
-                      <h5>
-                        <a href="#">Life is a beautiful journey not a destination</a>
-                      </h5>
-                      <div className="entry-meta">
-                        <span className="post-on">
-                          <a href="#">August 17, 2021</a>
-                        </span>
-                        <span className="comments-link">
-                          <a href="#">No Comments</a>
-                        </span>
-                      </div>
-                    </li>
-                    <li>
-                      <h5>
-                        <a href="#">Take only memories, leave only footprints</a>
-                      </h5>
-                      <div className="entry-meta">
-                        <span className="post-on">
-                          <a href="#">August 17, 2021</a>
-                        </span>
-                        <span className="comments-link">
-                          <a href="#">No Comments</a>
-                        </span>
-                      </div>
-                    </li>
-                  </ul>
-                </aside>
-              </div>
-              <div className="col-lg-3 col-md-6">
-                <aside className="widget widget_newslatter">
-                  <h3 className="widget-title">SUBSCRIBE US</h3>
-                  <div className="widget-text">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                  </div>
-                  <form className="newslatter-form">
-                    <input type="email" name="s" placeholder="Your Email.." />
-                    <input type="submit" name="s" value="SUBSCRIBE NOW" />
-                  </form>
-                </aside>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="buttom-footer">
-          <div className="container">
-            <div className="row align-items-center">
-              <div className="col-md-5">
-                <div className="footer-menu">
-                  <ul>
-                    <li>
-                      <a href="#">Privacy Policy</a>
-                    </li>
-                    <li>
-                      <a href="#">Term & Condition</a>
-                    </li>
-                    <li>
-                      <a href="#">FAQ</a>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              <div className="col-md-2 text-center">
-                <div className="footer-logo">
-                  <a href="#">
-                    <img src="/assets/images/travele-logo.png" alt="" />
-                  </a>
-                </div>
-              </div>
-              <div className="col-md-5">
-                <div className="copy-right text-right">
-                  Copyright © 2021 Travele. All rights reserveds
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
-
-      {/* Back to top button */}
-      <a id="backTotop" href="#" className="to-top-icon">
-        <i className="fas fa-chevron-up"></i>
-      </a>
-
-      {/* Custom search field */}
-      <div className="header-search-form">
-        <div className="container">
-          <div className="header-search-container">
-            <form className="search-form" role="search" method="get">
-              <input type="text" name="s" placeholder="Enter your text..." />
-            </form>
-            <a href="#" className="search-close">
-              <i className="fas fa-times"></i>
-            </a>
-          </div>
-        </div>
-      </div>
-      {/* Add CSS for error styling and program styling */}
-      <style jsx>{`
-  .is-invalid {
-    border: 1px solid #dc3545 !important;
-    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
-  }
-  .invalid-feedback {
-    width: 100%;
-    margin-top: 0.25rem;
-    font-size: 0.875em;
-    color: #dc3545;
-  }
-  
-  /* Program Styles */
-  .tour-program-list {
-    margin-top: 20px;
-  }
-  
-  .program-city-item {
-    margin-bottom: 25px;
-    border: 1px solid #e1e1e1;
-    border-radius: 5px;
-    overflow: hidden;
-  }
-  
-  .city-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 15px 20px;
-    margin: 0;
-  }
-  
-  .city-name {
-    color: #fff;
-    font-size: 18px;
-    font-weight: 600;
-    margin: 0;
-    display: flex;
-    align-items: center;
-  }
-  
-  .city-name i {
-    color: #fff;
-    margin-right: 10px;
-    font-size: 16px;
-  }
-  
-  .city-activities {
-    padding: 0;
-    background: #f8f9fa;
-  }
-  
-  .activities-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  
-  .activity-item {
-    padding: 12px 20px;
-    border-bottom: 1px solid #e9ecef;
-    font-size: 14px;
-    color: #555;
-    display: flex;
-    align-items: center;
-    background: #fff;
-    transition: background-color 0.2s ease;
-  }
-  
-  .activity-item:hover {
-    background-color: #f8f9fa;
-  }
-  
-  .activity-item:last-child {
-    border-bottom: none;
-  }
-  
-  .activity-item i {
-    color: #28a745;
-    margin-right: 12px;
-    font-size: 14px;
-    min-width: 16px;
-  }
-`}</style>
-
-      {/* Add CSS for error styling */}
-      <style jsx>{`
-        .is-invalid {
-          border: 1px solid #dc3545 !important;
-          box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
-        }
-        .invalid-feedback {
-          width: 100%;
-          margin-top: 0.25rem;
-          font-size: 0.875em;
-          color: #dc3545;
-        }
-      `}</style>
+      <Footer />
     </div>
   );
 };
