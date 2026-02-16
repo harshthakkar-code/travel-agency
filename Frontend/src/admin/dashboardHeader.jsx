@@ -1,15 +1,15 @@
-// src/components/admin/DashboardHeader.jsx
 import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import logoImg from '../admin/assets/images/logo.png';
 import 'popper.js';
 import userImg from '../admin/assets/images/comment.jpg';
 import { useAuth } from "../contexts/AuthContext";
 
-
-
 const DashboardHeader = () => {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const { logout } = useAuth();
+  const navigate = useNavigate();
+
   // Toggle user dropdown
   const toggleUserDropdown = () => {
     setShowUserDropdown(!showUserDropdown);
@@ -20,7 +20,7 @@ const DashboardHeader = () => {
     try {
       await logout(); // CHANGED: Use Firebase logout instead of localStorage
       setShowUserDropdown(false);
-      window.location.href = '/';
+      navigate('/');
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -47,9 +47,9 @@ const DashboardHeader = () => {
     <div className="dashboard-header sticky-header">
       <div className="content-left logo-section pull-left">
         <h1>
-          <a href="/admin/dashboard">
+          <Link to="/admin/dashboard">
             <img src={logoImg} alt="Logo" />
-          </a>
+          </Link>
         </h1>
       </div>
 

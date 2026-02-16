@@ -3,7 +3,7 @@ import { useAuth } from "../contexts/AuthContext";
 
 import bgImage from '../admin/assets/images/bg.jpg';
 import logoImg from '../admin/assets/images/logo.png';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const Login = () => {
@@ -69,9 +69,9 @@ const Login = () => {
       <div className="auth-card">
         <form className="login-from" onSubmit={handleLogin} noValidate>
           <div className="auth-header">
-            <a href="/">
+            <Link to="/">
               <img src={logoImg} alt="Logo" />
-            </a>
+            </Link>
             <h3>Welcome Back</h3>
             <p>Please login to your account</p>
           </div>
@@ -135,12 +135,12 @@ const Login = () => {
           </div>
 
           <div className="auth-footer" style={{ justifyContent: 'space-between', display: 'flex' }}>
-            <a href="/user/register" className="for-pass">
+            <Link to="/user/register" className="for-pass">
               Create Account
-            </a>
-            <a href="/admin/forgot" className="for-pass">
+            </Link>
+            <Link to="/admin/forgot" className="for-pass">
               Forgot Password?
-            </a>
+            </Link>
           </div>
         </form>
       </div>

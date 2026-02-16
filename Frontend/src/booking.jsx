@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
 import { supabase } from "./supabaseClient";
+import { Link } from "react-router-dom";
 
 const Booking = () => {
   // State for form data
@@ -25,7 +26,6 @@ const Booking = () => {
     state: "",
     postalCode: "",
     additionalInfo: "",
-    acceptTerms: false,
   });
 
   // Package data from localStorage
@@ -239,10 +239,6 @@ const Booking = () => {
       newErrors.postalCode = "Postal Code is required";
     }
 
-    if (!formData.acceptTerms) {
-      newErrors.acceptTerms = "You must accept the terms and conditions";
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -338,556 +334,487 @@ const Booking = () => {
   };
 
   return (
-    <>
-      <div id="page" className="full-page">
-        <Header />
+    <div id="page" className="full-page">
+      <Header />
 
-        <main id="content" className="site-main">
-          <section className="inner-banner-wrap">
-            <div
-              className="inner-baner-container"
-              style={{
-                backgroundImage: "url(/assets/images/inner-banner.jpg)",
-              }}
-            >
-              <div className="container">
-                <div className="inner-banner-content">
-                  <h1 className="inner-title">Booking</h1>
-                  {packageData && (
-                    <p style={{ color: "#fff", marginTop: "10px" }}>
-                      Package: {packageData.packageTitle}
-                    </p>
-                  )}
+      <main id="content" className="site-main">
+        {/* =================== HERO SECTION =================== */}
+        <section className="booking-hero-section" style={{
+          backgroundImage: "url(/assets/images/slider-banner-1.jpg)",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          minHeight: '60vh',
+          display: 'flex',
+          alignItems: 'center',
+          position: 'relative',
+          paddingTop: '120px',
+          paddingBottom: '80px'
+        }}>
+          <div className="overlay" style={{
+            background: 'linear-gradient(135deg, rgba(7, 145, 190, 0.88) 0%, rgba(16, 31, 70, 0.88) 100%)',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0
+          }}></div>
+          <div className="container" style={{ position: 'relative', zIndex: 2, color: '#fff', textAlign: 'center' }}>
+            <span style={{
+              display: 'inline-block',
+              padding: '10px 24px',
+              background: 'rgba(255,255,255,0.25)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '50px',
+              marginBottom: '25px',
+              fontSize: '13px',
+              letterSpacing: '2px',
+              textTransform: 'uppercase',
+              fontWeight: '600',
+              border: '1px solid rgba(255,255,255,0.3)'
+            }}>
+              <i className="fas fa-lock" style={{ marginRight: '10px' }}></i>
+              Secure Checkout
+            </span>
+            <h1 style={{
+              fontSize: '60px',
+              fontWeight: '900',
+              marginBottom: '20px',
+              textShadow: '0 4px 20px rgba(0,0,0,0.4)',
+              lineHeight: '1.2',
+              letterSpacing: '-1px',
+              color: '#fff'
+            }}>
+              Secure Your <span style={{ color: '#F56960' }}>Adventure</span>
+            </h1>
+            <p style={{
+              fontSize: '18px',
+              maxWidth: '700px',
+              margin: '0 auto',
+              opacity: 0.95,
+              lineHeight: '1.6',
+              fontWeight: '400',
+              textShadow: '0 2px 8px rgba(0,0,0,0.3)'
+            }}>
+              Don't miss out on this incredible journey. Complete your booking details below and get ready for an unforgettable travel experience.
+            </p>
+          </div>
+        </section>
+
+        <section style={{ padding: '80px 0', background: '#f8f9fa' }}>
+          <div className="container">
+            {/* Step Progress Bar */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              marginBottom: '50px',
+              gap: '20px',
+              flexWrap: 'wrap'
+            }}>
+              {[
+                { step: 1, label: 'Package Detail', active: true, done: true },
+                { step: 2, label: 'Your Details', active: true, done: false },
+                { step: 3, label: 'Finish', active: false, done: false }
+              ].map((s, idx) => (
+                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: s.active ? '#0791BE' : '#fff',
+                    color: s.active ? '#fff' : '#888',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: '700',
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.05)',
+                    border: s.active ? 'none' : '1px solid #ddd'
+                  }}>
+                    {s.done ? <i className="fas fa-check"></i> : s.step}
+                  </div>
+                  <span style={{ fontWeight: '600', color: s.active ? '#101F46' : '#888' }}>{s.label}</span>
+                  {idx < 2 && <div style={{ width: '40px', height: '2px', background: '#ddd', marginLeft: '10px' }}></div>}
                 </div>
-              </div>
+              ))}
             </div>
-            <div className="inner-shape"></div>
-          </section>
 
-          <div className="step-section booking-section">
-            <div className="container">
-              <div className="step-link-wrap">
-                <div className="step-item active">
-                  Package Detail
-                  <a href="#" className="step-icon"></a>
-                </div>
-                <div className="step-item active">
-                  Your Details
-                  <a href="#" className="step-icon"></a>
-                </div>
-                <div className="step-item">
-                  Finish
-                  <a href="#" className="step-icon"></a>
-                </div>
-              </div>
-
-              <div className="row">
-                <div className="col-lg-8 right-sidebar">
-                  <div className="booking-form-wrap">
-                    {/* Your Details Section */}
-                    <div className="booking-content">
-                      <div className="form-title">
-                        <span>1</span>
-                        <h3>Your Details</h3>
-                      </div>
-
-                      <div className="row">
-                        <div className="col-sm-6">
-                          <div className="form-group">
-                            <label>First name*</label>
-                            <input
-                              type="text"
-                              className={`form-control ${errors.firstName ? "is-invalid" : ""
-                                }`}
-                              name="firstName"
-                              value={formData.firstName}
-                              onChange={handleInputChange}
-                            />
-                            {errors.firstName && (
-                              <div
-                                className="invalid-feedback"
-                                style={{
-                                  display: "block",
-                                  color: "#dc3545",
-                                  fontSize: "0.875em",
-                                  marginTop: "0.25rem",
-                                }}
-                              >
-                                {errors.firstName}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="col-sm-6">
-                          <div className="form-group">
-                            <label>Last name*</label>
-                            <input
-                              type="text"
-                              className={`form-control ${errors.lastName ? "is-invalid" : ""
-                                }`}
-                              name="lastName"
-                              value={formData.lastName}
-                              onChange={handleInputChange}
-                            />
-                            {errors.lastName && (
-                              <div
-                                className="invalid-feedback"
-                                style={{
-                                  display: "block",
-                                  color: "#dc3545",
-                                  fontSize: "0.875em",
-                                  marginTop: "0.25rem",
-                                }}
-                              >
-                                {errors.lastName}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="col-sm-6">
-                          <div className="form-group">
-                            <label>Email*</label>
-                            <input
-                              type="email"
-                              className={`form-control ${errors.email ? "is-invalid" : ""
-                                }`}
-                              name="email"
-                              value={formData.email}
-                              onChange={handleInputChange}
-                            />
-                            {errors.email && (
-                              <div
-                                className="invalid-feedback"
-                                style={{
-                                  display: "block",
-                                  color: "#dc3545",
-                                  fontSize: "0.875em",
-                                  marginTop: "0.25rem",
-                                }}
-                              >
-                                {errors.email}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="col-sm-6">
-                          <div className="form-group">
-                            <label>Confirm Email*</label>
-                            <input
-                              type="email"
-                              className={`form-control ${errors.confirmEmail ? "is-invalid" : ""
-                                }`}
-                              name="confirmEmail"
-                              value={formData.confirmEmail}
-                              onChange={handleInputChange}
-                            />
-                            {errors.confirmEmail && (
-                              <div
-                                className="invalid-feedback"
-                                style={{
-                                  display: "block",
-                                  color: "#dc3545",
-                                  fontSize: "0.875em",
-                                  marginTop: "0.25rem",
-                                }}
-                              >
-                                {errors.confirmEmail}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="col-sm-6">
-                          <div className="form-group">
-                            <label>Phone*</label>
-                            <input
-                              type="tel"
-                              className={`form-control ${errors.phone ? "is-invalid" : ""
-                                }`}
-                              name="phone"
-                              value={formData.phone}
-                              onChange={handleInputChange}
-                            />
-                            {errors.phone && (
-                              <div
-                                className="invalid-feedback"
-                                style={{
-                                  display: "block",
-                                  color: "#dc3545",
-                                  fontSize: "0.875em",
-                                  marginTop: "0.25rem",
-                                }}
-                              >
-                                {errors.phone}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
+            <div className="row">
+              <div className="col-lg-8">
+                {/* Section 1: Personal Details */}
+                <div style={{
+                  background: '#fff',
+                  borderRadius: '20px',
+                  padding: '40px',
+                  marginBottom: '30px',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.05)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '30px' }}>
+                    <div style={{ width: '45px', height: '45px', background: 'rgba(7, 145, 190, 0.1)', color: '#0791BE', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                      <i className="fas fa-user"></i>
                     </div>
+                    <h3 style={{ margin: 0, fontSize: '24px', fontWeight: '700', color: '#101F46' }}>Your Personal Information</h3>
+                  </div>
 
-                    {/* Billing Address Section */}
-                    <div className="booking-content">
-                      <div className="form-title">
-                        <span>2</span>
-                        <h3>Billing Address</h3>
-                      </div>
-
-                      <div className="row">
-                        <div className="col-sm-12">
-                          <div className="form-group">
-                            <label>Country*</label>
-                            <input
-                              type="text"
-                              className={`form-control ${errors.country ? "is-invalid" : ""
-                                }`}
-                              name="country"
-                              value={formData.country}
-                              onChange={handleInputChange}
-                              placeholder="Enter your country"
-                            />
-                            {errors.country && (
-                              <div
-                                className="invalid-feedback"
-                                style={{
-                                  display: "block",
-                                  color: "#dc3545",
-                                  fontSize: "0.875em",
-                                  marginTop: "0.25rem",
-                                }}
-                              >
-                                {errors.country}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="row">
-                        <div className="col-sm-6">
-                          <div className="form-group">
-                            <label>Street line 1*</label>
-                            <input
-                              type="text"
-                              className={`form-control ${errors.street1 ? "is-invalid" : ""
-                                }`}
-                              name="street1"
-                              value={formData.street1}
-                              onChange={handleInputChange}
-                            />
-                            {errors.street1 && (
-                              <div
-                                className="invalid-feedback"
-                                style={{
-                                  display: "block",
-                                  color: "#dc3545",
-                                  fontSize: "0.875em",
-                                  marginTop: "0.25rem",
-                                }}
-                              >
-                                {errors.street1}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="col-sm-6">
-                          <div className="form-group">
-                            <label>Street line 2</label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              name="street2"
-                              value={formData.street2}
-                              onChange={handleInputChange}
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="row">
-                        <div className="col-md-6 col-sm-12">
-                          <div className="form-group">
-                            <label>City*</label>
-                            <input
-                              type="text"
-                              className={`form-control ${errors.city ? "is-invalid" : ""
-                                }`}
-                              name="city"
-                              value={formData.city}
-                              onChange={handleInputChange}
-                            />
-                            {errors.city && (
-                              <div
-                                className="invalid-feedback"
-                                style={{
-                                  display: "block",
-                                  color: "#dc3545",
-                                  fontSize: "0.875em",
-                                  marginTop: "0.25rem",
-                                }}
-                              >
-                                {errors.city}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="col-md-3 col-sm-6">
-                          <div className="form-group">
-                            <label>State*</label>
-                            <input
-                              type="text"
-                              className={`form-control ${errors.state ? "is-invalid" : ""
-                                }`}
-                              name="state"
-                              value={formData.state}
-                              onChange={handleInputChange}
-                            />
-                            {errors.state && (
-                              <div
-                                className="invalid-feedback"
-                                style={{
-                                  display: "block",
-                                  color: "#dc3545",
-                                  fontSize: "0.875em",
-                                  marginTop: "0.25rem",
-                                }}
-                              >
-                                {errors.state}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="col-md-3 col-sm-6">
-                          <div className="form-group">
-                            <label>Postal code*</label>
-                            <input
-                              type="text"
-                              className={`form-control ${errors.postalCode ? "is-invalid" : ""
-                                }`}
-                              name="postalCode"
-                              value={formData.postalCode}
-                              onChange={handleInputChange}
-                            />
-                            {errors.postalCode && (
-                              <div
-                                className="invalid-feedback"
-                                style={{
-                                  display: "block",
-                                  color: "#dc3545",
-                                  fontSize: "0.875em",
-                                  marginTop: "0.25rem",
-                                }}
-                              >
-                                {errors.postalCode}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="col-md-12 col-sm-12">
-                          <div className="form-group">
-                            <label>Additional Information</label>
-                            <textarea
-                              rows="6"
-                              className="form-control"
-                              name="additionalInfo"
-                              value={formData.additionalInfo}
-                              onChange={handleInputChange}
-                              placeholder="Notes about your order, e.g. special notes for delivery"
-                            />
-                          </div>
-                        </div>
-                      </div>
+                  <div className="row">
+                    <div className="col-md-6 mb-4">
+                      <label style={{ fontWeight: '600', marginBottom: '8px', color: '#555' }}>First Name*</label>
+                      <input
+                        type="text"
+                        className={`form-control ${errors.firstName ? 'is-invalid' : ''}`}
+                        style={{ padding: '12px 20px', borderRadius: '10px', backgroundColor: '#f9f9f9', border: '1px solid #eee' }}
+                        name="firstName"
+                        value={formData.firstName}
+                        onChange={handleInputChange}
+                        placeholder="e.g. John"
+                      />
+                      {errors.firstName && <div className="text-danger mt-1 small">{errors.firstName}</div>}
                     </div>
-
-                    <div className="form-policy">
-                      <h3>Cancellation policy</h3>
-                      <div className="form-group">
-                        <label className="checkbox-list">
-                          <input
-                            type="checkbox"
-                            name="acceptTerms"
-                            checked={formData.acceptTerms}
-                            onChange={handleInputChange}
-                          />
-                          <span className="custom-checkbox"></span>I accept
-                          terms and conditions and general policy.
-                        </label>
-                        {errors.acceptTerms && (
-                          <div
-                            className="invalid-feedback"
-                            style={{
-                              display: "block",
-                              color: "#dc3545",
-                              fontSize: "0.875em",
-                              marginTop: "0.25rem",
-                            }}
-                          >
-                            {errors.acceptTerms}
-                          </div>
-                        )}
-                      </div>
-                      <button
-                        type="button"
-                        className="button-primary"
-                        onClick={handleCheckout}
-                      >
-                        Book Now
-                      </button>
+                    <div className="col-md-6 mb-4">
+                      <label style={{ fontWeight: '600', marginBottom: '8px', color: '#555' }}>Last Name*</label>
+                      <input
+                        type="text"
+                        className={`form-control ${errors.lastName ? 'is-invalid' : ''}`}
+                        style={{ padding: '12px 20px', borderRadius: '10px', backgroundColor: '#f9f9f9', border: '1px solid #eee' }}
+                        name="lastName"
+                        value={formData.lastName}
+                        onChange={handleInputChange}
+                        placeholder="e.g. Doe"
+                      />
+                      {errors.lastName && <div className="text-danger mt-1 small">{errors.lastName}</div>}
+                    </div>
+                    <div className="col-md-6 mb-4">
+                      <label style={{ fontWeight: '600', marginBottom: '8px', color: '#555' }}>Email Address*</label>
+                      <input
+                        type="email"
+                        className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+                        style={{ padding: '12px 20px', borderRadius: '10px', backgroundColor: '#f9f9f9', border: '1px solid #eee' }}
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        placeholder="john@example.com"
+                      />
+                      {errors.email && <div className="text-danger mt-1 small">{errors.email}</div>}
+                    </div>
+                    <div className="col-md-6 mb-4">
+                      <label style={{ fontWeight: '600', marginBottom: '8px', color: '#555' }}>Phone Number*</label>
+                      <input
+                        type="tel"
+                        className={`form-control ${errors.phone ? 'is-invalid' : ''}`}
+                        style={{ padding: '12px 20px', borderRadius: '10px', backgroundColor: '#f9f9f9', border: '1px solid #eee' }}
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        placeholder="+1 234 567 890"
+                      />
+                      {errors.phone && <div className="text-danger mt-1 small">{errors.phone}</div>}
                     </div>
                   </div>
                 </div>
 
-                {/* Updated Summary Sidebar */}
-                <div className="col-lg-4">
-                  <aside className="sidebar">
-                    <div className="widget-bg widget-table-summary">
-                      <h4 className="bg-title">Summary</h4>
-                      {packageData && (
+                {/* Section 2: Billing Address */}
+                <div style={{
+                  background: '#fff',
+                  borderRadius: '20px',
+                  padding: '40px',
+                  marginBottom: '30px',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.05)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '30px' }}>
+                    <div style={{ width: '45px', height: '45px', background: 'rgba(7, 145, 190, 0.1)', color: '#0791BE', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                      <i className="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <h3 style={{ margin: 0, fontSize: '24px', fontWeight: '700', color: '#101F46' }}>Billing Details</h3>
+                  </div>
+
+                  <div className="row">
+                    <div className="col-12 mb-4">
+                      <label style={{ fontWeight: '600', marginBottom: '8px', color: '#555' }}>Country*</label>
+                      <input
+                        type="text"
+                        className={`form-control ${errors.country ? 'is-invalid' : ''}`}
+                        style={{ padding: '12px 20px', borderRadius: '10px', backgroundColor: '#f9f9f9', border: '1px solid #eee' }}
+                        name="country"
+                        value={formData.country}
+                        onChange={handleInputChange}
+                        placeholder="Select Country"
+                      />
+                      {errors.country && <div className="text-danger mt-1 small">{errors.country}</div>}
+                    </div>
+                    <div className="col-md-6 mb-4">
+                      <label style={{ fontWeight: '600', marginBottom: '8px', color: '#555' }}>Street Address*</label>
+                      <input
+                        type="text"
+                        className={`form-control ${errors.street1 ? 'is-invalid' : ''}`}
+                        style={{ padding: '12px 20px', borderRadius: '10px', backgroundColor: '#f9f9f9', border: '1px solid #eee' }}
+                        name="street1"
+                        value={formData.street1}
+                        onChange={handleInputChange}
+                        placeholder="House number and street name"
+                      />
+                      {errors.street1 && <div className="text-danger mt-1 small">{errors.street1}</div>}
+                    </div>
+                    <div className="col-md-6 mb-4">
+                      <label style={{ fontWeight: '600', marginBottom: '8px', color: '#555' }}>Apartment, suite, etc. (optional)</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        style={{ padding: '12px 20px', borderRadius: '10px', backgroundColor: '#f9f9f9', border: '1px solid #eee' }}
+                        name="street2"
+                        value={formData.street2}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="col-md-4 mb-4">
+                      <label style={{ fontWeight: '600', marginBottom: '8px', color: '#555' }}>Town / City*</label>
+                      <input
+                        type="text"
+                        className={`form-control ${errors.city ? 'is-invalid' : ''}`}
+                        style={{ padding: '12px 20px', borderRadius: '10px', backgroundColor: '#f9f9f9', border: '1px solid #eee' }}
+                        name="city"
+                        value={formData.city}
+                        onChange={handleInputChange}
+                      />
+                      {errors.city && <div className="text-danger mt-1 small">{errors.city}</div>}
+                    </div>
+                    <div className="col-md-4 mb-4">
+                      <label style={{ fontWeight: '600', marginBottom: '8px', color: '#555' }}>State*</label>
+                      <input
+                        type="text"
+                        className={`form-control ${errors.state ? 'is-invalid' : ''}`}
+                        style={{ padding: '12px 20px', borderRadius: '10px', backgroundColor: '#f9f9f9', border: '1px solid #eee' }}
+                        name="state"
+                        value={formData.state}
+                        onChange={handleInputChange}
+                      />
+                      {errors.state && <div className="text-danger mt-1 small">{errors.state}</div>}
+                    </div>
+                    <div className="col-md-4 mb-4">
+                      <label style={{ fontWeight: '600', marginBottom: '8px', color: '#555' }}>Postcode / ZIP*</label>
+                      <input
+                        type="text"
+                        className={`form-control ${errors.postalCode ? 'is-invalid' : ''}`}
+                        style={{ padding: '12px 20px', borderRadius: '10px', backgroundColor: '#f9f9f9', border: '1px solid #eee' }}
+                        name="postalCode"
+                        value={formData.postalCode}
+                        onChange={handleInputChange}
+                      />
+                      {errors.postalCode && <div className="text-danger mt-1 small">{errors.postalCode}</div>}
+                    </div>
+                    <div className="col-12">
+                      <label style={{ fontWeight: '600', marginBottom: '8px', color: '#555' }}>Additional Requests</label>
+                      <textarea
+                        rows="4"
+                        className="form-control"
+                        style={{ padding: '15px 20px', borderRadius: '10px', backgroundColor: '#f9f9f9', border: '1px solid #eee' }}
+                        name="additionalInfo"
+                        value={formData.additionalInfo}
+                        onChange={handleInputChange}
+                        placeholder="Any special requirements for your trip?"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 3: Policy & Submit */}
+                <div style={{
+                  background: '#fff',
+                  borderRadius: '20px',
+                  padding: '40px',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.05)'
+                }}>
+                  <h3 style={{ fontSize: '22px', fontWeight: '700', color: '#101F46', marginBottom: '20px' }}>Final Step</h3>
+                  <div style={{ background: '#fff9e6', padding: '20px', borderRadius: '12px', marginBottom: '25px', border: '1px solid #ffeeba' }}>
+                    <p style={{ margin: 0, fontSize: '14px', color: '#856404' }}>
+                      <strong>Cancellation Policy:</strong> Free cancellation up to 48 hours before the trip. Terms and conditions apply.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-checkout"
+                    style={{
+                      width: '100%',
+                      padding: '18px',
+                      background: '#101F46',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '50px',
+                      fontSize: '18px',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 10px 20px rgba(16, 31, 70, 0.2)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#0791BE';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#101F46';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                    onClick={handleCheckout}
+                  >
+                    Complete Your Booking <i className="fas fa-arrow-right" style={{ marginLeft: '10px' }}></i>
+                  </button>
+                </div>
+              </div>
+
+              {/* Sidebar Summary */}
+              <div className="col-lg-4">
+                <aside style={{ position: 'sticky', top: '20px' }}>
+                  <div style={{
+                    background: '#fff',
+                    borderRadius: '25px',
+                    overflow: 'hidden',
+                    boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+                    border: '1px solid #f0f0f0'
+                  }}>
+                    <div style={{ position: 'relative', height: '180px' }}>
+                      <img
+                        src={packageData?.packageImage || "/assets/images/img6.jpg"}
+                        alt="Package"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                      <div style={{
+                        position: 'absolute',
+                        bottom: '15px',
+                        left: '15px',
+                        background: 'rgba(7, 145, 190, 0.9)',
+                        color: '#fff',
+                        padding: '5px 15px',
+                        borderRadius: '50px',
+                        fontSize: '12px',
+                        fontWeight: '700'
+                      }}>
+                        {packageData?.destination}
+                      </div>
+                    </div>
+
+                    <div style={{ padding: '30px' }}>
+                      <h4 style={{ fontSize: '20px', fontWeight: '800', color: '#101F46', marginBottom: '20px' }}>Order Summary</h4>
+
+                      {packageData ? (
                         <>
-                          <div
-                            style={{
-                              marginBottom: "15px",
-                              padding: "10px",
-                              backgroundColor: "#f8f9fa",
-                              borderRadius: "5px",
-                            }}
-                          >
-                            <h5
-                              style={{
-                                margin: "0 0 10px 0",
-                                fontSize: "16px",
-                                fontWeight: "bold",
-                              }}
-                            >
-                              Package : {packageData.packageTitle}
-                            </h5>
-                            <div
-                              style={{
-                                fontSize: "14px",
-                                color: "#666",
-                                fontWeight: "bold",
-                              }}
-                            >
-                              <div>
-                                📍 Destination : {packageData.destination}
-                              </div>
-                              <div>⏰ Duration :{packageData.tripDuration}</div>
-                              <div>👥 People :{packageData.groupSize}</div>
-                              <div>
-                                📅 Travel Date: {packageData.travelDate}
-                              </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '25px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              <i className="fas fa-suitcase-rolling" style={{ color: '#0791BE', width: '15px' }}></i>
+                              <span style={{ fontSize: '14px', color: '#444', fontWeight: '600' }}>{packageData.packageTitle}</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              <i className="far fa-calendar-alt" style={{ color: '#0791BE', width: '15px' }}></i>
+                              <span style={{ fontSize: '14px', color: '#444' }}>Date: {packageData.travelDate}</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              <i className="far fa-clock" style={{ color: '#0791BE', width: '15px' }}></i>
+                              <span style={{ fontSize: '14px', color: '#444' }}>Duration: {packageData.tripDuration}</span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              <i className="fas fa-users" style={{ color: '#0791BE', width: '15px' }}></i>
+                              <span style={{ fontSize: '14px', color: '#444' }}>Guests: {packageData.groupSize} Traveler(s)</span>
                             </div>
                           </div>
 
-                          <table>
-                            <tbody>
-                              <tr>
-                                <td>
-                                  <strong>Package cost</strong>
-                                </td>
-                                <td className="text-right">
-                                  ${packageData.packagePrice}
-                                </td>
-                              </tr>
-                              {(packageData.optionsConfig || [
-                                { name: 'tourGuide', label: 'Tour Guide', price: 34 },
-                                { name: 'mealsIncluded', label: 'Meals Included', price: 25 },
-                                { name: 'extraBaggage', label: 'Extra Baggage', price: 15 },
-                                { name: 'transfers', label: 'Transfers', price: 20 }
-                              ]).map((opt) => (
-                                packageData.addOns?.[opt.name] && (
-                                  <tr key={opt.name}>
-                                    <td>
-                                      <strong>{opt.label || opt.name}</strong>
-                                    </td>
-                                    <td className="text-right">${opt.price}</td>
-                                  </tr>
-                                )
-                              ))}
-                              <tr>
-                                <td>
-                                  <strong>Tax</strong>
-                                </td>
-                                <td className="text-right">13%</td>
-                              </tr>
-                              <tr className="total">
-                                <td>
-                                  <strong>Total cost</strong>
-                                </td>
-                                <td className="text-right">
-                                  <strong>${calculateTotal()}</strong>
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </>
-                      )}
+                          <div style={{ borderTop: '1px dashed #ddd', paddingTop: '20px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                              <span style={{ color: '#666', fontSize: '14px' }}>Base Fare</span>
+                              <span style={{ fontWeight: '700', color: '#101F46' }}>${packageData.packagePrice}</span>
+                            </div>
 
-                      {!packageData && (
-                        <div
-                          style={{
-                            textAlign: "center",
-                            padding: "20px",
-                            color: "#666",
-                          }}
-                        >
-                          <p>
-                            No package data found. Please go back and select a
-                            package.
-                          </p>
-                          <a
-                            href="/tour-packages"
-                            className="button-primary"
-                            style={{ fontSize: "14px", padding: "8px 16px" }}
-                          >
-                            Browse Packages
-                          </a>
+                            {(packageData.optionsConfig || [
+                              { name: 'tourGuide', label: 'Tour Guide', price: 34 },
+                              { name: 'mealsIncluded', label: 'Meals Included', price: 25 },
+                              { name: 'extraBaggage', label: 'Extra Baggage', price: 15 },
+                              { name: 'transfers', label: 'Transfers', price: 20 }
+                            ]).map((opt) => (
+                              packageData.addOns?.[opt.name] && (
+                                <div key={opt.name} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                                  <span style={{ color: '#666', fontSize: '14px' }}>{opt.label || opt.name}</span>
+                                  <span style={{ fontWeight: '700', color: '#101F46' }}>+${opt.price}</span>
+                                </div>
+                              )
+                            ))}
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                              <span style={{ color: '#666', fontSize: '14px' }}>GST / Tax (13%)</span>
+                              <span style={{ fontWeight: '700', color: '#101F46' }}>+${(packageData.packagePrice * 0.13).toFixed(2)}</span>
+                            </div>
+
+                            <div style={{
+                              background: '#f8f9fa',
+                              padding: '20px',
+                              borderRadius: '15px',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center'
+                            }}>
+                              <span style={{ fontSize: '16px', fontWeight: '700', color: '#101F46' }}>Total Amount</span>
+                              <span style={{ fontSize: '24px', fontWeight: '800', color: '#0791BE' }}>${calculateTotal()}</span>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <div style={{ textAlign: 'center', padding: '20px' }}>
+                          <p style={{ color: '#666', marginBottom: '20px' }}>No package selected.</p>
+                          <Link to="/tour-packages" style={{ color: '#0791BE', fontWeight: '700', textDecoration: 'none' }}>Go back to packages</Link>
                         </div>
                       )}
                     </div>
+                  </div>
 
-                    <div className="widget-bg widget-support-wrap">
-                      <div className="icon">
-                        <i className="fas fa-phone-volume"></i>
+                  {/* Support Widget */}
+                  <div style={{
+                    marginTop: '30px',
+                    background: '#101F46',
+                    borderRadius: '25px',
+                    padding: '30px',
+                    color: '#fff',
+                    backgroundImage: 'linear-gradient(135deg, #101F46 0%, #0791BE 100%)',
+                    boxShadow: '0 10px 25px rgba(7, 145, 190, 0.2)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
+                      <div style={{ width: '40px', height: '40px', background: 'rgba(255,255,255,0.2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <i className="fas fa-headset"></i>
                       </div>
-                      <div className="support-content">
-                        <h5>HELP AND SUPPORT</h5>
-                        <a href="tel:12345678" className="phone">
-                          +11 234 889 00
-                        </a>
-                        <small>Monday to Friday 9.00am - 7.30pm</small>
-                      </div>
+                      <h5 style={{ margin: 0, color: '#fff', fontSize: '16px', fontWeight: '700' }}>Need Any Help?</h5>
                     </div>
-                  </aside>
-                </div>
+                    <p style={{ fontSize: '13px', opacity: 0.8, marginBottom: '20px' }}>Our travel experts are available 24/7 to assist with your booking.</p>
+                    <a href="tel:+1123488900" style={{
+                      fontSize: '20px',
+                      fontWeight: '800',
+                      color: '#fff',
+                      textDecoration: 'none',
+                      display: 'block'
+                    }}>+11 234 889 00</a>
+                    <small style={{ fontSize: '11px', opacity: 0.6 }}>Mon - Fri: 9:00 AM - 7:30 PM</small>
+                  </div>
+                </aside>
               </div>
             </div>
           </div>
-        </main>
+        </section>
+      </main>
 
-        <Footer />
+      <Footer />
 
-        <a id="backTotop" href="#" className="to-top-icon">
-          <i className="fas fa-chevron-up"></i>
-        </a>
-
-        <div className="header-search-form">
-          <div className="container">
-            <div className="header-search-container">
-              <form className="search-form" role="search" method="get">
-                <input type="text" name="s" placeholder="Enter your text..." />
-              </form>
-              <a href="#" className="search-close">
-                <i className="fas fa-times"></i>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div >
-    </>
+      <a id="backTotop" href="#" className="to-top-icon" style={{
+        position: 'fixed',
+        bottom: '30px',
+        right: '30px',
+        width: '50px',
+        height: '50px',
+        background: '#0791BE',
+        color: '#fff',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: '0 5px 15px rgba(0,0,0,0.2)',
+        zIndex: 999,
+        textDecoration: 'none',
+        transition: 'all 0.3s ease'
+      }}>
+        <i className="fas fa-chevron-up"></i>
+      </a>
+    </div>
   );
 };
 
