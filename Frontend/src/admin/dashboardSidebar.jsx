@@ -42,6 +42,7 @@ const DashboardSidebar = () => {
           <li><Link to="/admin/add-blog"><i className="fas fa-plus"></i>Add Blog</Link></li>
           <li><Link to="/admin/db-booking"><i className="fas fa-ticket-alt"></i> Booking & Enquiry</Link></li>
           <li><Link to="/admin/db-comment"><i className="fas fa-comments"></i>Comments</Link></li>
+          <li><Link to="/admin/contact-messages"><i className="fas fa-envelope"></i>Contact Messages</Link></li>
           <li onClick={handleLogout} style={{ cursor: 'pointer' }}>
             <span><i className="fas fa-sign-out-alt"></i> Logout</span>
           </li>

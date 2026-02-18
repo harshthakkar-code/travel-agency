@@ -537,7 +537,7 @@ const Header = () => {
                     {[
                       { text: 'Home', link: '/' },
                       { text: 'Packages', link: '/tour-packages' },
-                      // { text: 'Blog', link: '/blog-archive' },
+                      { text: 'Blog', link: '/blog-archive' },
                       { text: 'About Us', link: '/about' },
                       { text: 'Contact', link: '/contact' }
                     ].map((item, index) => {
@@ -673,7 +673,7 @@ const Header = () => {
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               <MobileNavLink href="/" icon="fas fa-home">Home</MobileNavLink>
               <MobileNavLink href="/tour-packages" icon="fas fa-suitcase-rolling">Packages</MobileNavLink>
-              {/* <MobileNavLink href="/blog-archive" icon="fas fa-blog">Blog</MobileNavLink> */}
+              <MobileNavLink href="/blog-archive" icon="fas fa-blog">Blog</MobileNavLink>
               <MobileNavLink href="/about" icon="fas fa-info-circle">About Us</MobileNavLink>
               <MobileNavLink href="/contact" icon="fas fa-envelope">Contact</MobileNavLink>
             </ul>

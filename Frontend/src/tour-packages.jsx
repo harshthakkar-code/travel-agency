@@ -167,69 +167,128 @@ const Tour_packages = () => {
 
       <main id="content" className="site-main">
         {/* =================== HERO SECTION =================== */}
-        <section className="landing-hero">
-          <div className="landing-hero-bg" style={{ backgroundImage: "url(/assets/images/slider-banner-1.jpg)" }}></div>
-          <div className="landing-hero-overlay"></div>
-          <div className="container">
-            <div className="landing-hero-content" style={{ opacity: heroLoaded ? 1 : 0, transform: heroLoaded ? 'translateY(0)' : 'translateY(30px)', transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)', textAlign: 'center', margin: '0 auto' }}>
-              <span className="landing-hero-badge">
-                <i className="fas fa-globe-americas"></i> Explore The World With Us
-              </span>
-              <h1 className="landing-hero-title">
-                Discover Your Next <br />
-                <span className="hero-highlight">Adventure</span>
-              </h1>
-              <p className="landing-hero-subtitle">
-                Curated travel experiences to the world's most breathtaking destinations.
-                Let us craft your perfect journey with expert guides and exclusive packages.
-              </p>
-              <div className="landing-hero-actions" style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <a href="#packages-section" className="btn-primary-custom">
-                  <i className="fas fa-compass"></i> Explore Packages
-                </a>
-                <Link to="/contact" className="btn-outline-custom">
-                  <i className="fas fa-headset"></i> Talk to Expert
-                </Link>
-              </div>
-            </div>
-          </div>
-          <div className="landing-hero-wave">
-            <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
-              <path d="M0,60 C360,120 720,0 1080,60 C1260,90 1380,80 1440,60 L1440,120 L0,120 Z" fill="#ffffff" />
-            </svg>
+        <section className="packages-hero-section" style={{
+          backgroundImage: "url(/assets/images/slider-banner-1.jpg)",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          minHeight: '60vh',
+          display: 'flex',
+          alignItems: 'center',
+          position: 'relative',
+          paddingTop: '120px',
+          paddingBottom: '80px'
+        }}>
+          <div className="overlay" style={{
+            background: 'linear-gradient(135deg, rgba(7, 145, 190, 0.88) 0%, rgba(16, 31, 70, 0.88) 100%)',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0
+          }}></div>
+          <div className="container" style={{ position: 'relative', zIndex: 2, color: '#fff', textAlign: 'center' }}>
+            {/* Breadcrumb */}
+            <nav style={{ marginBottom: '20px' }}>
+              <ol className="breadcrumb" style={{
+                background: 'transparent',
+                padding: 0,
+                margin: 0,
+                display: 'flex',
+                justifyContent: 'center',
+                gap: '8px',
+                fontSize: '14px',
+                listStyle: 'none'
+              }}>
+                <li>
+                  <Link to="/" style={{ color: 'rgba(255,255,255,0.9)', textDecoration: 'none', transition: 'color 0.3s' }}
+                    onMouseEnter={e => e.currentTarget.style.color = '#F56960'}
+                    onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.9)'}>
+                    <i className="fas fa-home" style={{ marginRight: '6px' }}></i>Home
+                  </Link>
+                </li>
+                <li style={{ color: 'rgba(255,255,255,0.6)' }}>/</li>
+                <li style={{ color: 'rgba(255,255,255,0.7)', fontWeight: '600' }}>Tour Packages</li>
+              </ol>
+            </nav>
+
+            <span style={{
+              display: 'inline-block',
+              padding: '10px 24px',
+              background: 'rgba(255,255,255,0.25)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '50px',
+              marginBottom: '25px',
+              fontSize: '13px',
+              letterSpacing: '2px',
+              textTransform: 'uppercase',
+              fontWeight: '600',
+              border: '1px solid rgba(255,255,255,0.3)'
+            }}>
+              <i className="fas fa-globe-americas" style={{ marginRight: '10px' }}></i>
+              Explore The World With Us
+            </span>
+            <h1 style={{
+              fontSize: '60px',
+              fontWeight: '900',
+              marginBottom: '20px',
+              textShadow: '0 4px 20px rgba(0,0,0,0.4)',
+              lineHeight: '1.2',
+              letterSpacing: '-1px',
+              color: '#fff'
+            }}>
+              Discover Your Next <span style={{ color: '#F56960' }}>Adventure</span>
+            </h1>
+            <p style={{
+              fontSize: '18px',
+              maxWidth: '700px',
+              margin: '0 auto',
+              opacity: 0.95,
+              lineHeight: '1.6',
+              fontWeight: '400',
+              textShadow: '0 2px 8px rgba(0,0,0,0.3)'
+            }}>
+              Curated travel experiences to the world's most breathtaking destinations. Let us craft your perfect journey with expert guides and exclusive packages.
+            </p>
           </div>
         </section>
 
         {/* =================== STATS BAR =================== */}
-        <section className="landing-stats" ref={statsRef} style={{ opacity: statsVisible ? 1 : 0, transform: statsVisible ? 'translateY(0)' : 'translateY(20px)', transition: 'all 0.6s ease-out' }}>
+        {/* =================== STATS BAR =================== */}
+        <section className="packages-stats" ref={statsRef} style={{
+          padding: '80px 0',
+          background: '#fff',
+          opacity: statsVisible ? 1 : 0,
+          transform: statsVisible ? 'translateY(0)' : 'translateY(20px)',
+          transition: 'all 0.6s ease-out'
+        }}>
           <div className="container">
-            <div className="stats-grid">
-              <div className="stat-item">
-                <div className="stat-icon"><i className="fas fa-map-marked-alt"></i></div>
-                <div className="stat-info">
-                  <h3>500+</h3>
-                  <p>Destinations</p>
+            <div className="row text-center">
+              <div className="col-md-3 col-6 mb-4 mb-md-0">
+                <div className="feature-box" style={{ padding: '20px' }}>
+                  <i className="fas fa-map-marked-alt" style={{ fontSize: '40px', color: '#0791BE', marginBottom: '15px' }}></i>
+                  <h3 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '5px' }}>500+</h3>
+                  <p style={{ color: '#777', margin: 0, fontSize: '14px', fontWeight: '600' }}>Destinations</p>
                 </div>
               </div>
-              <div className="stat-item">
-                <div className="stat-icon"><i className="fas fa-users"></i></div>
-                <div className="stat-info">
-                  <h3>10K+</h3>
-                  <p>Happy Travelers</p>
+              <div className="col-md-3 col-6 mb-4 mb-md-0">
+                <div className="feature-box" style={{ padding: '20px' }}>
+                  <i className="fas fa-users" style={{ fontSize: '40px', color: '#F56960', marginBottom: '15px' }}></i>
+                  <h3 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '5px' }}>10K+</h3>
+                  <p style={{ color: '#777', margin: 0, fontSize: '14px', fontWeight: '600' }}>Happy Travelers</p>
                 </div>
               </div>
-              <div className="stat-item">
-                <div className="stat-icon"><i className="fas fa-award"></i></div>
-                <div className="stat-info">
-                  <h3>15+</h3>
-                  <p>Years Experience</p>
+              <div className="col-md-3 col-6">
+                <div className="feature-box" style={{ padding: '20px' }}>
+                  <i className="fas fa-award" style={{ fontSize: '40px', color: '#f5a623', marginBottom: '15px' }}></i>
+                  <h3 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '5px' }}>15+</h3>
+                  <p style={{ color: '#777', margin: 0, fontSize: '14px', fontWeight: '600' }}>Years Experience</p>
                 </div>
               </div>
-              <div className="stat-item">
-                <div className="stat-icon"><i className="fas fa-headset"></i></div>
-                <div className="stat-info">
-                  <h3>24/7</h3>
-                  <p>Support</p>
+              <div className="col-md-3 col-6">
+                <div className="feature-box" style={{ padding: '20px' }}>
+                  <i className="fas fa-headset" style={{ fontSize: '40px', color: '#0791BE', marginBottom: '15px' }}></i>
+                  <h3 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '5px' }}>24/7</h3>
+                  <p style={{ color: '#777', margin: 0, fontSize: '14px', fontWeight: '600' }}>Expert Support</p>
                 </div>
               </div>
             </div>

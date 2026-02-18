@@ -2,12 +2,33 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "./supabaseClient";
 import Header from "./Header";
+import Footer from "./Footer";
+import { Link, useNavigate } from "react-router-dom";
 
 const Blog_single = () => {
   const { id } = useParams(); // Get blog ID from URL
   const [blog, setBlog] = useState(null);
+  const [recentBlogs, setRecentBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchRecentBlogs = async () => {
+      try {
+        const { data } = await supabase
+          .from('blogs')
+          .select('id, title, image, created_at')
+          .order('created_at', { ascending: false })
+          .limit(5);
+        setRecentBlogs(data || []);
+      } catch (err) {
+        console.error("Error fetching recent blogs:", err);
+      }
+    };
+    fetchRecentBlogs();
+  }, []);
 
   useEffect(() => {
     const fetchBlog = async () => {
@@ -37,13 +58,29 @@ const Blog_single = () => {
 
   // Format date to readable format
   const formatDate = (dateString) => {
-    if (!dateString) return "Unknown Date";
-    const options = {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    };
+    if (!dateString) return "Recent Post";
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('en-US', options);
+  };
+
+  // Helper to format title with gradient on the last word
+  const renderFormattedTitle = (title) => {
+    if (!title) return "";
+    const words = title.split(" ");
+    if (words.length <= 1) return <span className="hero-highlight">{title}</span>;
+    const lastWord = words.pop();
+    return (
+      <>
+        {words.join(" ")} <span className="hero-highlight">{lastWord}</span>
+      </>
+    );
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/blog-archive?s=${encodeURIComponent(searchQuery.trim())}`);
+    }
   };
 
   // Handle loading state
@@ -73,469 +110,362 @@ const Blog_single = () => {
 
   return (
     <div id="page" className="full-page">
-      {/* Header */}
       <Header />
 
-      {/* Main content */}
       <main id="content" className="site-main">
-        {/* Inner Banner */}
-        <section className="inner-banner-wrap">
-          <div
-            className="inner-baner-container"
-            style={{ backgroundImage: "url(assets/images/inner-banner.jpg)" }}
-          >
-            <div className="container">
-              <div className="inner-banner-content">
-                <h1 className="inner-title">{blog.title}</h1>
-                <div className="entry-meta">
-                  <span className="byline"><a href="#">{blog.author || "Unknown Author"}</a></span>
-                  <span className="posted-on"><a href="#">{formatDate(blog.createdAt)}</a></span>
-                  <span className="comments-link"><a href="#">No Comments</a></span>
-                </div>
+        {/* =================== PREMIUM HERO SECTION =================== */}
+        <section className="blog-single-hero" style={{
+          backgroundImage: `url(${blog.image || '/assets/images/img22.jpg'})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          minHeight: '60vh',
+          display: 'flex',
+          alignItems: 'center',
+          position: 'relative',
+          paddingTop: '120px',
+          paddingBottom: '80px'
+        }}>
+          <div className="overlay" style={{
+            background: 'linear-gradient(135deg, rgba(7, 145, 190, 0.88) 0%, rgba(16, 31, 70, 0.88) 100%)',
+            position: 'absolute', top: 0, left: 0, right: 0, bottom: 0
+          }}></div>
+          <div className="container" style={{ position: 'relative', zIndex: 2, color: '#fff' }}>
+            <div style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
+              {/* Breadcrumb */}
+              <nav style={{ marginBottom: '20px' }}>
+                <ol className="breadcrumb" style={{
+                  background: 'transparent',
+                  padding: 0,
+                  margin: 0,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  fontSize: '14px',
+                  listStyle: 'none'
+                }}>
+                  <li>
+                    <Link to="/" style={{ color: 'rgba(255,255,255,0.9)', textDecoration: 'none', transition: 'color 0.3s' }}
+                      onMouseEnter={e => e.currentTarget.style.color = '#F56960'}
+                      onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.9)'}>
+                      <i className="fas fa-home" style={{ marginRight: '6px' }}></i>Home
+                    </Link>
+                  </li>
+                  <li style={{ color: 'rgba(255,255,255,0.6)' }}>/</li>
+                  <li>
+                    <Link to="/blog-archive" style={{ color: 'rgba(255,255,255,0.9)', textDecoration: 'none', transition: 'color 0.3s' }}
+                      onMouseEnter={e => e.currentTarget.style.color = '#F56960'}
+                      onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.9)'}>
+                      Blog
+                    </Link>
+                  </li>
+                  <li style={{ color: 'rgba(255,255,255,0.6)' }}>/</li>
+                  <li style={{ color: 'rgba(255,255,255,0.7)', fontWeight: '600' }}>Article</li>
+                </ol>
+              </nav>
+
+              <span style={{
+                display: 'inline-block',
+                padding: '8px 24px',
+                background: 'linear-gradient(135deg, #F56960, #f5a623)',
+                borderRadius: '50px',
+                marginBottom: '25px',
+                fontSize: '12px',
+                fontWeight: '800',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                boxShadow: '0 4px 15px rgba(245, 105, 96, 0.4)',
+                color: '#fff'
+              }}>
+                {blog.category || "Travel Insight"}
+              </span>
+              <h1 style={{
+                fontSize: 'clamp(32px, 5vw, 64px)',
+                fontWeight: '900',
+                marginBottom: '25px',
+                lineHeight: '1.1',
+                textShadow: '0 10px 30px rgba(0,0,0,0.3)',
+                letterSpacing: '-1px'
+              }}>
+                {renderFormattedTitle(blog.title)}
+              </h1>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '20px',
+                fontSize: '14px',
+                opacity: 0.9,
+                fontWeight: '600'
+              }}>
+                <span><i className="far fa-user" style={{ marginRight: '8px' }}></i> {blog.author || "Admin"}</span>
+                <span><i className="far fa-calendar-alt" style={{ marginRight: '8px' }}></i> {formatDate(blog.created_at)}</span>
               </div>
             </div>
           </div>
-          <div className="inner-shape"></div>
         </section>
 
-        {/* Blog Post */}
-        <div className="single-post-section">
-          <div className="single-post-inner">
-            <div className="container">
-              <div className="row">
-                <div className="col-lg-8 primary right-sidebar">
-                  {/* Blog Image */}
-                  <figure className="feature-image">
-                    <img
-                      src={blog.image || "/assets/images/img22.jpg"}
-                      alt={blog.title}
-                    />
-                  </figure>
-                  <div className="entry-meta">
-                    <span className="byline">
-                      <a href="#">Admin</a>
-                    </span>
-                    <span className="posted-on">
-                      <a href="#">
-                        {new Date(blog.created_at).toLocaleDateString()}
-                      </a>
-                    </span>
-                    <span className="comments-link">
-                      <a href="#">No Comments</a>
-                    </span>
-                  </div>
-                  <div className="entry-content">
-                    <p>{blog.content}</p>
-                    {/* Render blocks or formatting if needed */}
+        <div className="single-post-page" style={{ padding: '80px 0', background: '#fcfcfc' }}>
+          <div className="container">
+            <div className="row">
+              {/* Blog Content */}
+              <div className="col-lg-8">
+                <div style={{
+                  background: '#fff',
+                  borderRadius: '30px',
+                  padding: '40px',
+                  boxShadow: '0 20px 60px rgba(0,0,0,0.05)',
+                  marginBottom: '40px'
+                }}>
+                  {/* Article content */}
+                  <div className="entry-content" style={{
+                    fontSize: '17px',
+                    lineHeight: '1.8',
+                    color: '#444'
+                  }}>
+                    {blog.content && blog.content.split('\n').map((para, i) => (
+                      <p key={i} style={{ marginBottom: '25px' }}>{para}</p>
+                    ))}
                   </div>
 
                   {/* Tags */}
-                  <div className="meta-wrap">
-                    <div className="tag-links">
-                      {blog.tags && blog.tags.length > 0 ? (
-                        blog.tags.map((tag, index) => (
-                          <span key={index}>
-                            <a href="#">{tag}</a>
-                            {index < blog.tags.length - 1 && ", "}
-                          </span>
-                        ))
-                      ) : (
-                        <a href="#">{blog.category || "General"}</a>
-                      )}
+                  {blog.tags && blog.tags.length > 0 && (
+                    <div style={{
+                      marginTop: '40px',
+                      paddingTop: '30px',
+                      borderTop: '1px solid #eee',
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '10px'
+                    }}>
+                      <span style={{ fontWeight: '700', color: '#101F46', marginRight: '10px' }}>TAGS:</span>
+                      {blog.tags.map((tag, idx) => (
+                        <span key={idx} style={{
+                          background: '#f0f4f7',
+                          color: '#0791BE',
+                          padding: '5px 15px',
+                          borderRadius: '50px',
+                          fontSize: '13px',
+                          fontWeight: '600'
+                        }}>{tag}</span>
+                      ))}
                     </div>
-                  </div>
+                  )}
 
-                  {/* Social Share */}
-                  <div className="post-socail-wrap">
-                    <div className="social-icon-wrap">
-                      <div className="social-icon social-facebook">
-                        <a href="#"><i className="fab fa-facebook-f"></i><span>Facebook</span></a>
-                      </div>
-                      <div className="social-icon social-google">
-                        <a href="#"><i className="fab fa-google-plus-g"></i><span>Google</span></a>
-                      </div>
-                      <div className="social-icon social-pinterest">
-                        <a href="#"><i className="fab fa-pinterest"></i><span>Pinterest</span></a>
-                      </div>
-                      <div className="social-icon social-linkedin">
-                        <a href="#"><i className="fab fa-linkedin"></i><span>Linkedin</span></a>
-                      </div>
-                      <div className="social-icon social-twitter">
-                        <a href="#"><i className="fab fa-twitter"></i><span>Twitter</span></a>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Author Info */}
-                  <div className="author-wrap">
-                    <div className="author-thumb">
-                      <img src="assets/images/user-img.png" alt="" />
-                    </div>
-                    <div className="author-content">
-                      <h3 className="author-name">{blog.author || "Unknown Author"}</h3>
-                      <p>
-                        Anim eligendi error magnis. Pretium fugiat cubilia ullamcorper adipisci, lobortis repellendus sit culpa maiores!
-                      </p>
-                      <a href="#" className="button-text">VIEW ALL POSTS &gt; </a>
-                    </div>
-                  </div>
-
-                  {/* Comments */}
-                  <div className="comment-area">
-                    <h2 className="comment-title">3 Comments</h2>
-                    <div className="comment-area-inner">
-                      <ol>
-                        <li>
-                          <figure className="comment-thumb">
-                            <img src="assets/images/img20.jpg" alt="" />
-                          </figure>
-                          <div className="comment-content">
-                            <div className="comment-header">
-                              <h5 className="author-name">Tom Sawyer</h5>
-                              <span className="post-on">Jana 10 2020</span>
-                            </div>
-                            <p>
-                              Officia amet posuere voluptates, mollit montes eaque accusamus laboriosam quisque cupidatat dolor pariatur, pariatur auctor.
-                            </p>
-                            <a href="#" className="reply"><i className="fas fa-reply"></i>Reply</a>
-                          </div>
-                        </li>
-                        <li>
-                          <ol>
-                            <li>
-                              <figure className="comment-thumb">
-                                <img src="assets/images/img21.jpg" alt="" />
-                              </figure>
-                              <div className="comment-content">
-                                <div className="comment-header">
-                                  <h5 className="author-name">John Doe</h5>
-                                  <span className="post-on">Jana 10 2020</span>
-                                </div>
-                                <p>
-                                  Officia amet posuere voluptates, mollit montes eaque accusamus laboriosam quisque cupidatat dolor pariatur, pariatur auctor.
-                                </p>
-                                <a href="#" className="reply"><i className="fas fa-reply"></i>Reply</a>
-                              </div>
-                            </li>
-                          </ol>
-                        </li>
-                      </ol>
-                      <ol>
-                        <li>
-                          <figure className="comment-thumb">
-                            <img src="assets/images/img22.jpg" alt="" />
-                          </figure>
-                          <div className="comment-content">
-                            <div className="comment-header">
-                              <h5 className="author-name">Jaan Smith</h5>
-                              <span className="post-on">Jana 10 2020</span>
-                            </div>
-                            <p>
-                              Officia amet posuere voluptates, mollit montes eaque accusamus laboriosam quisque cupidatat dolor pariatur, pariatur auctor.
-                            </p>
-                            <a href="#" className="reply"><i className="fas fa-reply"></i>Reply</a>
-                          </div>
-                        </li>
-                      </ol>
-                    </div>
-
-                    {/* Comment Form */}
-                    <div className="comment-form-wrap">
-                      <h2 className="comment-title">Leave a Reply</h2>
-                      <p>Your email address will not be published. Required fields are marked *</p>
-                      <form className="comment-form">
-                        <p className="full-width">
-                          <label>Comment</label>
-                          <textarea rows={9}></textarea>
-                        </p>
-                        <p>
-                          <label>Name *</label>
-                          <input type="text" name="name" />
-                        </p>
-                        <p>
-                          <label>Email *</label>
-                          <input type="email" name="email" />
-                        </p>
-                        <p>
-                          <label>Website</label>
-                          <input type="text" name="web" />
-                        </p>
-                        <p className="full-width">
-                          <input type="submit" name="submit" value="Post comment" />
-                        </p>
-                      </form>
-                    </div>
-
-                    {/* Post Navigation */}
-                    <div className="post-navigation">
-                      <div className="nav-prev">
-                        <a href="#">
-                          <span className="nav-label">Previous Reading</span>
-                          <span className="nav-title">Deleniti illum culpa sodales cubilia.</span>
+                  {/* Sharing */}
+                  <div style={{
+                    marginTop: '40px',
+                    background: '#f8f9fa',
+                    borderRadius: '20px',
+                    padding: '20px 30px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '15px'
+                  }}>
+                    <span style={{ fontWeight: '700', color: '#101F46' }}>Share this story:</span>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      {[
+                        { icon: 'fa-facebook-f', color: '#3b5998' },
+                        { icon: 'fa-twitter', color: '#1da1f2' },
+                        { icon: 'fa-linkedin-in', color: '#0077b5' },
+                        { icon: 'fa-whatsapp', color: '#25d366' }
+                      ].map((social, i) => (
+                        <a key={i} href="#" style={{
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '50%',
+                          background: social.color,
+                          color: '#fff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          textDecoration: 'none',
+                          fontSize: '14px',
+                          transition: 'transform 0.3s ease'
+                        }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-3px)'}
+                          onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
+                          <i className={`fab ${social.icon}`}></i>
                         </a>
-                      </div>
-                      <div className="nav-next">
-                        <a href="#">
-                          <span className="nav-label">Next Reading</span>
-                          <span className="nav-title">Deleniti illum culpa sodales cubilia.</span>
-                        </a>
-                      </div>
+                      ))}
                     </div>
                   </div>
                 </div>
 
-                {/* Sidebar */}
-                <div className="col-lg-4 secondary">
-                  <div className="sidebar">
-                    {/* About Author */}
-                    <aside className="widget author_widget">
-                      <h3 className="widget-title">ABOUT AUTHOR</h3>
-                      <div className="widget-content text-center">
-                        <div className="profile">
-                          <figure className="avatar">
-                            <a href="#"><img src="assets/images/img21.jpg" alt="" /></a>
-                          </figure>
-                          <div className="text-content">
-                            <div className="name-title">
-                              <h3>
-                                <a href="#">{blog.author || "James Watson"}</a>
-                              </h3>
-                            </div>
-                            <p>
-                              Accumsan? Aliquet nobis doloremque, aliqua? Inceptos voluptatem, duis tempore optio quae animi viverra distinctio cumque vivamus, earum congue, anim velit
-                            </p>
-                          </div>
-                          <div className="socialgroup">
-                            <ul>
-                              <li><a target="_blank" href="#"><i className="fab fa-facebook"></i></a></li>
-                              <li><a target="_blank" href="#"><i className="fab fa-google"></i></a></li>
-                              <li><a target="_blank" href="#"><i className="fab fa-twitter"></i></a></li>
-                              <li><a target="_blank" href="#"><i className="fab fa-instagram"></i></a></li>
-                              <li><a target="_blank" href="#"><i className="fab fa-pinterest"></i></a></li>
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                    </aside>
-
-                    {/* Recent Posts */}
-                    <aside className="widget widget_latest_post widget-post-thumb">
-                      <h3 className="widget-title">Recent Post</h3>
-                      <ul>
-                        <li>
-                          <figure className="post-thumb">
-                            <a href="#"><img src="assets/images/img17.jpg" alt="" /></a>
-                          </figure>
-                          <div className="post-content">
-                            <h5>
-                              <a href="#">Someday I'm going to be free and travel</a>
-                            </h5>
-                            <div className="entry-meta">
-                              <span className="posted-on"><a href="#">August 17, 2021</a></span>
-                              <span className="comments-link"><a href="#">No Comments</a></span>
-                            </div>
-                          </div>
-                        </li>
-                        <li>
-                          <figure className="post-thumb">
-                            <a href="#"><img src="assets/images/img17.jpg" alt="" /></a>
-                          </figure>
-                          <div className="post-content">
-                            <h5>
-                              <a href="#">Someday I'm going to be free and travel</a>
-                            </h5>
-                            <div className="entry-meta">
-                              <span className="posted-on"><a href="#">August 17, 2021</a></span>
-                              <span className="comments-link"><a href="#">No Comments</a></span>
-                            </div>
-                          </div>
-                        </li>
-                        <li>
-                          <figure className="post-thumb">
-                            <a href="#"><img src="assets/images/img17.jpg" alt="" /></a>
-                          </figure>
-                          <div className="post-content">
-                            <h5>
-                              <a href="#">Someday I'm going to be free and travel</a>
-                            </h5>
-                            <div className="entry-meta">
-                              <span className="posted-on"><a href="#">August 17, 2021</a></span>
-                              <span className="comments-link"><a href="#">No Comments</a></span>
-                            </div>
-                          </div>
-                        </li>
-                        <li>
-                          <figure className="post-thumb">
-                            <a href="#"><img src="assets/images/img17.jpg" alt="" /></a>
-                          </figure>
-                          <div className="post-content">
-                            <h5>
-                              <a href="#">Someday I'm going to be free and travel</a>
-                            </h5>
-                            <div className="entry-meta">
-                              <span className="posted-on"><a href="#">August 17, 2021</a></span>
-                              <span className="comments-link"><a href="#">No Comments</a></span>
-                            </div>
-                          </div>
-                        </li>
-                        <li>
-                          <figure className="post-thumb">
-                            <a href="#"><img src="assets/images/img17.jpg" alt="" /></a>
-                          </figure>
-                          <div className="post-content">
-                            <h5>
-                              <a href="#">Someday I'm going to be free and travel</a>
-                            </h5>
-                            <div className="entry-meta">
-                              <span className="posted-on"><a href="#">August 17, 2021</a></span>
-                              <span className="comments-link"><a href="#">No Comments</a></span>
-                            </div>
-                          </div>
-                        </li>
-                      </ul>
-                    </aside>
-
-                    {/* Social Share */}
-                    <aside className="widget widget_social">
-                      <h3 className="widget-title">Social share</h3>
-                      <div className="social-icon-wrap">
-                        <div className="social-icon social-facebook">
-                          <a href="#"><i className="fab fa-facebook-f"></i><span>Facebook</span></a>
-                        </div>
-                        <div className="social-icon social-pinterest">
-                          <a href="#"><i className="fab fa-pinterest"></i><span>Pinterest</span></a>
-                        </div>
-                        <div className="social-icon social-whatsapp">
-                          <a href="#"><i className="fab fa-whatsapp"></i><span>WhatsApp</span></a>
-                        </div>
-                        <div className="social-icon social-linkedin">
-                          <a href="#"><i className="fab fa-linkedin"></i><span>Linkedin</span></a>
-                        </div>
-                        <div className="social-icon social-twitter">
-                          <a href="#"><i className="fab fa-twitter"></i><span>Twitter</span></a>
-                        </div>
-                        <div className="social-icon social-google">
-                          <a href="#"><i className="fab fa-google-plus-g"></i><span>Google</span></a>
-                        </div>
-                      </div>
-                    </aside>
+                {/* Author Section */}
+                <div style={{
+                  background: '#101F46',
+                  borderRadius: '30px',
+                  padding: '40px',
+                  color: '#fff',
+                  display: 'flex',
+                  gap: '30px',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  marginBottom: '60px',
+                  boxShadow: '0 20px 40px rgba(16, 31, 70, 0.2)'
+                }}>
+                  <div style={{ flex: '0 0 100px', height: '100px', borderRadius: '50%', overflow: 'hidden', border: '4px solid rgba(255,255,255,0.1)' }}>
+                    <img src="/assets/images/user-img.png" style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Author" />
+                  </div>
+                  <div style={{ flex: '1' }}>
+                    <span className="hero-highlight" style={{ fontWeight: '800', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1px' }}>Written By</span>
+                    <h4 style={{ fontSize: '24px', fontWeight: '800', margin: '5px 0 10px', color: '#fff' }}>{blog.author || "Travele Expert"}</h4>
+                    <p style={{ margin: 0, opacity: 0.85, fontSize: '15px', lineHeight: '1.7' }}>
+                      Passionate about discovering hidden gems and sharing authentic travel experiences from around the globe.
+                    </p>
                   </div>
                 </div>
+              </div>
+
+              {/* Sidebar */}
+              <div className="col-lg-4">
+                <aside style={{ position: 'sticky', top: '100px' }}>
+                  {/* Search Widget */}
+                  <div style={{
+                    background: '#fff',
+                    borderRadius: '25px',
+                    padding: '30px',
+                    marginBottom: '30px',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.05)'
+                  }}>
+                    <h4 style={{ fontSize: '20px', fontWeight: '800', color: '#101F46', marginBottom: '20px' }}>Search</h4>
+                    <form onSubmit={handleSearch} style={{ position: 'relative' }}>
+                      <input
+                        type="text"
+                        placeholder="Search stories..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '15px 50px 15px 20px',
+                          borderRadius: '50px',
+                          border: '1px solid #eee',
+                          outline: 'none',
+                          fontSize: '14px'
+                        }}
+                      />
+                      <button type="submit" style={{
+                        position: 'absolute',
+                        right: '5px',
+                        top: '5px',
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        background: '#0791BE',
+                        color: '#fff',
+                        border: 'none',
+                        cursor: 'pointer'
+                      }}>
+                        <i className="fas fa-search"></i>
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* Recent Posts Widget */}
+                  <div style={{
+                    background: '#fff',
+                    borderRadius: '25px',
+                    padding: '30px',
+                    marginBottom: '30px',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.05)'
+                  }}>
+                    <h4 style={{ fontSize: '20px', fontWeight: '800', color: '#101F46', marginBottom: '25px', position: 'relative', paddingLeft: '15px' }}>
+                      <span style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: '4px', height: '20px', background: '#F56960', borderRadius: '2px' }}></span>
+                      Recent Stories
+                    </h4>
+                    {recentBlogs.map((post) => (
+                      <div key={post.id} style={{ display: 'flex', gap: '15px', marginBottom: '20px' }} className="side-post-item">
+                        <Link to={`/blog-single/${post.id}`} style={{ flex: '0 0 80px', height: '80px', borderRadius: '15px', overflow: 'hidden' }}>
+                          <img src={post.image || "/assets/images/img22.jpg"} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                        </Link>
+                        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                          <h5 style={{ fontSize: '15px', fontWeight: '700', color: '#101F46', marginBottom: '5px', lineHeight: '1.4' }}>
+                            <Link to={`/blog-single/${post.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>{post.title}</Link>
+                          </h5>
+                          <span style={{ fontSize: '12px', color: '#888' }}>{formatDate(post.created_at)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Newsletter Widget */}
+                  {/* <div style={{
+                    background: 'linear-gradient(135deg, #101F46 0%, #0791BE 100%)',
+                    borderRadius: '25px',
+                    padding: '35px',
+                    color: '#fff',
+                    textAlign: 'center',
+                    boxShadow: '0 15px 35px rgba(7, 145, 190, 0.2)'
+                  }}>
+                    <div style={{
+                      width: '64px',
+                      height: '64px',
+                      background: 'rgba(255,255,255,0.15)',
+                      backdropFilter: 'blur(10px)',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      margin: '0 auto 20px',
+                      border: '1px solid rgba(255,255,255,0.2)'
+                    }}>
+                      <i className="fas fa-paper-plane" style={{ fontSize: '24px', color: '#fff' }}></i>
+                    </div>
+                    <h4 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '15px', color: '#fff' }}>Stay Inspired</h4>
+                    <p style={{ fontSize: '14px', opacity: 0.9, marginBottom: '25px', lineHeight: '1.6' }}>Join our community for the latest travel stories and exclusive offers.</p>
+                    <div style={{ position: 'relative' }}>
+                      <input type="email" placeholder="Email Address" style={{
+                        width: '100%',
+                        padding: '14px 20px',
+                        borderRadius: '50px',
+                        border: 'none',
+                        marginBottom: '15px',
+                        fontSize: '14px',
+                        outline: 'none',
+                        background: 'rgba(255,255,255,0.9)',
+                        color: '#101F46'
+                      }} />
+                    </div>
+                    <button style={{
+                      width: '100%',
+                      padding: '14px',
+                      background: 'linear-gradient(135deg, #F56960, #f5a623)',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '50px',
+                      fontWeight: '800',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 6px 15px rgba(245, 105, 96, 0.3)'
+                    }} onMouseEnter={e => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 8px 20px rgba(245, 105, 96, 0.4)';
+                    }}
+                      onMouseLeave={e => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 6px 15px rgba(245, 105, 96, 0.3)';
+                      }}>SUBSCRIBE NOW</button>
+                  </div> */}
+                </aside>
               </div>
             </div>
           </div>
         </div>
       </main>
 
-      {/* Footer */}
-      <footer id="colophon" className="site-footer footer-primary">
-        <div className="top-footer">
-          <div className="container">
-            <div className="row">
-              <div className="col-lg-3 col-md-6">
-                <aside className="widget widget_text">
-                  <h3 className="widget-title">About Travel</h3>
-                  <div className="textwidget widget-text">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis, pulvinar dapibus leo.
-                  </div>
-                  <div className="award-img">
-                    <a href="#"><img src="assets/images/logo6.png" alt="" /></a>
-                    <a href="#"><img src="assets/images/logo2.png" alt="" /></a>
-                  </div>
-                </aside>
-              </div>
-              <div className="col-lg-3 col-md-6">
-                <aside className="widget widget_text">
-                  <h3 className="widget-title">CONTACT INFORMATION</h3>
-                  <div className="textwidget widget-text">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                    <ul>
-                      <li><a href="#"><i className="fas fa-phone-alt"></i> +01 (977) 2599 12</a></li>
-                      <li><a href="#"><i className="fas fa-envelope"></i> [email&#160;protected]</a></li>
-                      <li><i className="fas fa-map-marker-alt"></i> 3146  Koontz, California</li>
-                    </ul>
-                  </div>
-                </aside>
-              </div>
-              <div className="col-lg-3 col-md-6">
-                <aside className="widget widget_recent_post">
-                  <h3 className="widget-title">Latest Post</h3>
-                  <ul>
-                    <li>
-                      <h5><a href="#">Life is a beautiful journey not a destination</a></h5>
-                      <div className="entry-meta">
-                        <span className="post-on"><a href="#">August 17, 2021</a></span>
-                        <span className="comments-link"><a href="#">No Comments</a></span>
-                      </div>
-                    </li>
-                    <li>
-                      <h5><a href="#">Take only memories, leave only footprints</a></h5>
-                      <div className="entry-meta">
-                        <span className="post-on"><a href="#">August 17, 2021</a></span>
-                        <span className="comments-link"><a href="#">No Comments</a></span>
-                      </div>
-                    </li>
-                  </ul>
-                </aside>
-              </div>
-              <div className="col-lg-3 col-md-6">
-                <aside className="widget widget_newslatter">
-                  <h3 className="widget-title">SUBSCRIBE US</h3>
-                  <div className="widget-text">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                  </div>
-                  <form className="newslatter-form">
-                    <input type="email" name="s" placeholder="Your Email.." />
-                    <input type="submit" name="s" value="SUBSCRIBE NOW" />
-                  </form>
-                </aside>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="buttom-footer">
-          <div className="container">
-            <div className="row align-items-center">
-              <div className="col-md-5">
-                <div className="footer-menu">
-                  <ul>
-                    <li><a href="#">Privacy Policy</a></li>
-                    <li><a href="#">Term & Condition</a></li>
-                    <li><a href="#">FAQ</a></li>
-                  </ul>
-                </div>
-              </div>
-              <div className="col-md-2 text-center">
-                <div className="footer-logo">
-                  <a href="#"><img src="assets/images/travele-logo.png" alt="" /></a>
-                </div>
-              </div>
-              <div className="col-md-5">
-                <div className="copy-right text-right">Copyright © 2021 Travele. All rights reserveds</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
-
-      {/* Back To Top */}
-      <a id="backTotop" href="#" className="to-top-icon">
-        <i className="fas fa-chevron-up"></i>
-      </a>
-
-      {/* Search Overlay */}
-      <div className="header-search-form">
-        <div className="container">
-          <div className="header-search-container">
-            <form className="search-form" role="search" method="get">
-              <input type="text" name="s" placeholder="Enter your text..." />
-            </form>
-            <a href="#" className="search-close">
-              <i className="fas fa-times"></i>
-            </a>
-          </div>
-        </div>
-      </div>
+      <Footer />
+      <style>{`
+        .side-post-item:hover h5 {
+          color: #0791BE !important;
+        }
+        .side-post-item img {
+          transition: transform 0.3s ease;
+        }
+        .side-post-item:hover img {
+          transform: scale(1.1);
+        }
+      `}</style>
     </div>
   );
 };

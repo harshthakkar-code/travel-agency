@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Header from "./Header";
-import { supabase } from "./supabaseClient"; // Your axios instance for API requests
+import Footer from "./Footer";
+import { supabase } from "./supabaseClient";
+import { Link } from "react-router-dom";
 // You can use any modal library, or simple custom modal
 import Modal from "react-modal";
 import "./bookings.css";
@@ -75,121 +77,200 @@ const Bookings = () => {
     <div id="page" className="full-page">
       <Header />
 
-      <section className="inner-banner-wrap">
-        <div
-          className="inner-baner-container"
-          style={{ backgroundImage: "url(/assets/images/inner-banner.jpg)" }}
-        >
-          <div className="container">
-            <div className="inner-banner-content">
-              <h1 className="inner-title">Your Bookings</h1>
-            </div>
+      <main id="content" className="site-main">
+        {/* =================== HERO SECTION =================== */}
+        <section className="bookings-hero-section" style={{
+          backgroundImage: "url(/assets/images/inner-banner.jpg)",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          minHeight: '60vh',
+          display: 'flex',
+          alignItems: 'center',
+          position: 'relative',
+          paddingTop: '120px',
+          paddingBottom: '80px'
+        }}>
+          <div className="overlay" style={{
+            background: 'linear-gradient(135deg, rgba(7, 145, 190, 0.88) 0%, rgba(16, 31, 70, 0.88) 100%)',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0
+          }}></div>
+          <div className="container" style={{ position: 'relative', zIndex: 2, color: '#fff', textAlign: 'center' }}>
+            <span style={{
+              display: 'inline-block',
+              padding: '10px 24px',
+              background: 'rgba(255,255,255,0.25)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '50px',
+              marginBottom: '25px',
+              fontSize: '13px',
+              letterSpacing: '2px',
+              textTransform: 'uppercase',
+              fontWeight: '600',
+              border: '1px solid rgba(255,255,255,0.3)'
+            }}>
+              <i className="fas fa-calendar-check" style={{ marginRight: '10px' }}></i>
+              Manage Adventures
+            </span>
+            <h1 style={{
+              fontSize: '60px',
+              fontWeight: '900',
+              marginBottom: '20px',
+              textShadow: '0 4px 20px rgba(0,0,0,0.4)',
+              lineHeight: '1.2',
+              letterSpacing: '-1px',
+              color: '#fff'
+            }}>
+              My <span style={{ color: '#F56960' }}>Bookings</span>
+            </h1>
+            <p style={{
+              fontSize: '18px',
+              maxWidth: '700px',
+              margin: '0 auto',
+              opacity: 0.95,
+              lineHeight: '1.6',
+              fontWeight: '400',
+              textShadow: '0 2px 8px rgba(0,0,0,0.3)'
+            }}>
+              Keep track of all your past and upcoming journeys. View your trip details, itineraries, and manage your travel history in one place.
+            </p>
           </div>
-        </div>
-        <div className="inner-shape" style={{ height: "100px" }}></div>
-      </section>
+        </section>
 
-      <div style={{ padding: "20px", backgroundColor: "grey" }}>
-        <div className="dashboard-box table-opp-color-box">
-          <h4>Recent Booking</h4>
-          {loading ? (
-            <p>Loading bookings...</p>
-          ) : error ? (
-            <p>{error}</p>
-          ) : bookings.length === 0 ? (
-            <p>No bookings found.</p>
-          ) : (
-            <div className="table-responsive">
-              <table className="table">
-                <thead>
-                  <tr style={{ backgroundColor: "white" }}>
-                    <th>User</th>
-                    <th>Date</th>
-                    <th>Destination</th>
-                    <th>Package</th>
-                    <th>Id</th>
-                    {/* <th>Status</th> */}
-                    <th>People</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bookings.map((booking) => (
-                    <tr key={booking.id}>
-                      <td>
-                        <span className="list-enq-name">
-                          {booking.user ? `${booking.user.firstName} ${booking.user.lastName} ` : "Unknown User"}
-                        </span>
-                      </td>
-
-                      <td>
-                        {new Date(
-                          booking.booking_date || booking.created_at || new Date()
-                        ).toLocaleDateString("en-US", {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                      </td>
-                      <td>{booking.packages?.destination || "-"}</td>
-                      <td>
+        <section style={{ padding: '80px 0', background: '#f8f9fa' }}>
+          <div className="container">
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: '50px' }}>
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+                <p style={{ marginTop: '15px', color: '#666' }}>Fetching your adventures...</p>
+              </div>
+            ) : error ? (
+              <div style={{ textAlign: 'center', padding: '50px', background: '#fff', borderRadius: '15px' }}>
+                <i className="fas fa-exclamation-circle" style={{ fontSize: '48px', color: '#F56960', marginBottom: '15px' }}></i>
+                <h3>{error}</h3>
+                <button onClick={() => window.location.reload()} className="btn-primary-custom" style={{ marginTop: '15px' }}>Try Again</button>
+              </div>
+            ) : bookings.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '80px 40px', background: '#fff', borderRadius: '20px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
+                <div style={{ width: '80px', height: '80px', background: 'rgba(7, 145, 190, 0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 25px', color: '#0791BE', fontSize: '30px' }}>
+                  <i className="fas fa-calendar-times"></i>
+                </div>
+                <h2 style={{ fontSize: '28px', fontWeight: '700', marginBottom: '15px', color: '#101F46' }}>No Bookings Found</h2>
+                <p style={{ color: '#666', marginBottom: '30px' }}>You haven't booked any trips yet. Start exploring our amazing packages!</p>
+                <Link to="/tour-packages" style={{
+                  display: 'inline-block',
+                  padding: '12px 30px',
+                  background: '#0791BE',
+                  color: '#fff',
+                  borderRadius: '50px',
+                  fontWeight: '600',
+                  textDecoration: 'none'
+                }}>Browse Packages</Link>
+              </div>
+            ) : (
+              <div className="row">
+                {bookings.map((booking) => (
+                  <div className="col-lg-12 mb-4" key={booking.id}>
+                    <div className="booking-card-modern" style={{
+                      background: '#fff',
+                      borderRadius: '20px',
+                      overflow: 'hidden',
+                      boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      transition: 'transform 0.3s ease',
+                      border: '1px solid #f0f0f0'
+                    }}>
+                      <div className="booking-image" style={{ flex: '0 0 300px', height: '200px', minWidth: '300px' }}>
                         <img
                           src={booking.packages?.gallery?.[0] || "assets/images/img6.jpg"}
                           alt=""
-                          style={{ width: "50px", height: "50px", objectFit: "cover", marginRight: "10px", borderRadius: "5px" }}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
-                        <h3>
-                          <a href="#">
-                            {booking.packages?.title} ({booking.packages?.destination})
-                          </a>
-                        </h3>
-                        <div className="package-price">
-                          <h6>
-                            <span>
-                              ${booking.packages?.sale_price || booking.packages?.regular_price}
+                      </div>
+                      <div className="booking-details" style={{ flex: '1', padding: '25px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                          <div>
+                            <span style={{
+                              background: 'rgba(7, 145, 190, 0.1)',
+                              color: '#0791BE',
+                              padding: '4px 12px',
+                              borderRadius: '50px',
+                              fontSize: '12px',
+                              fontWeight: '700',
+                              marginBottom: '10px',
+                              display: 'inline-block'
+                            }}>
+                              ID: #{booking.id.slice(0, 8)}
                             </span>
-                            / per person
-                          </h6>
+                            <h3 style={{ fontSize: '22px', fontWeight: '700', color: '#101F46', marginBottom: '5px' }}>{booking.packages?.title}</h3>
+                            <p style={{ color: '#666', fontSize: '14px', margin: 0 }}>
+                              <i className="fas fa-map-marker-alt" style={{ color: '#0791BE', marginRight: '5px' }}></i>
+                              {booking.packages?.destination}
+                            </p>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: '24px', fontWeight: '800', color: '#0791BE' }}>
+                              ${booking.pricing?.totalCost || (booking.packages?.sale_price || booking.packages?.regular_price)}
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#888' }}>Total Amount Paid</div>
+                          </div>
                         </div>
-                      </td>
-                      <td>{booking.id}</td>
-                      {/* <td>
-                        <span
-                          className={`badge ${
-    booking.status === "Approved"
-      ? "badge-success"
-      : booking.status === "Pending"
-        ? "badge-primary"
-        : "badge-danger"
-  } `}
-                        >
-                          {booking.status}
-                        </span>
-                      </td> */}
 
-                      <td>
-                        <span className="badge badge-success">
-                          {booking.packages?.groupSize ?? 1}
-                        </span>
-                      </td>
-                      <td style={{ display: "flex", gap: "10px" }}>
-                        {/* Actions like Edit/Delete - you can add handlers */}
-                        <span
-                          className="badge badge-primary"
-                          style={{ cursor: "pointer" }}
+                        <div style={{ display: 'flex', gap: '20px', marginTop: '15px', borderTop: '1px solid #f0f0f0', paddingTop: '15px' }}>
+                          <div style={{ fontSize: '13px', color: '#666' }}>
+                            <strong>Booking Date:</strong> {new Date(booking.created_at).toLocaleDateString()}
+                          </div>
+                          <div style={{ fontSize: '13px', color: '#666' }}>
+                            <strong>Group Size:</strong> {booking.group_size || 1} People
+                          </div>
+                          <div style={{ fontSize: '13px', color: '#666' }}>
+                            <strong>Status:</strong> <span style={{ color: '#28a745', fontWeight: '600' }}>Confirmed</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="booking-actions" style={{
+                        padding: '25px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        borderLeft: '1px solid #f0f0f0',
+                        background: '#fafafa'
+                      }}>
+                        <button
                           onClick={() => openModal(booking)}
+                          className="btn-view-details"
+                          style={{
+                            padding: '12px 25px',
+                            background: '#101F46',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '50px',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            transition: 'all 0.3s ease'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = '#0791BE'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = '#101F46'}
                         >
-                          <i className="far fa-eye"></i>
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </div>
+                          <i className="far fa-eye"></i> View Details
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      </main>
 
       {/* <Modal
         isOpen={!!selectedBooking}
@@ -276,305 +357,192 @@ const Bookings = () => {
         contentLabel="Booking Details"
         style={{
           overlay: {
-            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            backgroundColor: "rgba(0, 0, 0, 0.7)",
             zIndex: 10000,
-            backdropFilter: "blur(4px)",
+            backdropFilter: "blur(8px)",
+            overflowX: 'auto',
+            paddingTop: '30px'
           },
           content: {
-            maxWidth: "600px",
+            maxWidth: "700px",
+            width: "90%",
             margin: "auto",
-            inset: "40px",
-            padding: "30px 40px",
+            inset: "auto",
+            padding: "0",
             position: "relative",
-            fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
-            borderRadius: "12px",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.2)",
+            fontFamily: '"Outfit", sans-serif',
+            borderRadius: "20px",
+            boxShadow: "0 20px 50px rgba(0,0,0,0.3)",
             backgroundColor: "#fff",
             color: "#333",
             zIndex: 10001,
+            border: "none",
+            overflowX: 'auto',
+            maxHeight: "90vh"
           },
         }}
       >
         {selectedBooking && (
-          <div>
-            <button
-              onClick={closeModal}
-              style={{
-                position: "absolute",
-                top: "15px",
-                right: "15px",
-                background: "transparent",
-                border: "none",
-                fontSize: "28px",
-                fontWeight: "700",
-                cursor: "pointer",
-                color: "#666",
-                transition: "color 0.2s ease",
-                lineHeight: "1",
-              }}
-              aria-label="Close modal"
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#000")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "#666")}
-            >
-              &times;
-            </button>
-
-            <h3
-              style={{
-                marginBottom: "25px",
-                borderBottom: "2px solid #eee",
-                paddingBottom: "10px",
-                fontWeight: "700",
-                color: "#222",
-              }}
-            >
-              Booking Details
-            </h3>
-
-            <div style={{ display: "flex", gap: "40px", flexWrap: "wrap" }}>
-              <div style={{ flex: "1 1 45%" }}>
-                <p>
-                  <strong>User:</strong> {selectedBooking.user ? `${selectedBooking.user.firstName} ${selectedBooking.user.lastName} ` : "N/A"}
-                </p>
-                <p>
-                  <strong>Email:</strong> {selectedBooking.user.email}
-                </p>
-                <p>
-                  <strong>Phone:</strong> {selectedBooking.user.phone}
-                </p>
-                <p>
-                  <strong>Status:</strong> {selectedBooking.status}
-                </p>
-                <p>
-                  <strong>Booking Date:</strong>{" "}
-                  {new Date(
-                    selectedBooking.booking_date || selectedBooking.created_at || new Date()
-                  ).toLocaleDateString("en-US", {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </p>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {/* Modal Header */}
+            <div style={{
+              padding: "25px 35px",
+              background: "#101F46",
+              color: "#fff",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center"
+            }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: "24px", fontWeight: "700", color: "#fff" }}>Booking Details</h2>
+                <p style={{ margin: "5px 0 0", fontSize: "14px", opacity: 0.8 }}>ID: #{selectedBooking.id.slice(0, 12)}</p>
               </div>
-
-              <div style={{ flex: "1 1 45%" }}>
-                <p>
-                  <strong>Destination:</strong>{" "}
-                  {selectedBooking.packages?.destination}
-                </p>
-                <p>
-                  <strong>Package Title:</strong>{" "}
-                  {selectedBooking.packages?.title}
-                </p>
-                <p>
-                  <strong>Travel Date:</strong>{" "}
-                  {new Date(
-                    selectedBooking.packages?.travelDate
-                  ).toLocaleDateString()}
-                </p>
-                <p>
-                  <strong>Group Size:</strong>{" "}
-                  {selectedBooking.packages?.groupSize}
-                </p>
-                <p>
-                  <strong>Trip Duration:</strong>{" "}
-                  {selectedBooking.packages?.tripDuration}
-                </p>
-              </div>
+              <button
+                onClick={closeModal}
+                style={{
+                  background: "rgba(255,255,255,0.1)",
+                  border: "none",
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "50%",
+                  color: "#fff",
+                  fontSize: "20px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "all 0.3s ease"
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.2)"}
+                onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+              >
+                <i className="fas fa-times"></i>
+              </button>
             </div>
 
-            <div style={{ marginTop: "30px" }}>
-              <h3
-                style={{
-                  borderBottom: "1px solid #ddd",
-                  paddingBottom: "8px",
-                  fontWeight: "700",
-                  color: "#222",
-                }}
-              >
-                Pricing Details:
-              </h3>
-              <ul
-                style={{
-                  listStyle: "none",
-                  paddingLeft: 0,
-                  marginTop: "15px",
-                  color: "#555",
-                }}
-              >
-                <li>
-                  Package Cost: $
-                  {Number(selectedBooking.pricing?.packageCost || 0).toFixed(2)}
-                </li>
-                <li>
-                  Tour Guide: ${Number(selectedBooking.pricing?.tourGuide || 0).toFixed(2)}
-                </li>
-                <li>
-                  Meals Included: $
-                  {Number(selectedBooking.pricing?.mealsIncluded || 0).toFixed(2)}
-                </li>
-                <li>
-                  Extra Baggage: $
-                  {Number(selectedBooking.pricing?.extraBaggage || 0).toFixed(2)}
-                </li>
-                <li>
-                  Transfers: ${Number(selectedBooking.pricing?.transfers || 0).toFixed(2)}
-                </li>
-                <li
-                  style={{
+            <div style={{ padding: "35px", overflowY: "auto" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "30px" }}>
+
+                {/* Traveler Information */}
+                <div className="modal-section">
+                  <h4 style={{ color: "#0791BE", fontSize: "16px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "10px" }}>
+                    <i className="fas fa-user-circle"></i> Traveler Info
+                  </h4>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                    <div style={{ display: "flex", gap: "12px" }}>
+                      <span style={{ color: "#888", width: "20px" }}><i className="fas fa-user"></i></span>
+                      <span style={{ fontWeight: "600" }}>{selectedBooking.user ? `${selectedBooking.user.firstName} ${selectedBooking.user.lastName}` : "Guest User"}</span>
+                    </div>
+                    <div style={{ display: "flex", gap: "12px" }}>
+                      <span style={{ color: "#888", width: "20px" }}><i className="fas fa-envelope"></i></span>
+                      <span>{selectedBooking.user?.email || "N/A"}</span>
+                    </div>
+                    <div style={{ display: "flex", gap: "12px" }}>
+                      <span style={{ color: "#888", width: "20px" }}><i className="fas fa-phone"></i></span>
+                      <span>{selectedBooking.user?.phone || "N/A"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Package Information */}
+                <div className="modal-section">
+                  <h4 style={{ color: "#0791BE", fontSize: "16px", fontWeight: "700", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "10px" }}>
+                    <i className="fas fa-map-marked-alt"></i> Trip Details
+                  </h4>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                    <div style={{ display: "flex", gap: "12px" }}>
+                      <span style={{ color: "#888", width: "20px" }}><i className="fas fa-suitcase"></i></span>
+                      <span style={{ fontWeight: "600" }}>{selectedBooking.packages?.title}</span>
+                    </div>
+                    <div style={{ display: "flex", gap: "12px" }}>
+                      <span style={{ color: "#888", width: "20px" }}><i className="fas fa-map-pin"></i></span>
+                      <span>{selectedBooking.packages?.destination}</span>
+                    </div>
+                    <div style={{ display: "flex", gap: "12px" }}>
+                      <span style={{ color: "#888", width: "20px" }}><i className="fas fa-calendar-alt"></i></span>
+                      <span>{new Date(selectedBooking.created_at).toLocaleDateString("en-US", { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                    </div>
+                    <div style={{ display: "flex", gap: "12px" }}>
+                      <span style={{ color: "#888", width: "20px" }}><i className="fas fa-users"></i></span>
+                      <span>{selectedBooking.group_size || 1} Person(s)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pricing Breakdown */}
+              <div style={{ marginTop: "40px", background: "#f8f9fa", borderRadius: "15px", padding: "25px" }}>
+                <h4 style={{ color: "#101F46", fontSize: "16px", fontWeight: "700", marginBottom: "20px", display: "flex", alignItems: "center", gap: "10px" }}>
+                  <i className="fas fa-receipt"></i> Payment Summary
+                </h4>
+                <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "15px" }}>
+                    <span style={{ color: "#666" }}>Package Base Cost</span>
+                    <span style={{ fontWeight: "600" }}>${Number(selectedBooking.pricing?.packageCost || 0).toFixed(2)}</span>
+                  </div>
+                  {selectedBooking.pricing?.tourGuide > 0 && (
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "15px" }}>
+                      <span style={{ color: "#666" }}>Professional Tour Guide</span>
+                      <span style={{ fontWeight: "600" }}>+${Number(selectedBooking.pricing.tourGuide).toFixed(2)}</span>
+                    </div>
+                  )}
+                  {selectedBooking.pricing?.mealsIncluded > 0 && (
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "15px" }}>
+                      <span style={{ color: "#666" }}>Meal Plan Upgrade</span>
+                      <span style={{ fontWeight: "600" }}>+${Number(selectedBooking.pricing.mealsIncluded).toFixed(2)}</span>
+                    </div>
+                  )}
+                  {selectedBooking.pricing?.extraBaggage > 0 && (
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "15px" }}>
+                      <span style={{ color: "#666" }}>Extra Baggage Allowance</span>
+                      <span style={{ fontWeight: "600" }}>+${Number(selectedBooking.pricing.extraBaggage).toFixed(2)}</span>
+                    </div>
+                  )}
+                  {selectedBooking.pricing?.transfers > 0 && (
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "15px" }}>
+                      <span style={{ color: "#666" }}>VIP Airport Transfers</span>
+                      <span style={{ fontWeight: "600" }}>+${Number(selectedBooking.pricing.transfers).toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div style={{
                     marginTop: "10px",
-                    fontWeight: "bold",
-                    fontSize: "18px",
-                    color: "#111",
-                  }}
-                >
-                  Total Cost: ${Number(selectedBooking.pricing?.totalCost || 0).toFixed(2)}
-                </li>
-              </ul>
+                    paddingTop: "15px",
+                    borderTop: "2px dashed #ddd",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center"
+                  }}>
+                    <span style={{ fontSize: "18px", fontWeight: "700", color: "#101F46" }}>Total Amount</span>
+                    <span style={{ fontSize: "24px", fontWeight: "800", color: "#0791BE" }}>
+                      ${Number(selectedBooking.pricing?.totalCost || 0).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status Footer */}
+              <div style={{ marginTop: "30px", display: "flex", justifyContent: "center" }}>
+                <div style={{
+                  background: "rgba(40, 167, 69, 0.1)",
+                  color: "#28a745",
+                  padding: "10px 30px",
+                  borderRadius: "50px",
+                  fontWeight: "700",
+                  fontSize: "14px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px"
+                }}>
+                  <i className="fas fa-check-circle"></i> Booking Status: Confirmed
+                </div>
+              </div>
             </div>
           </div>
         )}
       </Modal>
 
       {/* Keep your footer and other components unchanged below */}
-      <footer id="colophon" className="site-footer footer-primary">
-        <div className="top-footer">
-          <div className="container">
-            <div className="row">
-              <div className="col-lg-3 col-md-6">
-                <aside className="widget widget_text">
-                  <h3 className="widget-title">About Travel</h3>
-                  <div className="textwidget widget-text">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut
-                    elit tellus, luctus nec ullamcorper mattis, pulvinar dapibus
-                    leo.
-                  </div>
-                  <div className="award-img">
-                    <a href="#">
-                      <img src="/assets/images/logo6.png" alt="" />
-                    </a>
-                    <a href="#">
-                      <img src="/assets/images/logo2.png" alt="" />
-                    </a>
-                  </div>
-                </aside>
-              </div>
-              <div className="col-lg-3 col-md-6">
-                <aside className="widget widget_text">
-                  <h3 className="widget-title">CONTACT INFORMATION</h3>
-                  <div className="textwidget widget-text">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                    <ul>
-                      <li>
-                        <a href="#">
-                          <i className="fas fa-phone-alt"></i> +01 (977) 2599 12
-                        </a>
-                      </li>
-                      <li>
-                        <a href="#">
-                          <i className="fas fa-envelope"></i>{" "}
-                          <span
-                            className="__cf_email__"
-                            data-cfemail="bcdfd3d1ccddd2c5fcd8d3d1ddd5d292dfd3d1"
-                          >
-                            [email&#160;protected]
-                          </span>
-                        </a>
-                      </li>
-                      <li>
-                        <i className="fas fa-map-marker-alt"></i> 3146 Koontz,
-                        California
-                      </li>
-                    </ul>
-                  </div>
-                </aside>
-              </div>
-              <div className="col-lg-3 col-md-6">
-                <aside className="widget widget_recent_post">
-                  <h3 className="widget-title">Latest Post</h3>
-                  <ul>
-                    <li>
-                      <h5>
-                        <a href="#">
-                          Life is a beautiful journey not a destination
-                        </a>
-                      </h5>
-                      <div className="entry-meta">
-                        <span className="post-on">
-                          <a href="#">August 17, 2021</a>
-                        </span>
-                        <span className="comments-link">
-                          <a href="#">No Comments</a>
-                        </span>
-                      </div>
-                    </li>
-                    <li>
-                      <h5>
-                        <a href="#">
-                          Take only memories, leave only footprints
-                        </a>
-                      </h5>
-                      <div className="entry-meta">
-                        <span className="post-on">
-                          <a href="#">August 17, 2021</a>
-                        </span>
-                        <span className="comments-link">
-                          <a href="#">No Comments</a>
-                        </span>
-                      </div>
-                    </li>
-                  </ul>
-                </aside>
-              </div>
-              <div className="col-lg-3 col-md-6">
-                <aside className="widget widget_newslatter">
-                  <h3 className="widget-title">SUBSCRIBE US</h3>
-                  <div className="widget-text">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                  </div>
-                  <form className="newslatter-form">
-                    <input type="email" name="s" placeholder="Your Email.." />
-                    <input type="submit" name="s" value="SUBSCRIBE NOW" />
-                  </form>
-                </aside>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="buttom-footer">
-          <div className="container">
-            <div className="row align-items-center">
-              <div className="col-md-5">
-                <div className="footer-menu">
-                  <ul>
-                    <li>
-                      <a href="#">Privacy Policy</a>
-                    </li>
-                    <li>
-                      <a href="#">Term & Condition</a>
-                    </li>
-                    <li>
-                      <a href="#">FAQ</a>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              <div className="col-md-2 text-center">
-                <div className="footer-logo">
-                  <a href="#">
-                    <img src="/assets/images/travele-logo.png" alt="" />
-                  </a>
-                </div>
-              </div>
-              <div className="col-md-5">
-                <div className="copy-right text-right">
-                  Copyright © 2021 Travele. All rights reserveds
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
