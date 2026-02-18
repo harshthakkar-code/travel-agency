@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import Header from "./Header";
 import Footer from "./Footer";
 import { supabase } from "./supabaseClient";
@@ -282,6 +282,38 @@ const Package_detail = () => {
           <div className="package-hero-overlay"></div>
           <div className="container">
             <div className="package-hero-content">
+              {/* Breadcrumb */}
+              <nav style={{ marginBottom: '20px' }}>
+                <ol className="breadcrumb" style={{
+                  background: 'transparent',
+                  padding: 0,
+                  margin: 0,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  fontSize: '14px',
+                  listStyle: 'none'
+                }}>
+                  <li>
+                    <Link to="/" style={{ color: 'rgba(255,255,255,0.9)', textDecoration: 'none', transition: 'color 0.3s' }}
+                      onMouseEnter={e => e.currentTarget.style.color = '#F56960'}
+                      onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.9)'}>
+                      <i className="fas fa-home" style={{ marginRight: '6px' }}></i>Home
+                    </Link>
+                  </li>
+                  <li style={{ color: 'rgba(255,255,255,0.6)' }}>/</li>
+                  <li>
+                    <Link to="/tour-packages" style={{ color: 'rgba(255,255,255,0.9)', textDecoration: 'none', transition: 'color 0.3s' }}
+                      onMouseEnter={e => e.currentTarget.style.color = '#F56960'}
+                      onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.9)'}>
+                      Packages
+                    </Link>
+                  </li>
+                  <li style={{ color: 'rgba(255,255,255,0.6)' }}>/</li>
+                  <li style={{ color: 'rgba(255,255,255,0.7)', fontWeight: '600' }}>Package Details</li>
+                </ol>
+              </nav>
+
               <span className="landing-hero-badge">
                 <i className="fas fa-map-marker-alt"></i> {pkg.destination || "United States"}
               </span>

@@ -1,6 +1,8 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import Header from "./Header";
 import Footer from "./Footer";
+import { supabase } from "./supabaseClient";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -12,6 +14,7 @@ const Contact = () => {
   });
 
   const [formStatus, setFormStatus] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -20,14 +23,47 @@ const Contact = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Add your form submission logic here
-    setFormStatus('success');
-    setTimeout(() => {
-      setFormStatus('');
-      setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
-    }, 3000);
+
+    // Validate form
+    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+      setFormStatus('error');
+      setTimeout(() => setFormStatus(''), 3000);
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Insert contact message into Supabase
+      const { data, error } = await supabase
+        .from('contact_messages')
+        .insert([
+          {
+            type: 'contact',
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone || null,
+            subject: formData.subject,
+            message: formData.message
+          }
+        ]);
+
+      if (error) throw error;
+
+      setFormStatus('success');
+      setTimeout(() => {
+        setFormStatus('');
+        setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
+      }, 3000);
+    } catch (error) {
+      console.error('Error submitting contact form:', error);
+      setFormStatus('error');
+      setTimeout(() => setFormStatus(''), 3000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -56,6 +92,30 @@ const Contact = () => {
             bottom: 0
           }}></div>
           <div className="container" style={{ position: 'relative', zIndex: 2, color: '#fff', textAlign: 'center' }}>
+            {/* Breadcrumb */}
+            <nav style={{ marginBottom: '20px' }}>
+              <ol className="breadcrumb" style={{
+                background: 'transparent',
+                padding: 0,
+                margin: 0,
+                display: 'flex',
+                justifyContent: 'center',
+                gap: '8px',
+                fontSize: '14px',
+                listStyle: 'none'
+              }}>
+                <li>
+                  <Link to="/" style={{ color: 'rgba(255,255,255,0.9)', textDecoration: 'none', transition: 'color 0.3s' }}
+                    onMouseEnter={e => e.currentTarget.style.color = '#F56960'}
+                    onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.9)'}>
+                    <i className="fas fa-home" style={{ marginRight: '6px' }}></i>Home
+                  </Link>
+                </li>
+                <li style={{ color: 'rgba(255,255,255,0.6)' }}>/</li>
+                <li style={{ color: 'rgba(255,255,255,0.7)', fontWeight: '600' }}>Contact</li>
+              </ol>
+            </nav>
+
             <span style={{
               display: 'inline-block',
               padding: '10px 24px',
@@ -370,19 +430,36 @@ const Contact = () => {
                       </div>
                     )}
 
+                    {formStatus === 'error' && (
+                      <div style={{
+                        padding: '15px 20px',
+                        background: '#f8d7da',
+                        border: '1px solid #f5c6cb',
+                        borderRadius: '10px',
+                        color: '#721c24',
+                        marginBottom: '20px',
+                        fontSize: '15px'
+                      }}>
+                        <i className="fas fa-exclamation-circle" style={{ marginRight: '10px' }}></i>
+                        Please fill in all required fields.
+                      </div>
+                    )}
+
                     <button
                       type="submit"
                       className="btn-primary-custom"
+                      disabled={isSubmitting}
                       style={{
                         padding: '15px 40px',
                         fontSize: '16px',
                         fontWeight: '600',
                         border: 'none',
-                        cursor: 'pointer'
+                        cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                        opacity: isSubmitting ? 0.7 : 1
                       }}
                     >
-                      <i className="fas fa-paper-plane" style={{ marginRight: '10px' }}></i>
-                      Send Message
+                      <i className={`fas ${isSubmitting ? 'fa-spinner fa-spin' : 'fa-paper-plane'}`} style={{ marginRight: '10px' }}></i>
+                      {isSubmitting ? 'Sending...' : 'Send Message'}
                     </button>
                   </form>
                 </div>

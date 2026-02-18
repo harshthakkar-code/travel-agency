@@ -36,6 +36,7 @@ import DbAddBlog from './admin/addBlog.jsx';
 import DbEditBlog from './admin/editBlog.jsx';
 import DbBooking from './admin/db-booking.jsx';
 import DbComment from './admin/db-comment.jsx';
+import ContactMessages from './admin/contactMessages.jsx';
 
 import RequireAuth from "./RequireAuth";
 import ScrollToTop from "./components/ScrollToTop";
@@ -388,6 +389,11 @@ function App() {
         <Route path="/admin/db-comment" element={
           <RequireAuth allowedRoles={["admin"]}>
             <DbComment />
+          </RequireAuth>
+        } />
+        <Route path="/admin/contact-messages" element={
+          <RequireAuth allowedRoles={["admin"]}>
+            <ContactMessages />
           </RequireAuth>
         } />
 

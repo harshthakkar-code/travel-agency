@@ -11,7 +11,6 @@ const DbAddBlog = () => {
     content: "",
     category: "",
     tags: "",
-    status: "Draft"
   });
 
   const [imageFile, setImageFile] = useState(null);
@@ -93,7 +92,6 @@ const DbAddBlog = () => {
       category: form.category,
       tags: tagsArray,
       image: imageUrl || "",
-      status: form.status
       // created_at will be auto-generated
     };
 
@@ -111,7 +109,6 @@ const DbAddBlog = () => {
         content: "",
         category: "",
         tags: "",
-        status: "Draft"
       });
       setImageFile(null);
       setImageUrl(null);

@@ -1,298 +1,50 @@
-// import React from "react";
-// import Header from "./Header";
-import Footer from "./Footer";
-
-// const BlogArchive = () => (
-//   <div id="page" className="full-page">
-//     {/* Header */}
-//     <Header />
-
-//     {/* Main Content */}
-//     <main id="content" className="site-main">
-//       {/* Inner Banner */}
-//       <section className="inner-banner-wrap">
-//         <div className="inner-baner-container" style={{ backgroundImage: "url(assets/images/inner-banner.jpg)" }}>
-//           <div className="container">
-//             <div className="inner-banner-content">
-//               <h1 className="inner-title">Archives</h1>
-//             </div>
-//           </div>
-//         </div>
-//         <div className="inner-shape"></div>
-//       </section>
-
-//       <div className="archive-section blog-archive">
-//         <div className="archive-inner">
-//           <div className="container">
-//             <div className="row">
-//               {/* --- Blog Posts (Right Sidebar) --- */}
-//               <div className="col-lg-12 primary right-sidebar">
-//                 <div className="grid row">
-//                   {/* Repeat for each post */}
-//                   <div className="grid-item col-md-6">
-//                     <article className="post">
-//                       <figure className="feature-image">
-//                         <a href="#"><img src="assets/images/img17.jpg" alt="" /></a>
-//                       </figure>
-//                       <div className="entry-content">
-//                         <h3><a href="#">Life is a beautiful journey not a destination</a></h3>
-//                         <div className="entry-meta">
-//                           <span className="byline"><a href="#">Demoteam</a></span>
-//                           <span className="posted-on"><a href="#">August 17, 2021</a></span>
-//                           <span className="comments-link"><a href="#">No Comments</a></span>
-//                         </div>
-//                         <p>Praesent, risus adipisicing donec! Cras. Lobortis id aliquip taciti repudiandae porro dolore facere officia! Natoque mollitia ultrices convallis nisl suscipit</p>
-//                         <a href="#" className="button-text">CONTINUE READING..</a>
-//                       </div>
-//                     </article>
-//                   </div>
-//                   <div className="grid-item col-md-6">
-//                     <article className="post">
-//                       <figure className="feature-image">
-//                         <a href="#"><img src="assets/images/img17.jpg" alt="" /></a>
-//                       </figure>
-//                       <div className="entry-content">
-//                         <h3><a href="#">Life is a beautiful journey not a destination</a></h3>
-//                         <div className="entry-meta">
-//                           <span className="byline"><a href="#">Demoteam</a></span>
-//                           <span className="posted-on"><a href="#">August 17, 2021</a></span>
-//                           <span className="comments-link"><a href="#">No Comments</a></span>
-//                         </div>
-//                         <p>Praesent, risus adipisicing donec! Cras. Lobortis id aliquip taciti repudiandae porro dolore facere officia! Natoque mollitia ultrices convallis nisl suscipit</p>
-//                         <a href="#" className="button-text">CONTINUE READING..</a>
-//                       </div>
-//                     </article>
-//                   </div>
-//                   <div className="grid-item col-md-6">
-//                     <article className="post">
-//                       <figure className="feature-image">
-//                         <a href="#"><img src="assets/images/img17.jpg" alt="" /></a>
-//                       </figure>
-//                       <div className="entry-content">
-//                         <h3><a href="#">Life is a beautiful journey not a destination</a></h3>
-//                         <div className="entry-meta">
-//                           <span className="byline"><a href="#">Demoteam</a></span>
-//                           <span className="posted-on"><a href="#">August 17, 2021</a></span>
-//                           <span className="comments-link"><a href="#">No Comments</a></span>
-//                         </div>
-//                         <p>Praesent, risus adipisicing donec! Cras. Lobortis id aliquip taciti repudiandae porro dolore facere officia! Natoque mollitia ultrices convallis nisl suscipit</p>
-//                         <a href="#" className="button-text">CONTINUE READING..</a>
-//                       </div>
-//                     </article>
-//                   </div>
-//                   <div className="grid-item col-md-6">
-//                     <article className="post">
-//                       <figure className="feature-image">
-//                         <a href="#"><img src="assets/images/img17.jpg" alt="" /></a>
-//                       </figure>
-//                       <div className="entry-content">
-//                         <h3><a href="#">Life is a beautiful journey not a destination</a></h3>
-//                         <div className="entry-meta">
-//                           <span className="byline"><a href="#">Demoteam</a></span>
-//                           <span className="posted-on"><a href="#">August 17, 2021</a></span>
-//                           <span className="comments-link"><a href="#">No Comments</a></span>
-//                         </div>
-//                         <p>Praesent, risus adipisicing donec! Cras. Lobortis id aliquip taciti repudiandae porro dolore facere officia! Natoque mollitia ultrices convallis nisl suscipit</p>
-//                         <a href="#" className="button-text">CONTINUE READING..</a>
-//                       </div>
-//                     </article>
-//                   </div>
-//                   <div className="grid-item col-md-6">
-//                     <article className="post">
-//                       <figure className="feature-image">
-//                         <a href="#"><img src="assets/images/img17.jpg" alt="" /></a>
-//                       </figure>
-//                       <div className="entry-content">
-//                         <h3><a href="#">Life is a beautiful journey not a destination</a></h3>
-//                         <div className="entry-meta">
-//                           <span className="byline"><a href="#">Demoteam</a></span>
-//                           <span className="posted-on"><a href="#">August 17, 2021</a></span>
-//                           <span className="comments-link"><a href="#">No Comments</a></span>
-//                         </div>
-//                         <p>Praesent, risus adipisicing donec! Cras. Lobortis id aliquip taciti repudiandae porro dolore facere officia! Natoque mollitia ultrices convallis nisl suscipit</p>
-//                         <a href="#" className="button-text">CONTINUE READING..</a>
-//                       </div>
-//                     </article>
-//                   </div>
-//                   {/* ...other posts (copy structure above and update image/content) */}
-//                   <div className="grid-item col-md-6">
-//                     <article className="post">
-//                       <figure className="feature-image">
-//                         <a href="#"><img src="assets/images/img18.jpg" alt="" /></a>
-//                       </figure>
-//                       <div className="entry-content">
-//                         <h3><a href="#">Take only memories, leave only footprints</a></h3>
-//                         <div className="entry-meta">
-//                           <span className="byline"><a href="#">Demoteam</a></span>
-//                           <span className="posted-on"><a href="#">August 17, 2021</a></span>
-//                           <span className="comments-link"><a href="#">No Comments</a></span>
-//                         </div>
-//                         <p>Praesent, risus adipisicing donec! Cras. Lobortis id aliquip taciti repudiandae porro dolore facere officia! Natoque mollitia ultrices convallis nisl suscipit</p>
-//                         <a href="#" className="button-text">CONTINUE READING..</a>
-//                       </div>
-//                     </article>
-//                   </div>
-//                   {/* ...repeat for remaining posts... */}
-//                 </div>
-//                 {/* Pagination */}
-//                 <div className="post-navigation-wrap">
-//                   <nav>
-//                     <ul className="pagination">
-//                       <li><a href="#"><i className="fas fa-arrow-left"></i></a></li>
-//                       <li className="active"><a href="#">1</a></li>
-//                       <li><a href="#">..</a></li>
-//                       <li><a href="#">5</a></li>
-//                       <li><a href="#"><i className="fas fa-arrow-right"></i></a></li>
-//                     </ul>
-//                   </nav>
-//                 </div>
-//               </div>
-//               {/* --- Sidebar (Right) --- */}
-
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </main>
-
-//     {/* Footer */}
-//     <footer id="colophon" className="site-footer footer-primary">
-//       <div className="top-footer">
-//         <div className="container">
-//           <div className="row">
-//             <div className="col-lg-3 col-md-6">
-//               <aside className="widget widget_text">
-//                 <h3 className="widget-title">About Travel</h3>
-//                 <div className="textwidget widget-text">
-//                   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis, pulvinar dapibus leo.
-//                 </div>
-//                 <div className="award-img">
-//                   <a href="#"><img src="assets/images/logo6.png" alt="" /></a>
-//                   <a href="#"><img src="assets/images/logo2.png" alt="" /></a>
-//                 </div>
-//               </aside>
-//             </div>
-//             <div className="col-lg-3 col-md-6">
-//               <aside className="widget widget_text">
-//                 <h3 className="widget-title">CONTACT INFORMATION</h3>
-//                 <div className="textwidget widget-text">
-//                   Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-//                   <ul>
-//                     <li><a href="#"><i className="fas fa-phone-alt"></i> +01 (977) 2599 12</a></li>
-//                     <li><a href="#"><i className="fas fa-envelope"></i> [email&#160;protected]</a></li>
-//                     <li><i className="fas fa-map-marker-alt"></i> 3146  Koontz, California</li>
-//                   </ul>
-//                 </div>
-//               </aside>
-//             </div>
-//             <div className="col-lg-3 col-md-6">
-//               <aside className="widget widget_recent_post">
-//                 <h3 className="widget-title">Latest Post</h3>
-//                 <ul>
-//                   <li>
-//                     <h5><a href="#">Life is a beautiful journey not a destination</a></h5>
-//                     <div className="entry-meta">
-//                       <span className="post-on"><a href="#">August 17, 2021</a></span>
-//                       <span className="comments-link"><a href="#">No Comments</a></span>
-//                     </div>
-//                   </li>
-//                   <li>
-//                     <h5><a href="#">Take only memories, leave only footprints</a></h5>
-//                     <div className="entry-meta">
-//                       <span className="post-on"><a href="#">August 17, 2021</a></span>
-//                       <span className="comments-link"><a href="#">No Comments</a></span>
-//                     </div>
-//                   </li>
-//                 </ul>
-//               </aside>
-//             </div>
-//             <div className="col-lg-3 col-md-6">
-//               <aside className="widget widget_newslatter">
-//                 <h3 className="widget-title">SUBSCRIBE US</h3>
-//                 <div className="widget-text">
-//                   Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-//                 </div>
-//                 <form className="newslatter-form">
-//                   <input type="email" name="s" placeholder="Your Email.." />
-//                   <input type="submit" name="s" value="SUBSCRIBE NOW" />
-//                 </form>
-//               </aside>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//       <div className="buttom-footer">
-//         <div className="container">
-//           <div className="row align-items-center">
-//             <div className="col-md-5">
-//               <div className="footer-menu">
-//                 <ul>
-//                   <li><a href="#">Privacy Policy</a></li>
-//                   <li><a href="#">Term & Condition</a></li>
-//                   <li><a href="#">FAQ</a></li>
-//                 </ul>
-//               </div>
-//             </div>
-//             <div className="col-md-2 text-center">
-//               <div className="footer-logo">
-//                 <a href="#"><img src="assets/images/travele-logo.png" alt="" /></a>
-//               </div>
-//             </div>
-//             <div className="col-md-5">
-//               <div className="copy-right text-right">Copyright © 2021 Travele. All rights reserveds</div>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </footer>
-//     <a id="backTotop" href="#" className="to-top-icon">
-//       <i className="fas fa-chevron-up"></i>
-//     </a>
-//     {/* Custom search overlay */}
-//     <div className="header-search-form">
-//       <div className="container">
-//         <div className="header-search-container">
-//           <form className="search-form" role="search" method="get">
-//             <input type="text" name="s" placeholder="Enter your text..." />
-//           </form>
-//           <a href="#" className="search-close">
-//             <i className="fas fa-times"></i>
-//           </a>
-//         </div>
-//       </div>
-//     </div>
-//   </div>
-// );
-
-// export default BlogArchive;
 
 
 import React, { useState, useEffect } from "react";
 import { supabase } from "./supabaseClient";
 import Header from "./Header";
+import Footer from "./Footer";
+import { Link, useLocation } from "react-router-dom";
 
 const BlogArchive = () => {
   const [blogs, setBlogs] = useState([]);
+  const [recentBlogs, setRecentBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const blogsPerPage = 6;
+  const location = useLocation();
+
+  // Pick up search query from URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const s = params.get('s');
+    if (s) {
+      setSearchQuery(s);
+    }
+  }, [location.search]);
 
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
         setLoading(true);
-        const { data, error } = await supabase
+        // Fetch all blogs to calculate pagination or use count
+        const { data, error, count } = await supabase
           .from('blogs')
-          .select('*')
+          .select('*', { count: 'exact' })
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        setBlogs(data || []); // Assuming 'blogs' is the state variable for posts
+
+        setBlogs(data || []);
+        setTotalPages(Math.ceil((count || 0) / blogsPerPage) || 1);
+
+        // Pick top 3 for recent posts
+        setRecentBlogs((data || []).slice(0, 3));
+
         setError(null);
-        // Pagination logic for supabase would need to be implemented here
-        // For now, assuming all data is fetched and setting totalPages to 1
-        setTotalPages(1);
       } catch (err) {
         console.error("Error fetching blogs:", err);
         setError('Failed to fetch blogs');
@@ -306,27 +58,35 @@ const BlogArchive = () => {
 
   // Format date to readable format
   const formatDate = (dateString) => {
-    const options = {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    };
+    if (!dateString) return "Recent";
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('en-US', options);
   };
 
-  // Handle pagination clicks
-  const handlePageClick = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-      window.scrollTo(0, 0); // Scroll to top when page changes
-    }
+  // Get excerpt from content
+  const getExcerpt = (content, length = 120) => {
+    if (!content) return "No content available...";
+    // Strip HTML if any (though currently simple text)
+    const plainText = content.replace(/<[^>]*>?/gm, '');
+    return plainText.length > length ? plainText.substring(0, length) + "..." : plainText;
   };
 
-  // Get excerpt from content
-  const getExcerpt = (content, length = 150) => {
-    if (!content) return "No content available...";
-    return content.length > length ? content.substring(0, length) + "..." : content;
-  };
+  // Pagination slice
+  const filteredBlogs = blogs.filter(blog =>
+    blog.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (blog.content && blog.content.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (blog.category && blog.category.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  const indexOfLastBlog = currentPage * blogsPerPage;
+  const indexOfFirstBlog = indexOfLastBlog - blogsPerPage;
+  const currentBlogs = filteredBlogs.slice(indexOfFirstBlog, indexOfLastBlog);
+
+  // Update total pages when filtered blogs change
+  useEffect(() => {
+    setTotalPages(Math.ceil(filteredBlogs.length / blogsPerPage) || 1);
+    setCurrentPage(1); // Reset to first page on search
+  }, [searchQuery, blogs.length]);
 
   return (
     <div id="page" className="full-page">
@@ -335,146 +95,297 @@ const BlogArchive = () => {
 
       {/* Main Content */}
       <main id="content" className="site-main">
-        {/* Inner Banner */}
-        <section className="inner-banner-wrap">
-          <div className="inner-baner-container" style={{ backgroundImage: "url(assets/images/inner-banner.jpg)" }}>
-            <div className="container">
-              <div className="inner-banner-content">
-                <h1 className="inner-title">Archives</h1>
-              </div>
-            </div>
+        {/* =================== HERO SECTION =================== */}
+        <section className="blog-hero-section" style={{
+          backgroundImage: "url(/assets/images/img16.jpg)",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          minHeight: '60vh',
+          display: 'flex',
+          alignItems: 'center',
+          position: 'relative',
+          paddingTop: '120px',
+          paddingBottom: '80px'
+        }}>
+          <div className="overlay" style={{
+            background: 'linear-gradient(135deg, rgba(7, 145, 190, 0.9) 0%, rgba(16, 31, 70, 0.9) 100%)',
+            position: 'absolute', top: 0, left: 0, right: 0, bottom: 0
+          }}></div>
+          <div className="container" style={{ position: 'relative', zIndex: 2, color: '#fff', textAlign: 'center' }}>
+            {/* Breadcrumb */}
+            <nav style={{ marginBottom: '20px' }}>
+              <ol className="breadcrumb" style={{
+                background: 'transparent',
+                padding: 0,
+                margin: 0,
+                display: 'flex',
+                justifyContent: 'center',
+                gap: '8px',
+                fontSize: '14px',
+                listStyle: 'none'
+              }}>
+                <li>
+                  <Link to="/" style={{ color: 'rgba(255,255,255,0.9)', textDecoration: 'none', transition: 'color 0.3s' }}
+                    onMouseEnter={e => e.currentTarget.style.color = '#F56960'}
+                    onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.9)'}>
+                    <i className="fas fa-home" style={{ marginRight: '6px' }}></i>Home
+                  </Link>
+                </li>
+                <li style={{ color: 'rgba(255,255,255,0.6)' }}>/</li>
+                <li style={{ color: 'rgba(255,255,255,0.7)', fontWeight: '600' }}>Blog</li>
+              </ol>
+            </nav>
+
+            <span style={{
+              display: 'inline-block',
+              padding: '10px 24px',
+              background: 'rgba(255,255,255,0.25)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '50px',
+              marginBottom: '25px',
+              fontSize: '13px',
+              letterSpacing: '2px',
+              textTransform: 'uppercase',
+              fontWeight: '600',
+              border: '1px solid rgba(255,255,255,0.3)'
+            }}>
+              <i className="fas fa-feather-alt" style={{ marginRight: '10px' }}></i> Travel Insights
+            </span>
+            <h1 style={{
+              fontSize: '60px',
+              fontWeight: '900',
+              marginBottom: '20px',
+              textShadow: '0 4px 20px rgba(0,0,0,0.4)',
+              lineHeight: '1.2',
+              letterSpacing: '-1px'
+            }}>
+              Our Travel <span className="hero-highlight">Journal</span>
+            </h1>
+            <p style={{
+              fontSize: '18px',
+              maxWidth: '700px',
+              margin: '0 auto',
+              opacity: 0.95,
+              lineHeight: '1.6'
+            }}>
+              Discover stories, tips, and guides from our expert world travelers. Your next big adventure starts with a single story.
+            </p>
           </div>
-          <div className="inner-shape"></div>
         </section>
 
-        <div className="archive-section blog-archive">
-          <div className="archive-inner">
-            <div className="container">
-              <div className="row">
-                {/* Blog Posts (Right Sidebar) */}
-                <div className="col-lg-12 primary right-sidebar">
-                  <div className="grid row">
-                    {/* Loading State */}
-                    {loading && (
-                      <div className="col-12 text-center" style={{ padding: "50px 0" }}>
-                        <h3>Loading blogs...</h3>
-                      </div>
-                    )}
-
-                    {/* Error State */}
-                    {error && (
-                      <div className="col-12 text-center" style={{ padding: "50px 0" }}>
-                        <h3 style={{ color: "red" }}>{error}</h3>
-                      </div>
-                    )}
-
-                    {/* No Blogs State */}
-                    {!loading && !error && blogs?.length === 0 && (
-                      <div className="col-12 text-center" style={{ padding: "50px 0" }}>
-                        <h3>No blogs found.</h3>
-                        <p>Check back later for new content!</p>
-                      </div>
-                    )}
-
-                    {/* Dynamic Blog Posts */}
-                    {!loading && !error && Array.isArray(blogs) && blogs.map((blog) => (
-                      <div key={blog._id} className="grid-item col-md-6">
-                        <article className="post">
-                          <figure className="feature-image">
-                            <a href={`/blog-single/${blog.id}`}>
-                              <img
-                                src={blog.image || "assets/images/img22.jpg"}
-                                alt={blog.title}
-                              />
-                            </a>
-                          </figure>
-                          <div className="entry-content">
-                            <h3>
-                              <a href={`/blog-single/${blog.id}`}>
-                                {blog.title}
-                              </a>
-                            </h3>
-                            <div className="entry-meta">
-                              <span className="byline">
-                                <a href="#">{blog.author || "Admin"}</a>
-                              </span>
-                              <span className="posted-on">
-                                <a href="#">{formatDate(blog.created_at)}</a>
-                              </span>
-                              <span className="comments-link">
-                                <a href="#">No Comments</a>
-                              </span>
+        <div className="archive-section" style={{ padding: '100px 0', background: '#f8f9fa' }}>
+          <div className="container">
+            <div className="row">
+              {/* Blog Posts Column */}
+              <div className="col-lg-8">
+                {loading ? (
+                  <div style={{ textAlign: 'center', padding: '50px' }}>
+                    <div className="spinner-border text-primary" role="status"></div>
+                    <h3 className="mt-3">Fetching Stories...</h3>
+                  </div>
+                ) : error ? (
+                  <div className="alert alert-danger">{error}</div>
+                ) : currentBlogs.length === 0 ? (
+                  <div className="text-center py-5">
+                    <h3>{searchQuery ? `No stories found for "${searchQuery}"` : "No blog posts found."}</h3>
+                    <button onClick={() => setSearchQuery("")} className="btn-primary-custom" style={{ border: 'none', marginTop: '15px' }}>
+                      Clear Search
+                    </button>
+                  </div>
+                ) : (
+                  <div className="row">
+                    {currentBlogs.map((blog) => (
+                      <div key={blog.id} className="col-md-12 mb-5">
+                        <article style={{
+                          background: '#fff',
+                          borderRadius: '25px',
+                          overflow: 'hidden',
+                          boxShadow: '0 15px 45px rgba(0,0,0,0.07)',
+                          display: 'flex',
+                          flexDirection: 'row',
+                          transition: 'transform 0.3s ease'
+                        }} className="blog-card-long">
+                          <div style={{
+                            flex: '0 0 40%',
+                            minHeight: '280px',
+                            position: 'relative',
+                            overflow: 'hidden'
+                          }}>
+                            <img
+                              src={blog.image || "/assets/images/img22.jpg"}
+                              alt={blog.title}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                            <div style={{
+                              position: 'absolute',
+                              top: '20px',
+                              left: '20px',
+                              background: '#F56960',
+                              color: '#fff',
+                              padding: '5px 15px',
+                              borderRadius: '5px',
+                              fontSize: '12px',
+                              fontWeight: '700'
+                            }}>
+                              {blog.category || "Travel"}
                             </div>
-                            <p>{getExcerpt(blog.content)}</p>
-                            <a href={`/blog-single/${blog.id}`} className="button-text">
-                              CONTINUE READING..
-                            </a>
+                          </div>
+                          <div style={{ padding: '35px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                            <div style={{ fontSize: '13px', color: '#888', marginBottom: '10px', display: 'flex', gap: '15px' }}>
+                              <span><i className="far fa-calendar-alt" style={{ color: '#0791BE', marginRight: '5px' }}></i> {formatDate(blog.created_at)}</span>
+                              <span><i className="far fa-user" style={{ color: '#0791BE', marginRight: '5px' }}></i> {blog.author || "Admin"}</span>
+                            </div>
+                            <h3 style={{ fontSize: '24px', fontWeight: '800', color: '#101F46', marginBottom: '15px', lineHeight: '1.3' }}>
+                              <Link to={`/blog-single/${blog.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>{blog.title}</Link>
+                            </h3>
+                            <p style={{ color: '#666', fontSize: '15px', lineHeight: '1.7', marginBottom: '20px' }}>
+                              {getExcerpt(blog.content)}
+                            </p>
+                            <Link to={`/blog-single/${blog.id}`} style={{
+                              color: '#0791BE',
+                              fontWeight: '700',
+                              fontSize: '14px',
+                              textDecoration: 'none',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '8px'
+                            }}>
+                              CONTINUE READING <i className="fas fa-arrow-right"></i>
+                            </Link>
                           </div>
                         </article>
                       </div>
                     ))}
+
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                      <div className="col-12 mt-4">
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                          {[...Array(totalPages)].map((_, i) => (
+                            <button
+                              key={i + 1}
+                              onClick={() => { setCurrentPage(i + 1); window.scrollTo(0, 400); }}
+                              style={{
+                                width: '45px',
+                                height: '45px',
+                                borderRadius: '50%',
+                                border: currentPage === i + 1 ? 'none' : '1px solid #ddd',
+                                background: currentPage === i + 1 ? '#101F46' : '#fff',
+                                color: currentPage === i + 1 ? '#fff' : '#101F46',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                transition: 'all 0.3s ease'
+                              }}
+                            >
+                              {i + 1}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Sidebar */}
+              <div className="col-lg-4">
+                <aside style={{ position: 'sticky', top: '100px' }}>
+                  {/* Search Widget */}
+                  <div style={{
+                    background: '#fff',
+                    borderRadius: '25px',
+                    padding: '30px',
+                    marginBottom: '30px',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.05)'
+                  }}>
+                    <h4 style={{ fontSize: '20px', fontWeight: '800', color: '#101F46', marginBottom: '20px' }}>Search</h4>
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="text"
+                        placeholder="Search stories..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '15px 50px 15px 20px',
+                          borderRadius: '50px',
+                          border: '1px solid #eee',
+                          outline: 'none',
+                          fontSize: '14px'
+                        }}
+                      />
+                      <button style={{
+                        position: 'absolute',
+                        right: '5px',
+                        top: '5px',
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        background: '#0791BE',
+                        color: '#fff',
+                        border: 'none',
+                        cursor: 'default'
+                      }}>
+                        <i className="fas fa-search"></i>
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Dynamic Pagination */}
-                  {totalPages > 1 && (
-                    <div className="post-navigation-wrap">
-                      <nav>
-                        <ul className="pagination">
-                          {/* Previous Page */}
-                          <li
-                            className={currentPage === 1 ? "disabled" : ""}
-                            style={{ cursor: currentPage === 1 ? "not-allowed" : "pointer" }}
-                          >
-                            <a
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                if (currentPage > 1) handlePageClick(currentPage - 1);
-                              }}
-                            >
-                              <i className="fas fa-arrow-left"></i>
-                            </a>
-                          </li>
+                  {/* Recent Posts Widget */}
+                  <div style={{
+                    background: '#fff',
+                    borderRadius: '25px',
+                    padding: '30px',
+                    marginBottom: '30px',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.05)'
+                  }}>
+                    <h4 style={{ fontSize: '20px', fontWeight: '800', color: '#101F46', marginBottom: '25px' }}>Recent Posts</h4>
+                    {recentBlogs.map((blog) => (
+                      <div key={blog.id} style={{ display: 'flex', gap: '15px', marginBottom: '20px' }} className="recent-post-item">
+                        <div style={{ flex: '0 0 80px', height: '80px', borderRadius: '15px', overflow: 'hidden' }}>
+                          <img src={blog.image || "/assets/images/img22.jpg"} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                          <h5 style={{ fontSize: '15px', fontWeight: '700', color: '#101F46', marginBottom: '5px', lineHeight: '1.4' }}>
+                            <Link to={`/blog-single/${blog.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>{blog.title}</Link>
+                          </h5>
+                          <span style={{ fontSize: '12px', color: '#888' }}>{formatDate(blog.created_at)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
 
-                          {/* Page Numbers */}
-                          {[...Array(totalPages)].map((_, i) => (
-                            <li
-                              key={i + 1}
-                              className={currentPage === i + 1 ? "active" : ""}
-                              style={{ cursor: "pointer" }}
-                            >
-                              <a
-                                href="#"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  handlePageClick(i + 1);
-                                }}
-                              >
-                                {i + 1}
-                              </a>
-                            </li>
-                          ))}
-
-                          {/* Next Page */}
-                          <li
-                            className={currentPage === totalPages ? "disabled" : ""}
-                            style={{ cursor: currentPage === totalPages ? "not-allowed" : "pointer" }}
-                          >
-                            <a
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                if (currentPage < totalPages) handlePageClick(currentPage + 1);
-                              }}
-                            >
-                              <i className="fas fa-arrow-right"></i>
-                            </a>
-                          </li>
-                        </ul>
-                      </nav>
-                    </div>
-                  )}
-                </div>
+                  {/* Newsletter Widget */}
+                  {/* <div style={{
+                    background: 'linear-gradient(135deg, #101F46 0%, #0791BE 100%)',
+                    borderRadius: '25px',
+                    padding: '35px',
+                    color: '#fff',
+                    textAlign: 'center'
+                  }}>
+                    <i className="fas fa-paper-plane" style={{ fontSize: '40px', marginBottom: '20px', opacity: 0.8 }}></i>
+                    <h4 style={{ fontSize: '22px', fontWeight: '800', color: '#fff', marginBottom: '15px' }}>Stay Updated</h4>
+                    <p style={{ fontSize: '14px', opacity: 0.9, marginBottom: '25px' }}>Get the latest travel stories and tips delivered to your inbox.</p>
+                    <input type="email" placeholder="Email Address" style={{
+                      width: '100%',
+                      padding: '12px 20px',
+                      borderRadius: '50px',
+                      border: 'none',
+                      marginBottom: '15px',
+                      fontSize: '14px'
+                    }} />
+                    <button style={{
+                      width: '100%',
+                      padding: '12px',
+                      background: '#F56960',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '50px',
+                      fontWeight: '700',
+                      cursor: 'pointer'
+                    }}>Subscribe Now</button>
+                  </div> */}
+                </aside>
               </div>
             </div>
           </div>
@@ -488,19 +399,6 @@ const BlogArchive = () => {
         <i className="fas fa-chevron-up"></i>
       </a>
 
-      {/* Custom search overlay */}
-      <div className="header-search-form">
-        <div className="container">
-          <div className="header-search-container">
-            <form className="search-form" role="search" method="get">
-              <input type="text" name="s" placeholder="Enter your text..." />
-            </form>
-            <a href="#" className="search-close">
-              <i className="fas fa-times"></i>
-            </a>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

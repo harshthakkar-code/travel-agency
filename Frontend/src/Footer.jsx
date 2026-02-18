@@ -1,17 +1,40 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn, FaPhoneAlt, FaEnvelope, FaMapMarkerAlt, FaPaperPlane } from "react-icons/fa";
+import { supabase } from "./supabaseClient";
 
 const Footer = () => {
     const [email, setEmail] = useState('');
     const [subscribeStatus, setSubscribeStatus] = useState('');
+    const [isSubscribing, setIsSubscribing] = useState(false);
 
-    const handleSubscribe = (e) => {
+    const handleSubscribe = async (e) => {
         e.preventDefault();
-        if (email) {
+        if (!email) return;
+
+        setIsSubscribing(true);
+
+        try {
+            const { error } = await supabase
+                .from('contact_messages')
+                .insert([
+                    {
+                        type: 'newsletter',
+                        email: email
+                    }
+                ]);
+
+            if (error) throw error;
+
             setSubscribeStatus('success');
             setEmail('');
             setTimeout(() => setSubscribeStatus(''), 3000);
+        } catch (error) {
+            console.error('Error subscribing:', error);
+            setSubscribeStatus('error');
+            setTimeout(() => setSubscribeStatus(''), 3000);
+        } finally {
+            setIsSubscribing(false);
         }
     };
 
@@ -386,6 +409,7 @@ const Footer = () => {
                                     />
                                     <button
                                         type="submit"
+                                        disabled={isSubscribing}
                                         style={{
                                             position: 'absolute',
                                             right: '5px',
@@ -397,22 +421,29 @@ const Footer = () => {
                                             border: 'none',
                                             borderRadius: '8px',
                                             color: '#fff',
-                                            cursor: 'pointer',
+                                            cursor: isSubscribing ? 'not-allowed' : 'pointer',
+                                            opacity: isSubscribing ? 0.7 : 1,
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
                                             transition: 'all 0.3s ease'
                                         }}
                                         onMouseEnter={(e) => {
-                                            e.currentTarget.style.background = 'linear-gradient(135deg, #065a7a, #0791BE)';
-                                            e.currentTarget.style.transform = 'translateY(-50%) scale(1.05)';
+                                            if (!isSubscribing) {
+                                                e.currentTarget.style.background = 'linear-gradient(135deg, #065a7a, #0791BE)';
+                                                e.currentTarget.style.transform = 'translateY(-50%) scale(1.05)';
+                                            }
                                         }}
                                         onMouseLeave={(e) => {
                                             e.currentTarget.style.background = 'linear-gradient(135deg, #0791BE, #065a7a)';
                                             e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
                                         }}
                                     >
-                                        <FaPaperPlane style={{ fontSize: '14px' }} />
+                                        {isSubscribing ? (
+                                            <i className="fas fa-spinner fa-spin" style={{ fontSize: '14px' }}></i>
+                                        ) : (
+                                            <FaPaperPlane style={{ fontSize: '14px' }} />
+                                        )}
                                     </button>
                                 </div>
                                 {subscribeStatus === 'success' && (
@@ -425,7 +456,20 @@ const Footer = () => {
                                         gap: '6px'
                                     }}>
                                         <i className="fas fa-check-circle"></i>
-                                        Successfully subscribed!
+                                        Thanks for subscribing!
+                                    </p>
+                                )}
+                                {subscribeStatus === 'error' && (
+                                    <p style={{
+                                        marginTop: '12px',
+                                        fontSize: '13px',
+                                        color: '#ff6b6b',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px'
+                                    }}>
+                                        <i className="fas fa-exclamation-circle"></i>
+                                        Subscription failed. Please try again.
                                     </p>
                                 )}
                             </form>
@@ -684,7 +728,7 @@ const Footer = () => {
                     }
                 }
             `}</style>
-        </footer>
+        </footer >
     );
 };
 

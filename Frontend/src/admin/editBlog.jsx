@@ -15,7 +15,6 @@ const DbEditBlog = () => {
     content: "",
     category: "",
     tags: "",
-    status: "Draft"
   });
 
   const [imageFile, setImageFile] = useState(null);
@@ -45,7 +44,6 @@ const DbEditBlog = () => {
           content: blog.content || "",
           category: blog.category || "",
           tags: blog.tags ? blog.tags.join(", ") : "", // Convert array to comma-separated string
-          status: blog.status || "Draft"
         });
 
         // Set existing image if available
@@ -139,7 +137,6 @@ const DbEditBlog = () => {
       category: form.category,
       tags: tagsArray,
       image: imageUrl || "",
-      status: form.status,
       updated_at: new Date()
     };
 
