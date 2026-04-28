@@ -438,6 +438,7 @@ const Footer = () => {
                                             e.currentTarget.style.background = 'linear-gradient(135deg, #0791BE, #065a7a)';
                                             e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
                                         }}
+                                        aria-label="Subscribe to newsletter"
                                     >
                                         {isSubscribing ? (
                                             <i className="fas fa-spinner fa-spin" style={{ fontSize: '14px' }}></i>

@@ -61,6 +61,7 @@ const BookingListTable = ({ bookings, onDelete, onStatusChange }) => {
                                     className="btn btn-sm btn-outline-danger"
                                     onClick={() => onDelete(booking.id)}
                                     title="Delete Booking"
+                                    aria-label="Delete Booking"
                                 >
                                     <i className="far fa-trash-alt"></i>
                                 </button>

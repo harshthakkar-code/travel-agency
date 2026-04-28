@@ -392,7 +392,8 @@ const Tour_packages = () => {
                               <button
                                 className={`btn-wishlist ${wishlist.includes(pkg.id) ? 'wishlisted' : ''}`}
                                 onClick={() => toggleWishlist(pkg.id)}
-                                title="Add to wishlist"
+                                aria-label={wishlist.includes(pkg.id) ? "Remove from wishlist" : "Add to wishlist"}
+                                title={wishlist.includes(pkg.id) ? "Remove from wishlist" : "Add to wishlist"}
                               >
                                 <i className={wishlist.includes(pkg.id) ? "fas fa-heart" : "far fa-heart"}></i>
                               </button>
@@ -482,7 +483,7 @@ const Tour_packages = () => {
       {/* FOOTER */}
       <Footer />
 
-      <a id="backTotop" href="#" className="to-top-icon">
+      <a id="backTotop" href="#" className="to-top-icon" aria-label="Back to top">
         <i className="fas fa-chevron-up"></i>
       </a>
 

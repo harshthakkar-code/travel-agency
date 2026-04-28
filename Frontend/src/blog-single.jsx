@@ -271,19 +271,21 @@ const Blog_single = () => {
                         { icon: 'fa-linkedin-in', color: '#0077b5' },
                         { icon: 'fa-whatsapp', color: '#25d366' }
                       ].map((social, i) => (
-                        <a key={i} href="#" style={{
-                          width: '40px',
-                          height: '40px',
-                          borderRadius: '50%',
-                          background: social.color,
-                          color: '#fff',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          textDecoration: 'none',
-                          fontSize: '14px',
-                          transition: 'transform 0.3s ease'
-                        }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-3px)'}
+                        <a key={i} href="#"
+                          aria-label={`Share on ${social.icon.split('-')[1]}`}
+                          style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            background: social.color,
+                            color: '#fff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            textDecoration: 'none',
+                            fontSize: '14px',
+                            transition: 'transform 0.3s ease'
+                          }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-3px)'}
                           onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
                           <i className={`fab ${social.icon}`}></i>
                         </a>
@@ -345,7 +347,7 @@ const Blog_single = () => {
                           fontSize: '14px'
                         }}
                       />
-                      <button type="submit" style={{
+                      <button type="submit" aria-label="Search stories" style={{
                         position: 'absolute',
                         right: '5px',
                         top: '5px',

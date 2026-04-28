@@ -827,7 +827,7 @@ const Booking = () => {
 
       <Footer />
 
-      <a id="backTotop" href="#" className="to-top-icon" style={{
+      <a id="backTotop" href="#" className="to-top-icon" aria-label="Back to top" style={{
         position: 'fixed',
         bottom: '30px',
         right: '30px',

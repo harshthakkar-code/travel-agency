@@ -606,6 +606,7 @@ const Header = () => {
                   transition: 'all 0.3s ease',
                   backdropFilter: 'blur(10px)'
                 }}
+                aria-label="Toggle mobile menu"
               >
                 <i className={`fas ${mobileMenuOpen ? 'fa-times' : 'fa-bars'}`}></i>
               </button>
@@ -663,6 +664,7 @@ const Header = () => {
             e.currentTarget.style.borderColor = '#e0e0e0';
             e.currentTarget.style.color = '#333';
           }}
+          aria-label="Close menu"
         >
           <i className="fas fa-times"></i>
         </button>

@@ -49,6 +49,7 @@ const UserListTable = ({ users, onDelete }) => {
                                     className="btn btn-sm btn-outline-primary mr-2"
                                     onClick={() => navigate(`/admin/user-edit/${user.id}`)}
                                     title="Edit User"
+                                    aria-label="Edit User"
                                 >
                                     <i className="far fa-edit"></i>
                                 </button>
@@ -56,6 +57,7 @@ const UserListTable = ({ users, onDelete }) => {
                                     className="btn btn-sm btn-outline-danger"
                                     onClick={() => onDelete(user)}
                                     title="Delete User"
+                                    aria-label="Delete User"
                                 >
                                     <i className="far fa-trash-alt"></i>
                                 </button>

@@ -314,18 +314,20 @@ const BlogArchive = () => {
                           fontSize: '14px'
                         }}
                       />
-                      <button style={{
-                        position: 'absolute',
-                        right: '5px',
-                        top: '5px',
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '50%',
-                        background: '#0791BE',
-                        color: '#fff',
-                        border: 'none',
-                        cursor: 'default'
-                      }}>
+                      <button
+                        aria-label="Search"
+                        style={{
+                          position: 'absolute',
+                          right: '5px',
+                          top: '5px',
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '50%',
+                          background: '#0791BE',
+                          color: '#fff',
+                          border: 'none',
+                          cursor: 'default'
+                        }}>
                         <i className="fas fa-search"></i>
                       </button>
                     </div>
@@ -395,7 +397,7 @@ const BlogArchive = () => {
       {/* Footer */}
       <Footer />
 
-      <a id="backTotop" href="#" className="to-top-icon">
+      <a id="backTotop" href="#" className="to-top-icon" aria-label="Back to top">
         <i className="fas fa-chevron-up"></i>
       </a>
 

@@ -96,7 +96,7 @@ const Single_page = () => {
       <Footer />
 
       {/* Back To Top Button */}
-      <a id="backTotop" href="#" className="to-top-icon">
+      <a id="backTotop" href="#" className="to-top-icon" aria-label="Back to top">
         <i className="fas fa-chevron-up"></i>
       </a>
 
@@ -107,7 +107,7 @@ const Single_page = () => {
             <form className="search-form" role="search" method="get">
               <input type="text" name="s" placeholder="Enter your text..." />
             </form>
-            <a href="#" className="search-close">
+            <a href="#" className="search-close" aria-label="Close search">
               <i className="fas fa-times"></i>
             </a>
           </div>

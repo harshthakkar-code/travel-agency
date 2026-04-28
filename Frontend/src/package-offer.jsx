@@ -668,7 +668,7 @@ const Package_offer = () => {
       <Footer />
 
       {/* Back to top button */}
-      <a id="backTotop" href="#" className="to-top-icon">
+      <a id="backTotop" href="#" className="to-top-icon" aria-label="Back to top">
         <i className="fas fa-chevron-up"></i>
       </a>
 
@@ -679,7 +679,7 @@ const Package_offer = () => {
             <form className="search-form" role="search" method="get">
               <input type="text" name="s" placeholder="Enter your text..." />
             </form>
-            <a href="#" className="search-close">
+            <a href="#" className="search-close" aria-label="Close search">
               <i className="fas fa-times"></i>
             </a>
           </div>
