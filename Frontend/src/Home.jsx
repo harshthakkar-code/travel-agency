@@ -96,7 +96,7 @@ const Home = () => {
                             </div>
                             <div className="col-md-4">
                                 <div className="feature-box" style={{ padding: '30px' }}>
-                                    <i className="fas fa-wallet" style={{ fontSize: '50px', color: '#d94d44', marginBottom: '20px' }}></i>
+                                    <i className="fas fa-wallet" style={{ fontSize: '50px', color: '#c23b32', marginBottom: '20px' }}></i>
                                     <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#101F46', marginBottom: '15px' }}>Best Price Guarantee</h2>
                                     <p style={{ color: '#444' }}>We ensure you get the best value for your money with no hidden costs.</p>
                                 </div>
@@ -118,7 +118,7 @@ const Home = () => {
                         <div className="section-heading text-center mb-5">
                             <span className="dash-style" style={{ 
                                 display: 'inline-block', 
-                                color: '#d94d44', 
+                                color: '#c23b32', 
                                 fontSize: '15px', 
                                 fontWeight: '700', 
                                 marginBottom: '10px', 
@@ -144,7 +144,7 @@ const Home = () => {
                                             </div>
                                             <h3 className="package-card-title" onClick={() => navigate(`/package-detail/${pkg.id}`)}>{pkg.title}</h3>
                                             <div className="package-card-footer">
-                                                <span className="current-price" style={{ color: '#d94d44', fontWeight: 'bold', fontSize: '20px' }}>
+                                                <span className="current-price" style={{ color: '#c23b32', fontWeight: 'bold', fontSize: '20px' }}>
                                                     ${pkg.sale_price || pkg.regular_price}
                                                 </span>
                                                 <button className="btn-book-now" onClick={() => navigate(`/package-detail/${pkg.id}`)}>Book Now</button>

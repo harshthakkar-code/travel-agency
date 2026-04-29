@@ -506,10 +506,10 @@ const Header = () => {
               <img
                 src={isScrolled ? "/assets/images/travele-logo1.png" : "/assets/images/travele-logo.png"}
                 alt="Travele Logo"
-                width={isScrolled ? 128 : 160}
-                height={isScrolled ? 40 : 50}
+                width={isScrolled ? 160 : 180}
+                height={isScrolled ? 40 : 45}
                 style={{
-                  height: isScrolled ? '40px' : '50px',
+                  height: isScrolled ? '40px' : '45px',
                   width: 'auto',
                   transition: 'all 0.4s ease',
                   filter: isScrolled ? 'none' : 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'

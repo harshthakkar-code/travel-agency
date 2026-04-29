@@ -80,7 +80,7 @@ const Footer = () => {
                                             src="/assets/images/travele-logo1.png"
                                             alt="Travele"
                                             width="180"
-                                            height="56"
+                                            height="45"
                                             style={{
                                                 maxWidth: '180px',
                                                 height: 'auto',
@@ -225,7 +225,7 @@ const Footer = () => {
                                     left: 0,
                                     width: '40px',
                                     height: '3px',
-                                    background: 'linear-gradient(90deg, #056b8a, #d94d44)',
+                                    background: 'linear-gradient(90deg, #056b8a, #c23b32)',
                                     borderRadius: '2px'
                                 }}></span>
                             </h3>
@@ -279,7 +279,7 @@ const Footer = () => {
                                     left: 0,
                                     width: '40px',
                                     height: '3px',
-                                    background: 'linear-gradient(90deg, #056b8a, #d94d44)',
+                                    background: 'linear-gradient(90deg, #056b8a, #c23b32)',
                                     borderRadius: '2px'
                                 }}></span>
                             </h3>
@@ -370,7 +370,7 @@ const Footer = () => {
                                     left: 0,
                                     width: '40px',
                                     height: '3px',
-                                    background: 'linear-gradient(90deg, #056b8a, #d94d44)',
+                                    background: 'linear-gradient(90deg, #056b8a, #c23b32)',
                                     borderRadius: '2px'
                                 }}></span>
                             </h3>
