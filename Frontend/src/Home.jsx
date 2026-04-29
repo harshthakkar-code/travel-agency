@@ -90,22 +90,22 @@ const Home = () => {
                             <div className="col-md-4">
                                 <div className="feature-box" style={{ padding: '30px' }}>
                                     <i className="fas fa-globe-americas" style={{ fontSize: '50px', color: '#0791BE', marginBottom: '20px' }}></i>
-                                    <h3>Best Destinations</h3>
-                                    <p style={{ color: '#777' }}>We cover the most amazing places on Earth, verified by experts.</p>
+                                    <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#101F46', marginBottom: '15px' }}>Best Destinations</h2>
+                                    <p style={{ color: '#444' }}>We cover the most amazing places on Earth, verified by experts.</p>
                                 </div>
                             </div>
                             <div className="col-md-4">
                                 <div className="feature-box" style={{ padding: '30px' }}>
-                                    <i className="fas fa-wallet" style={{ fontSize: '50px', color: '#F56960', marginBottom: '20px' }}></i>
-                                    <h3>Best Price Guarantee</h3>
-                                    <p style={{ color: '#777' }}>We ensure you get the best value for your money with no hidden costs.</p>
+                                    <i className="fas fa-wallet" style={{ fontSize: '50px', color: '#d94d44', marginBottom: '20px' }}></i>
+                                    <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#101F46', marginBottom: '15px' }}>Best Price Guarantee</h2>
+                                    <p style={{ color: '#444' }}>We ensure you get the best value for your money with no hidden costs.</p>
                                 </div>
                             </div>
                             <div className="col-md-4">
                                 <div className="feature-box" style={{ padding: '30px' }}>
                                     <i className="fas fa-headset" style={{ fontSize: '50px', color: '#f5a623', marginBottom: '20px' }}></i>
-                                    <h3>24/7 Support</h3>
-                                    <p style={{ color: '#777' }}>Our expert team is always available to assist you anytime, anywhere.</p>
+                                    <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#101F46', marginBottom: '15px' }}>24/7 Support</h2>
+                                    <p style={{ color: '#444' }}>Our expert team is always available to assist you anytime, anywhere.</p>
                                 </div>
                             </div>
                         </div>
@@ -116,7 +116,14 @@ const Home = () => {
                 <section className="home-packages" style={{ padding: '80px 0', background: '#f8f9fa' }}>
                     <div className="container">
                         <div className="section-heading text-center mb-5">
-                            <h5 className="dash-style">CHECK OUT OUR</h5>
+                            <span className="dash-style" style={{ 
+                                display: 'inline-block', 
+                                color: '#d94d44', 
+                                fontSize: '15px', 
+                                fontWeight: '700', 
+                                marginBottom: '10px', 
+                                textTransform: 'uppercase' 
+                            }}>CHECK OUT OUR</span>
                             <h2>Popular Packages</h2>
                         </div>
                         <div className="row">
@@ -137,7 +144,7 @@ const Home = () => {
                                             </div>
                                             <h3 className="package-card-title" onClick={() => navigate(`/package-detail/${pkg.id}`)}>{pkg.title}</h3>
                                             <div className="package-card-footer">
-                                                <span className="current-price" style={{ color: '#F56960', fontWeight: 'bold', fontSize: '20px' }}>
+                                                <span className="current-price" style={{ color: '#d94d44', fontWeight: 'bold', fontSize: '20px' }}>
                                                     ${pkg.sale_price || pkg.regular_price}
                                                 </span>
                                                 <button className="btn-book-now" onClick={() => navigate(`/package-detail/${pkg.id}`)}>Book Now</button>

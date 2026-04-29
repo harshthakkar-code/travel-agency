@@ -77,7 +77,7 @@ const Footer = () => {
                                 <div style={{ marginBottom: '15px' }}>
                                     <Link to="/">
                                         <img
-                                            src="/assets/images/logo-white.png"
+                                            src="/assets/images/travele-logo1.png"
                                             alt="Travele"
                                             width="180"
                                             height="56"
@@ -225,7 +225,7 @@ const Footer = () => {
                                     left: 0,
                                     width: '40px',
                                     height: '3px',
-                                    background: 'linear-gradient(90deg, #0791BE, #F56960)',
+                                    background: 'linear-gradient(90deg, #056b8a, #d94d44)',
                                     borderRadius: '2px'
                                 }}></span>
                             </h3>
@@ -247,7 +247,7 @@ const Footer = () => {
                                             gap: '8px'
                                         }}
                                             onMouseEnter={(e) => {
-                                                e.currentTarget.style.color = '#0791BE';
+                                                e.currentTarget.style.color = '#056b8a';
                                                 e.currentTarget.style.paddingLeft = '5px';
                                             }}
                                             onMouseLeave={(e) => {
@@ -279,7 +279,7 @@ const Footer = () => {
                                     left: 0,
                                     width: '40px',
                                     height: '3px',
-                                    background: 'linear-gradient(90deg, #0791BE, #F56960)',
+                                    background: 'linear-gradient(90deg, #056b8a, #d94d44)',
                                     borderRadius: '2px'
                                 }}></span>
                             </h3>
@@ -296,10 +296,10 @@ const Footer = () => {
                                         flexShrink: 0,
                                         border: '1px solid rgba(7, 145, 190, 0.3)'
                                     }}>
-                                        <FaMapMarkerAlt style={{ color: '#0791BE', fontSize: '16px' }} />
+                                        <FaMapMarkerAlt style={{ color: '#056b8a', fontSize: '16px' }} />
                                     </div>
                                     <div>
-                                        <h5 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: '#fff' }}>Address</h5>
+                                        <h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: '#fff' }}>Address</h4>
                                         <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.7)', margin: 0, lineHeight: '1.6' }}>
                                             123 Travel Street, Suite 100<br />
                                             San Francisco, CA 94102
@@ -319,10 +319,10 @@ const Footer = () => {
                                         flexShrink: 0,
                                         border: '1px solid rgba(7, 145, 190, 0.3)'
                                     }}>
-                                        <FaPhoneAlt style={{ color: '#0791BE', fontSize: '16px' }} />
+                                        <FaPhoneAlt style={{ color: '#056b8a', fontSize: '16px' }} />
                                     </div>
                                     <div>
-                                        <h5 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: '#fff' }}>Phone</h5>
+                                        <h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: '#fff' }}>Phone</h4>
                                         <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.7)', margin: 0 }}>
                                             +1 (555) 123-4567
                                         </p>
@@ -341,10 +341,10 @@ const Footer = () => {
                                         flexShrink: 0,
                                         border: '1px solid rgba(7, 145, 190, 0.3)'
                                     }}>
-                                        <FaEnvelope style={{ color: '#0791BE', fontSize: '16px' }} />
+                                        <FaEnvelope style={{ color: '#056b8a', fontSize: '16px' }} />
                                     </div>
                                     <div>
-                                        <h5 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: '#fff' }}>Email</h5>
+                                        <h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '5px', color: '#fff' }}>Email</h4>
                                         <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.7)', margin: 0 }}>
                                             info@travele.com
                                         </p>
@@ -370,7 +370,7 @@ const Footer = () => {
                                     left: 0,
                                     width: '40px',
                                     height: '3px',
-                                    background: 'linear-gradient(90deg, #0791BE, #F56960)',
+                                    background: 'linear-gradient(90deg, #056b8a, #d94d44)',
                                     borderRadius: '2px'
                                 }}></span>
                             </h3>
@@ -402,7 +402,7 @@ const Footer = () => {
                                             transition: 'all 0.3s ease'
                                         }}
                                         onFocus={(e) => {
-                                            e.target.style.borderColor = '#0791BE';
+                                            e.target.style.borderColor = '#056b8a';
                                             e.target.style.background = 'rgba(255,255,255,0.08)';
                                         }}
                                         onBlur={(e) => {
@@ -420,7 +420,7 @@ const Footer = () => {
                                             transform: 'translateY(-50%)',
                                             width: '40px',
                                             height: '40px',
-                                            background: 'linear-gradient(135deg, #0791BE, #065a7a)',
+                                            background: 'linear-gradient(135deg, #056b8a, #065a7a)',
                                             border: 'none',
                                             borderRadius: '8px',
                                             color: '#fff',
@@ -433,12 +433,12 @@ const Footer = () => {
                                         }}
                                         onMouseEnter={(e) => {
                                             if (!isSubscribing) {
-                                                e.currentTarget.style.background = 'linear-gradient(135deg, #065a7a, #0791BE)';
+                                                e.currentTarget.style.background = 'linear-gradient(135deg, #065a7a, #056b8a)';
                                                 e.currentTarget.style.transform = 'translateY(-50%) scale(1.05)';
                                             }
                                         }}
                                         onMouseLeave={(e) => {
-                                            e.currentTarget.style.background = 'linear-gradient(135deg, #0791BE, #065a7a)';
+                                            e.currentTarget.style.background = 'linear-gradient(135deg, #056b8a, #065a7a)';
                                             e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
                                         }}
                                         aria-label="Subscribe to newsletter"
@@ -504,7 +504,7 @@ const Footer = () => {
                                     fontSize: '14px',
                                     transition: 'color 0.3s ease'
                                 }}
-                                    onMouseEnter={(e) => e.currentTarget.style.color = '#0791BE'}
+                                    onMouseEnter={(e) => e.currentTarget.style.color = '#056b8a'}
                                     onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}>
                                     Privacy Policy
                                 </a>
@@ -514,7 +514,7 @@ const Footer = () => {
                                     fontSize: '14px',
                                     transition: 'color 0.3s ease'
                                 }}
-                                    onMouseEnter={(e) => e.currentTarget.style.color = '#0791BE'}
+                                    onMouseEnter={(e) => e.currentTarget.style.color = '#056b8a'}
                                     onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}>
                                     Terms & Conditions
                                 </a>
@@ -524,7 +524,7 @@ const Footer = () => {
                                     fontSize: '14px',
                                     transition: 'color 0.3s ease'
                                 }}
-                                    onMouseEnter={(e) => e.currentTarget.style.color = '#0791BE'}
+                                    onMouseEnter={(e) => e.currentTarget.style.color = '#056b8a'}
                                     onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}>
                                     FAQ
                                 </a>
@@ -537,7 +537,7 @@ const Footer = () => {
                                 color: 'rgba(255,255,255,0.6)',
                                 textAlign: 'right'
                             }}>
-                                © {new Date().getFullYear()} <span style={{ color: '#0791BE', fontWeight: '600' }}>Travele</span>. All rights reserved.
+                                © {new Date().getFullYear()} <span style={{ color: '#056b8a', fontWeight: '600' }}>Travele</span>. All rights reserved.
                             </p>
                         </div>
                     </div>

@@ -87,7 +87,7 @@ const Header = () => {
             gap: '12px',
             padding: '12px 16px',
             borderRadius: '8px',
-            color: isActive ? '#0791BE' : '#333',
+            color: isActive ? '#056b8a' : '#333',
             textDecoration: 'none',
             fontSize: '15px',
             fontWeight: isActive ? '600' : '500',
@@ -97,7 +97,7 @@ const Header = () => {
           onMouseEnter={(e) => {
             if (!isActive) {
               e.currentTarget.style.background = '#f8f9fa';
-              e.currentTarget.style.color = '#0791BE';
+              e.currentTarget.style.color = '#056b8a';
             }
           }}
           onMouseLeave={(e) => {
@@ -128,7 +128,7 @@ const Header = () => {
           }}>
             <div style={{
               padding: '12px 16px',
-              background: 'linear-gradient(135deg, #0791BE 0%, #065a7a 100%)',
+              background: 'linear-gradient(135deg, #056b8a 0%, #065a7a 100%)',
               borderRadius: '10px',
               marginBottom: '15px',
               color: '#fff'
@@ -190,7 +190,7 @@ const Header = () => {
               style={{
                 background: isScrolled ? "rgba(7, 145, 190, 0.1)" : "rgba(255,255,255,0.15)",
                 border: isScrolled ? "2px solid rgba(7, 145, 190, 0.2)" : "2px solid rgba(255,255,255,0.3)",
-                color: isScrolled ? "#0791BE" : "#fff",
+                color: isScrolled ? "#056b8a" : "#fff",
                 fontSize: "14px",
                 fontWeight: "600",
                 cursor: "pointer",
@@ -203,13 +203,13 @@ const Header = () => {
                 backdropFilter: 'blur(10px)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = isScrolled ? "#0791BE" : "#fff";
-                e.currentTarget.style.color = isScrolled ? "#fff" : "#0791BE";
-                e.currentTarget.style.borderColor = isScrolled ? "#0791BE" : "#fff";
+                e.currentTarget.style.background = isScrolled ? "#056b8a" : "#fff";
+                e.currentTarget.style.color = isScrolled ? "#fff" : "#056b8a";
+                e.currentTarget.style.borderColor = isScrolled ? "#056b8a" : "#fff";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = isScrolled ? "rgba(7, 145, 190, 0.1)" : "rgba(255,255,255,0.15)";
-                e.currentTarget.style.color = isScrolled ? "#0791BE" : "#fff";
+                e.currentTarget.style.color = isScrolled ? "#056b8a" : "#fff";
                 e.currentTarget.style.borderColor = isScrolled ? "rgba(7, 145, 190, 0.2)" : "rgba(255,255,255,0.3)";
               }}
             >
@@ -266,14 +266,14 @@ const Header = () => {
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.background = '#f8f9fa';
-                        e.currentTarget.style.color = '#0791BE';
+                        e.currentTarget.style.color = '#056b8a';
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.background = 'transparent';
                         e.currentTarget.style.color = '#333';
                       }}
                     >
-                      <i className="fas fa-tachometer-alt" style={{ fontSize: '16px', width: '18px', color: '#0791BE' }}></i>
+                      <i className="fas fa-tachometer-alt" style={{ fontSize: '16px', width: '18px', color: '#056b8a' }}></i>
                       Dashboard
                     </Link>
                   ) : (
@@ -295,14 +295,14 @@ const Header = () => {
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.background = '#f8f9fa';
-                          e.currentTarget.style.color = '#0791BE';
+                          e.currentTarget.style.color = '#056b8a';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.background = 'transparent';
                           e.currentTarget.style.color = '#333';
                         }}
                       >
-                        <i className="fas fa-calendar-check" style={{ fontSize: '16px', width: '18px', color: '#0791BE' }}></i>
+                        <i className="fas fa-calendar-check" style={{ fontSize: '16px', width: '18px', color: '#056b8a' }}></i>
                         My Bookings
                       </Link>
                       <Link
@@ -322,14 +322,14 @@ const Header = () => {
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.background = '#f8f9fa';
-                          e.currentTarget.style.color = '#0791BE';
+                          e.currentTarget.style.color = '#056b8a';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.background = 'transparent';
                           e.currentTarget.style.color = '#333';
                         }}
                       >
-                        <i className="fas fa-heart" style={{ fontSize: '16px', width: '18px', color: '#0791BE' }}></i>
+                        <i className="fas fa-heart" style={{ fontSize: '16px', width: '18px', color: '#056b8a' }}></i>
                         Wishlist
                       </Link>
                     </>
@@ -383,7 +383,7 @@ const Header = () => {
             style={{
               textAlign: 'center',
               padding: '14px 24px',
-              background: 'linear-gradient(135deg, #0791BE 0%, #065a7a 100%)',
+              background: 'linear-gradient(135deg, #056b8a 0%, #065a7a 100%)',
               color: '#fff',
               borderRadius: '10px',
               textDecoration: 'none',
@@ -403,8 +403,8 @@ const Header = () => {
               textAlign: 'center',
               padding: '14px 24px',
               background: 'transparent',
-              color: '#0791BE',
-              border: '2px solid #0791BE',
+              color: '#056b8a',
+              border: '2px solid #056b8a',
               borderRadius: '10px',
               textDecoration: 'none',
               fontWeight: '600',
@@ -412,12 +412,12 @@ const Header = () => {
               transition: 'all 0.2s ease'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#0791BE';
+              e.currentTarget.style.background = '#056b8a';
               e.currentTarget.style.color = '#fff';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = '#0791BE';
+              e.currentTarget.style.color = '#056b8a';
             }}
           >
             Register
@@ -444,7 +444,7 @@ const Header = () => {
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = isScrolled ? "rgba(7, 145, 190, 0.1)" : "rgba(255,255,255,0.2)";
-            e.currentTarget.style.borderColor = isScrolled ? "#0791BE" : "#fff";
+            e.currentTarget.style.borderColor = isScrolled ? "#056b8a" : "#fff";
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = isScrolled ? "transparent" : "rgba(255,255,255,0.1)";
@@ -457,7 +457,7 @@ const Header = () => {
           to="/user/register"
           style={{
             color: isScrolled ? "#fff" : "#101F46",
-            backgroundColor: isScrolled ? "#0791BE" : "#fff",
+            backgroundColor: isScrolled ? "#056b8a" : "#fff",
             padding: "10px 24px",
             borderRadius: "50px",
             fontSize: "14px",
@@ -559,12 +559,12 @@ const Header = () => {
                               transition: "all 0.3s ease",
                               position: "relative",
                               display: "inline-block",
-                              background: isActive ? '#0791BE' : 'transparent',
+                              background: isActive ? '#056b8a' : 'transparent',
                               boxShadow: isActive ? '0 4px 15px rgba(7, 145, 190, 0.3)' : 'none'
                             }}
                             onMouseEnter={(e) => {
                               if (!isActive) {
-                                e.currentTarget.style.background = '#0791BE';
+                                e.currentTarget.style.background = '#056b8a';
                                 e.currentTarget.style.color = '#fff';
                               }
                             }}
@@ -594,10 +594,10 @@ const Header = () => {
                 className="mobile-menu-btn"
                 onClick={toggleMobileMenu}
                 style={{
-                  background: mobileMenuOpen ? '#0791BE' : (isScrolled ? 'rgba(7, 145, 190, 0.1)' : 'rgba(255,255,255,0.15)'),
+                  background: mobileMenuOpen ? '#056b8a' : (isScrolled ? 'rgba(7, 145, 190, 0.1)' : 'rgba(255,255,255,0.15)'),
                   border: '2px solid',
-                  borderColor: mobileMenuOpen ? '#0791BE' : (isScrolled ? 'rgba(7, 145, 190, 0.2)' : 'rgba(255,255,255,0.3)'),
-                  color: mobileMenuOpen ? '#fff' : (isScrolled ? '#0791BE' : '#fff'),
+                  borderColor: mobileMenuOpen ? '#056b8a' : (isScrolled ? 'rgba(7, 145, 190, 0.2)' : 'rgba(255,255,255,0.3)'),
+                  color: mobileMenuOpen ? '#fff' : (isScrolled ? '#056b8a' : '#fff'),
                   fontSize: '20px',
                   cursor: 'pointer',
                   width: '44px',
@@ -659,8 +659,8 @@ const Header = () => {
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = '#f8f9fa';
-            e.currentTarget.style.borderColor = '#0791BE';
-            e.currentTarget.style.color = '#0791BE';
+            e.currentTarget.style.borderColor = '#056b8a';
+            e.currentTarget.style.color = '#056b8a';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = '#fff';
