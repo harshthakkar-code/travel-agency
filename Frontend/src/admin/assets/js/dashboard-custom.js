@@ -20,11 +20,15 @@ $(document).ready(function(){
 /*----------------------------------------------------*/
     /*  Counters
 /*----------------------------------------------------*/
+    var resizeTimer;
     $(window).on('load resize', function() {
-		$('.dashboard-stat-content h5').counterUp({
-	        delay: 100,
-	        time: 800
-	    });
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            $('.dashboard-stat-content h5').counterUp({
+                delay: 100,
+                time: 800
+            });
+        }, 250);
     });
 
     $(function () {

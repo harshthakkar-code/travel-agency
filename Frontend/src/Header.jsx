@@ -502,12 +502,15 @@ const Header = () => {
         >
           <div className="container d-flex justify-content-between align-items-center">
             {/* Logo */}
-            <div className="site-identity" onClick={handleLogoClick} style={{ cursor: 'pointer', zIndex: 1021 }}>
+             <div className="site-identity" onClick={handleLogoClick} style={{ cursor: 'pointer', zIndex: 1021 }}>
               <img
                 src={isScrolled ? "/assets/images/travele-logo1.png" : "/assets/images/travele-logo.png"}
                 alt="Travele Logo"
+                width={isScrolled ? 128 : 160}
+                height={isScrolled ? 40 : 50}
                 style={{
-                  maxHeight: isScrolled ? '40px' : '50px',
+                  height: isScrolled ? '40px' : '50px',
+                  width: 'auto',
                   transition: 'all 0.4s ease',
                   filter: isScrolled ? 'none' : 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
                 }}

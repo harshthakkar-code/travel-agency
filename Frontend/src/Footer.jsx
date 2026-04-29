@@ -79,8 +79,11 @@ const Footer = () => {
                                         <img
                                             src="/assets/images/logo-white.png"
                                             alt="Travele"
+                                            width="180"
+                                            height="56"
                                             style={{
                                                 maxWidth: '180px',
+                                                height: 'auto',
                                                 filter: 'brightness(1.1)'
                                             }}
                                         />
